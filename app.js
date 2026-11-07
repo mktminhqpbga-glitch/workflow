@@ -64,6 +64,7 @@
 
   const nodeDefs = {
     videoInput: {title:'Video đầu vào',outputs:[{id:'video',label:'video gốc',type:'video'}]},
+    videoFrame: {title:'Ảnh từ khung video',inputs:[{id:'video',label:'Video nguồn',type:'video'}],outputs:[{id:'image',label:'Ảnh khung hình',type:'image'}]},
     generateText: {title:'Tạo văn bản',inputs:[{id:'prompt',label:'Yêu cầu',type:'text'},{id:'rules',label:'Quy tắc',type:'text'},{id:'reference',label:'Ảnh',type:'image'},{id:'video',label:'Video gốc',type:'video'}],outputs:[{id:'text',label:'Văn bản',type:'text'}]},
     prompt: { title: 'Prompt', outputs: [{ id: 'text', label: 'text', type: 'text' }] },
     negativePrompt: { title: 'Negative Prompt', outputs: [{ id: 'text', label: 'negative', type: 'negative' }] },
@@ -1367,6 +1368,11 @@
       const download=document.createElement('button');download.type='button';download.className='small-btn';download.textContent='Download resized image';download.disabled=!imageUrl;download.onclick=()=>{out.toBlob(blob=>{if(!blob)return;const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`museflow-${n.data.width}x${n.data.height}.png`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);});};body.appendChild(download);
     }
 
+    if(n.type==='videoFrame'){
+      if(n.data.asset?.url){const img=document.createElement('img');img.src=n.data.asset.url;img.alt='Khung hình được trích chính xác từ video';body.append(img);}
+      const note=document.createElement('small');note.className='hint';note.textContent='Ảnh PNG '+(n.data.asset?.width||'?')+'×'+(n.data.asset?.height||'?')+' · '+(n.data.captureMode==='first'?'Khung đầu':n.data.captureMode==='last'?'Khung cuối':'Khung tại vị trí tua')+' · Không dùng AI';body.append(note);
+    }
+
     if (n.type === 'preview') {
       if (n.data.asset?.url) { if(['video','audio'].includes(n.data.asset.kind)){const video=document.createElement(n.data.asset.kind==='audio'?'audio':'video');video.controls=true;video.src=n.data.asset.url;body.appendChild(video);}else{const a=document.createElement('a');a.href=n.data.asset.url;a.target='_blank';const img=document.createElement('img');img.src=n.data.asset.url;a.appendChild(img);body.appendChild(a);} }
       else { const empty=document.createElement('div'); empty.className='empty preview-empty'; empty.textContent='Run workflow'; body.appendChild(empty); }
@@ -1390,7 +1396,7 @@
     if(globalThis.WorkflowNodeCommonActions){
       const media=commonAsset(n);
       const usesAI=['prompt','masterScript','storyPrompt','generateText','generateImage','generateVideo','voiceover'].includes(n.type);
-      const contextTypes=['masterScript','imageInput','videoInput','audioInput','generateImage','generateVideo',
+      const contextTypes=['masterScript','imageInput','videoInput','videoFrame','audioInput','generateImage','generateVideo',
         'imageResize','preview','voiceover','finalOutput','audioMix','subtitles'].includes(n.type);
       const scripted=n.type==='masterScript'&&String(n.data.script||'').trim();
       const hasResult=Boolean(media?.url||scripted||String(n.data.sharedGeneratedText||'').trim());
@@ -2152,7 +2158,7 @@
             const audioRequirement=isVideo?'AUDIO IS REQUIRED: Return a video with audible, synchronized sound; do not make a silent clip. Follow the requested audio direction and make its music and sound effects clearly audible. Do not add spoken dialogue unless the prompt asks for it.':'';
             const fidelityInstruction=isVideo&&again?'\n\nPROMPT FIDELITY: Follow the provided prompt closely and depict its requested characters, actions, setting, sequence, mood, and visual details. Keep the main action clear and recognizable throughout the clip. Do not substitute a different scene, omit requested actions, or add unrelated events. Use the connected reference images to preserve subject identity and appearance.':'';
             const musePrompt=isVideo?`Create a ${n.data.size} aspect ratio video clip, ${n.data.duration} seconds long. ${sizeInstruction}\n\n${audioRequirement}${continuityInstruction?`\n\n${continuityInstruction}`:''}${referenceImages.length?`\n\nUse the attached reference image${referenceImages.length===1?'':'s'} as visual guidance${continuityStartFrame?' while keeping image 1 as the exact opening frame.':'.'}`:''}\n\nPrompt: ${prompt}${negativePrompt?`\n\nAvoid: ${negativePrompt}`:''}${fidelityInstruction}`:WorkflowTools.imagePrompt(prompt,n.data.size,negativePrompt);
-            const generationRequest={type:'MUSEFLOW_GENERATE',requestId:uid('generation'),prompt:musePrompt,negativePrompt,size:n.data.size,model:n.data.model,duration:n.data.duration,mediaType:isVideo?'video':'image',referenceImages:referenceImages.map(item=>item.url),timeoutSec:600};run.requestId=generationRequest.requestId;
+            const generationRequest={type:'MUSEFLOW_GENERATE',requestId:uid('generation'),prompt:musePrompt,negativePrompt,size:n.data.size,model:n.data.model,duration:n.data.duration,mediaType:isVideo?'video':'image',referenceImages:referenceImages.map(item=>item.url),timeoutSec:600,...(n.data.aiTask?{aiTask:n.data.aiTask}:{})};run.requestId=generationRequest.requestId;
             generationRequest.referenceVideos=resolveVideos(n.id);generationRequest.model=n.data.apiModel;
             let reply=await generateWithProvider(n,generationRequest,abortController.signal);
             if(abortController.signal.aborted)throw new DOMException('Generation stopped by user.','AbortError');
