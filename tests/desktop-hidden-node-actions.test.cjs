@@ -33,6 +33,24 @@ test('hidden Node toolbar tools must not return in any Canvas UI module',()=>{
     }
   }
 });
+test('F06 Smart Edit is absent from all Canvas node creation surfaces',()=>{
+  const forbidden=[
+    /Chỉnh sửa thông minh/i,
+    /Smart[ -]?Edit/i,
+    /智能剪辑/,
+    /data-add=[\"'](?:smartEdit|smart-edit|smart_edit|F06)[\"']/i,
+    /(?:title|label)\s*:\s*[\"']Smart\s*Edit[\"']/i
+  ];
+  for(const filename of files){
+    const source=fs.readFileSync(path.join(root,filename),'utf8');
+    for(const check of forbidden){
+      assert.doesNotMatch(source,check,filename+' must not expose hidden F06 Smart Edit '+check);
+    }
+  }
+  const inventory=fs.readFileSync(path.join(root,'docs/NODE_BUTTON_INVENTORY.md'),'utf8');
+  assert.match(inventory,/F06[^\n]*ẨN CẢ NODE/);
+});
+
 test('F03 and F04 tool inventory explicitly tracks globally hidden actions',()=>{
   const inventory=fs.readFileSync(path.join(root,'docs/NODE_BUTTON_INVENTORY.md'),'utf8');
   for(const id of ['I04','I13','I14','I15','I16','V14','V15','D01','D05','D06','E04','E14']){
