@@ -2340,7 +2340,10 @@
           if(isVideo&&n.data.storyMasterId){const approval=storyNeedsApproval(n);if(approval)throw Error(approval);}
           if(!isVideo)delete n.data.storyApprovedAssetId;
           generationStep++;
-          const rawPrompt=resolvePrompt(n.id);const prompt=n.data.aiTask?.id?globalThis.WorkflowAITasks.buildPrompt(n.data.aiTask.id,n.data.aiTask.settings,rawPrompt):rawPrompt;
+          const rawPrompt=resolvePrompt(n.id);
+          if(n.data.aiTask?.id==='videoSegment'&&!rawPrompt.trim())
+            throw Error('Nhập yêu cầu thay đổi đoạn video trước khi gửi AI.');
+          const prompt=n.data.aiTask?.id?globalThis.WorkflowAITasks.buildPrompt(n.data.aiTask.id,n.data.aiTask.settings,rawPrompt):rawPrompt;
            if(n.data.aiTask?.id)globalThis.WorkflowAITasks.requireProvider(n.data.aiTask.id,n.data.provider||'muse');
            if(!String(prompt).trim()) throw new Error(`${nodeDefs[n.type].title} ${n.id}: connect a Prompt, Text Append, or Text Merge node first.`);
           const negativePrompt=resolveNegativePrompt(n.id);
@@ -2357,6 +2360,14 @@
             const musePrompt=isVideo?`Create a ${n.data.size} aspect ratio video clip, ${n.data.duration} seconds long. ${sizeInstruction}\n\n${audioRequirement}${continuityInstruction?`\n\n${continuityInstruction}`:''}${referenceImages.length?`\n\nUse the attached reference image${referenceImages.length===1?'':'s'} as visual guidance${continuityStartFrame?' while keeping image 1 as the exact opening frame.':'.'}`:''}\n\nPrompt: ${prompt}${negativePrompt?`\n\nAvoid: ${negativePrompt}`:''}${fidelityInstruction}`:WorkflowTools.imagePrompt(prompt,n.data.size,negativePrompt);
             const generationRequest={type:'MUSEFLOW_GENERATE',requestId:uid('generation'),prompt:musePrompt,negativePrompt,size:n.data.size,model:n.data.model,duration:n.data.duration,mediaType:isVideo?'video':'image',referenceImages:referenceImages.map(item=>item.url),timeoutSec:600,...(n.data.aiTask?{aiTask:n.data.aiTask}:{})};run.requestId=generationRequest.requestId;
             generationRequest.referenceVideos=resolveVideos(n.id);generationRequest.model=n.data.apiModel;
+            if(n.data.aiTask?.id==='videoSegment'){
+              const sourceUrl=generationRequest.referenceVideos[0];
+              if(!sourceUrl)throw Error('Không tìm thấy video gốc cần sửa đoạn.');
+              const cut=await WorkflowStudio.process('clipTrim',{
+                videos:[{url:sourceUrl,kind:'video'}],settings:n.data.aiTask.settings
+              },abortController.signal,text=>progressNode(n,text));
+              generationRequest.referenceVideos=[await blobAsDataUrl(cut.blob)];
+            }
             let reply=await generateWithProvider(n,generationRequest,abortController.signal);
             if(abortController.signal.aborted)throw new DOMException('Generation stopped by user.','AbortError');
             if((n.data.provider||'muse')==='muse'&&!reply?.ok&&reply?.code==='SCENE_REFUSED'){
@@ -2368,6 +2379,15 @@
             if(!reply?.ok)throw new Error(reply?.error||`Muse.ai did not return a generated ${isVideo?'video':'image'}.`);
             const kind=isVideo?'video':'image';
             let url=isVideo?reply.url:await persistImage(reply.url);
+            if(n.data.aiTask?.id==='videoSegment'){
+              const original=resolveVideos(n.id)[0];
+              if(!original)throw Error('Không còn video nguồn khi nối đoạn AI.');
+              const joined=await WorkflowStudio.process('clipReplace',{
+                videos:[{url:original,kind:'video'},{url,kind:'video'}],
+                settings:n.data.aiTask.settings
+              },abortController.signal,text=>progressNode(n,text));
+              url=await blobAsDataUrl(joined.blob);
+            }
             if(!url)throw new Error(`Muse.ai returned an empty ${kind} attachment.`);
             let intrinsic=await mediaDimensions(url,isVideo?'video':'image');
             const actualRatio=intrinsic.width&&intrinsic.height?intrinsic.width/intrinsic.height:0;
