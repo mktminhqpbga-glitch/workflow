@@ -1,4 +1,4 @@
-name: Desktop checks and unsigned macOS build
+name: Desktop checks and unsigned Intel macOS installer
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   macos-build:
-    name: Tests and unsigned macOS ZIP
+    name: Tests and unsigned Intel macOS DMG and ZIP
     runs-on: macos-latest
     timeout-minutes: 25
     env:
@@ -34,12 +34,14 @@ jobs:
         run: npm run setup:desktop
       - name: Run unit tests
         run: npm test
-      - name: Build unsigned macOS ZIP without publishing
-        run: npm exec electron-builder -- --mac zip --publish never
+      - name: Build unsigned Intel macOS DMG and ZIP without publishing
+        run: npm exec electron-builder -- --mac dmg zip --x64 --publish never
       - name: Upload unsigned build for manual testing
         uses: actions/upload-artifact@v4
         with:
-          name: Workflow-macOS-unsigned-${{ runner.arch }}
-          path: dist/*.zip
+          name: Workflow-macOS-Intel-x64-unsigned
+          path: |
+            dist/*.dmg
+            dist/*.zip
           if-no-files-found: error
           retention-days: 14
