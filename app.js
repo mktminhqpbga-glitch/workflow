@@ -1985,7 +1985,7 @@
 
   function validateTargetPrompt(targetId){
     const target=nodeById(targetId);if(!target||!['generateImage','generateVideo','generateText'].includes(target.type))throw new Error('Selected generation node no longer exists.');
-    const prompt=resolvePrompt(targetId);if(prompt.trim())return prompt;
+    const prompt=resolvePrompt(targetId);if(prompt.trim()||target.data.aiTask?.id)return prompt;
     const edge=getIncoming(targetId,'prompt')[0],source=edge&&nodeById(edge.source);
     const detail=!edge?'Connect a Prompt, Text Append, or Text Merge node to this prompt input.':!source?'The connected prompt node no longer exists.':`The connected ${nodeDefs[source.type]?.title||'text'} node has no text.`;
     target.data.status='error';target.data.error=detail;
@@ -2137,7 +2137,9 @@
           if(isVideo&&n.data.storyMasterId){const approval=storyNeedsApproval(n);if(approval)throw Error(approval);}
           if(!isVideo)delete n.data.storyApprovedAssetId;
           generationStep++;
-          const prompt=resolvePrompt(n.id); if(!String(prompt).trim()) throw new Error(`${nodeDefs[n.type].title} ${n.id}: connect a Prompt, Text Append, or Text Merge node first.`);
+          const rawPrompt=resolvePrompt(n.id);const prompt=n.data.aiTask?.id?globalThis.WorkflowAITasks.buildPrompt(n.data.aiTask.id,n.data.aiTask.settings,rawPrompt):rawPrompt;
+           if(n.data.aiTask?.id)globalThis.WorkflowAITasks.requireProvider(n.data.aiTask.id,n.data.provider||'muse');
+           if(!String(prompt).trim()) throw new Error(`${nodeDefs[n.type].title} ${n.id}: connect a Prompt, Text Append, or Text Merge node first.`);
           const negativePrompt=resolveNegativePrompt(n.id);
           const continuityPrevious=isVideo&&n.data.continuity?timelinePredecessor(n.id):null,continuityStartFrame=continuityPrevious?.data?.endFrame?.url?continuityPrevious.data.endFrame:null;
           if(isVideo&&n.data.continuity&&(!continuityStartFrame||continuityPrevious?.data.storyDirty))throw new Error(`End-frame continuity for ${n.id} needs the previous Timeline clip to be generated successfully with an extractable final frame. Put clips in order and run the previous clip first.`);
