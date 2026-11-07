@@ -1326,6 +1326,13 @@
         Math.max(dimensions.width,dimensions.height)>2160))
         throw Error('AI xóa phụ đề hiện chỉ nhận video 3–10 giây, mỗi chiều 720–2160px.');
     }
+    if(id==='videoSegment'){
+      if(!Number.isFinite(dimensions.duration)||dimensions.duration<3)
+        throw Error('Video nguồn cần tối thiểu 3 giây để AI sửa đoạn.');
+      const player=document.querySelector('.node[data-id="'+CSS.escape(source.id)+'"] video');
+      config.start=Math.max(0,Math.min(dimensions.duration-3,Number(player?.currentTime)||0));
+      config.end=Math.min(dimensions.duration,config.start+5);
+    }
     let initialFrame=null;
     if(id==='videoDepth')
       initialFrame=await globalThis.WorkflowVideoFrameCapture.capture(media.url,'first',0);
@@ -1359,6 +1366,10 @@
     createUndoSnapshot('Tạo Node '+spec.name);
     state.nodes.push(...added);state.edges.push(...edges);
     normalizeSavedGraph();render();selectNode(idNew);scheduleAutoSave();
+    if(id==='videoSegment'){
+      setRunStatus('Chọn đoạn trên player, nhập yêu cầu vào Prompt, rồi bấm Gửi trên Node mới.','warn');
+      return;
+    }
     setRunStatus('Đang gửi '+spec.name+' với prompt AI ẩn và dữ liệu gốc…','warn');
     await executeGenerationNode(idNew);
   }
@@ -1398,6 +1409,28 @@
       box.append(reset);
     }
     if(spec.code==='V10')choose('Xem trước','preview',[['480P','480P'],['720P','720P']]);
+    if(spec.code==='V13'){
+      const source=resolveVideos(node.id)[0];
+      const player=document.createElement('video');player.controls=true;player.preload='metadata';
+      if(source)player.src=source;
+      player.style.maxWidth='100%';box.append(player);
+      const duration=Number(node.data.duration)||5;
+      for(const [key,label] of [['start','Bắt đầu đoạn (giây)'],['end','Kết thúc đoạn (giây)']]){
+        const field=document.createElement('label');field.textContent=label;
+        const input=document.createElement('input');input.type='number';input.step='0.1';
+        input.min='0';input.max=String(duration);
+        input.value=String(config[key]??(key==='end'?Math.min(5,duration):0));
+        input.onchange=()=>{config[key]=Number(input.value);scheduleAutoSave();};
+        const point=document.createElement('button');point.type='button';
+        point.textContent='Lấy vị trí tua';
+        point.onclick=()=>{config[key]=Number(player.currentTime.toFixed(2));
+          input.value=String(config[key]);scheduleAutoSave();};
+        field.append(input,point);box.append(field);
+      }
+      const explain=document.createElement('small');
+      explain.textContent='AI chỉ chỉnh sửa đoạn đã chọn; ứng dụng sẽ ghép lại vào video nguồn. Hãy nhập Prompt và bấm Gửi.';
+      box.append(explain);
+    }
     if(spec.code==='V11'){
       choose('Video HD','resolution',[['1080P','1080p'],['2K','2K'],['4K','4K']]);
       const field=document.createElement('label');field.textContent='Nội suy lên 60 FPS';
