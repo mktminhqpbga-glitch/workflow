@@ -73,7 +73,7 @@ function viewMedia(src,kind,title){
   backdrop.addEventListener('keydown',e=>{if(e.key==='Escape'){e.stopPropagation();backdrop.remove();}});
   document.body.append(backdrop);close.focus();
 }
-function attach({node,root:el,body,modelGroups,onModelPick,onTranslate,onReference,onSend,onDownload,onDuplicate,media,readText,hasResult=false}={}){
+function attach({node,root:el,body,modelGroups,onModelPick,onTranslate,onReference,onSend,onDownload,onDuplicate,onTools,onFrameCapture,media,readText,hasResult=false}={}){
   if(!node||!el||!body)return;
   const editable=[...body.querySelectorAll('textarea')].find(x=>!x.readOnly&&!x.disabled);
   const isDraft=!!editable;
@@ -114,6 +114,28 @@ function attach({node,root:el,body,modelGroups,onModelPick,onTranslate,onReferen
   const hasText=typeof readText==='function'&&Boolean(String(readText()||'').trim());
   if(hasResult){
     const top=create('div','node-common-context-tools');
+    // Functional actions are injected by the graph runtime; no placeholder buttons.
+    const tools=typeof onTools==='function'?onTools():onTools;
+    for(const action of tools||[]){
+      if(!action||typeof action.run!=='function'||!action.label)continue;
+      const control=button(action.label,action.title||action.label,()=>action.run());
+      control.className='node-common-task-action';
+      if(action.disabled)control.disabled=true;
+      top.append(control);
+    }
+    if(showMedia&&media.kind==='video'&&typeof onFrameCapture==='function'){
+      const capture=button('▣ ▾','Chụp khung hình video',()=>{
+        menu(capture,(panel,close)=>{
+          panel.append(create('p','node-common-menu-title','Trích ảnh từ video'));
+          for(const [mode,label] of [['current','Chụp khung hình hiện tại'],['first','Chụp khung hình đầu tiên'],['last','Trích xuất khung hình cuối cùng']]){
+            const choice=button(label,label,()=>{close();onFrameCapture(mode);});
+            choice.className='node-common-menu-item';panel.append(choice);
+          }
+        });
+      });
+      capture.className='node-common-frame-capture';
+      top.append(capture);
+    }
     if((showMedia||hasText)&&onDownload)top.append(button('↓','Tải kết quả',onDownload));
     if(showMedia)top.append(button('⤢','Xem lớn / Zoom',()=>viewMedia(media.url,media.kind,media.name)));
     if(onDuplicate)top.append(button('⧉','Nhân bản Node',onDuplicate));
