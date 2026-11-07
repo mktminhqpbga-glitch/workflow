@@ -112,7 +112,7 @@ Trạng thái ban đầu của bảng = **CHƯA XÁC MINH TRÊN HEAD** trừ khi
 | BUG-005 | Chức năng chưa triển khai/chưa cấu hình | AI Audio, AI nhân vật, AI Chat, Director 3D, chỉnh sửa thông minh chuyên sâu không được báo là “thành công” khi chỉ có UI. |
 | BUG-006 | Rủi ro đồng bộ phiên bản | GitHub 0.31.0 khác các bản V3 thử nghiệm trong chat; không overwrite 0.31.0 bằng ZIP cũ. So sánh, port có chọn lọc và chạy test. |
 
-### Mẫu ghi kết quả sửa một lỗi
+| BUG-007 | **Đã tái hiện qua CI / chưa sửa** | macOS CI `npm test` thất bại tại `tests/desktop-policy.test.cjs:73` do so sánh canonical `/private/var/...` với noncanonical `/var/...`; nguồn dùng `realpathSync`, test dùng `path.join`. Giữ kiểm tra symlink/traversal khi sửa; xem mục 11. |\n\n### Mẫu ghi kết quả sửa một lỗi
 
 - Mã lỗi:
 - Nhánh / commit:
@@ -181,10 +181,69 @@ Test browser/desktop có thể yêu cầu môi trường, dependency hoặc disp
 
 ### Nhật ký thực hiện (bổ sung theo mỗi commit)
 
-**2026-11-08 — Khởi động Phần 01: rà soát sơ bộ và chia lộ trình**
+**2026-11-08 — Phần 01: rà soát sơ bộ và chia lộ trình**
 - Phạm vi: đọc `AGENTS.md`, `README.md`, `docs/AI_HANDOFF_REPORT.md`, `docs/APP-ARCHITECTURE.md`, `docs/PROGRESS.md`, `package.json`, phần đầu `app.html`, `app.js`, `styles.css` trên `main`.
 - Phát hiện: sự khác nhau giữa phiên bản 0.31.0 trên GitHub và yêu cầu giao diện V3; menu tạo node hiện chưa giới hạn 9 mục; nhiều thành phần CSS/HTML vẫn là bố cục cũ.
 - Thay đổi: **chỉ thêm báo cáo và kế hoạch vào tài liệu này**, không sửa mã chương trình/không thay đổi hành vi người dùng.
 - Kiểm thử: **chưa chạy** npm test/browser/desktop; không có ảnh UI trước-sau vì chưa thay đổi UI. Đây không phải báo cáo sửa bug.
 - Việc cần duyệt tiếp: **Phần 01 bước tiếp theo — khảo sát chi tiết và chạy kiểm thử bảo toàn dữ liệu trước khi bắt đầu sửa UI.**
 - Commit: xem lịch sử commit tệp `docs/AI_HANDOFF_REPORT.md` cho cập nhật ngày 2026-11-08.
+
+
+## 11. PHẦN 01 — Kiểm tra baseline lưu/khôi phục và GitHub CI (2026-11-08)
+
+**Phạm vi được chủ dự án phê duyệt:** Chỉ đọc, rà soát dữ liệu/node/dây nối, kiểm tra bài test hiện có và ghi báo cáo; **KHÔNG sửa mã ứng dụng hoặc UI**. Đây là kết quả điều tra bằng mã và log CI thật, không phải kết quả kiểm thử end-to-end Muse.ai hoặc chạy app trên máy người dùng.
+
+### 11.1 Phiên bản/nguồn kiểm tra
+
+- Repo: `mktminhqpbga-glitch/workflow`; nhánh `main`, version `0.31.0`. Bản V3 trước đây trong hội thoại chưa được merge vào `main`.
+- Dùng log **GitHub Actions macOS**: [Run #42399416161](https://github.com/mktminhqpbga-glitch/workflow/actions/runs/42399416161), commit `dca6e604872c6747b516017bc7159028642dece0`, chạy vào 2026-11-07 18:04 UTC. Các commit kế tiếp trước lần rà soát này chỉ chỉnh tài liệu; không thay code runtime/test.
+- Workflow CI `.github/workflows/desktop.yml` chạy `npm test` trên `macos-latest`; **không tự chạy** `test:browser`, `test:reliability`, `test:desktop` trong job này.
+- Môi trường làm việc tại phiên rà soát không truy cập trực tiếp `github.com` bằng Git CLI, nên **không clone được repository để chạy các lệnh test riêng**. Báo cáo dùng bằng chứng từ GitHub Actions và kiểm tra nguồn qua GitHub connector; không ghi nhầm là vừa chạy cục bộ.
+
+### 11.2 Kết quả đơn vị từ CI macOS
+
+| Nội dung | Kết quả | Bằng chứng |
+|---|---|---|
+| `npm ci` | ✅ Thành công | CI step **Install locked dependencies** |
+| `npm run setup:desktop` | ✅ Thành công | CI step **Prepare Electron runtime** |
+| `npm test` | 🔴 **95 pass / 1 fail / 96 total** | CI step **Run unit tests** |
+| Tạo ZIP macOS unsigned | ⚪ Không chạy | Bước build/upload bị **skipped** do unit tests fail |
+| `npm run test:browser` | ⚪ Chưa chạy trong đợt này | Không có step tương ứng trong CI hiện tại |
+| `npm run test:reliability` | ⚪ Chưa chạy trong đợt này | Không có step tương ứng trong CI hiện tại |
+| `npm run test:desktop` | ⚪ Chưa chạy trong đợt này | Không có step tương ứng trong CI hiện tại |
+| Kiểm tra macOS Intel 13 Ventura / AI đăng nhập thật | ⚪ Chưa chạy | Cần phần mềm và môi trường thực của người dùng |
+
+**Lỗi CI đã được xác nhận — BUG-007 (P0 để mở lại quy trình CI):**
+- Test: `tests/desktop-policy.test.cjs:57`, assertion đầu tiên ở dòng **73** trong test *“app protocol serves only bundled public resources and rejects traversal/symlink escapes”*.
+- Thực tế macOS: `/private/var/folders/.../app/app.html`; kỳ vọng từ `path.join(root,'app.html')`: `/var/folders/.../app/app.html`.
+- Kiểm tra mã: `desktop/policy.cjs:73-74`, `resolveAppPath()` dùng `fs.realpathSync(root)` và `fs.realpathSync(candidate)` để khóa đường dẫn theo canonical real path; trong khi test lại so sánh với `path.join(root,...)` chưa canonicalize. Từ log và mã, **nhiều khả năng sai ở kỳ vọng test**, không có bằng chứng nguồn của bug lộ tệp riêng tư. Không thay logic bảo vệ đường dẫn chỉ để test xanh.
+- Lỗi có từ ít nhất [Run #39979597891, 2026-10-23](https://github.com/mktminhqpbga-glitch/workflow/actions/runs/39979597891), với cùng tiền tố khác nhau; không phải hồi quy do commit tài liệu mới.
+- **Đề xuất khi được duyệt sửa:** Thay assertions kỳ vọng bằng canonical path phù hợp trên macOS; giữ mọi case chặn traversal, symlink ngoài root và tệp riêng; chạy lại toàn bộ `npm test` trên macOS và kiểm tra build bước sau. **Trạng thái: xác minh nguyên nhân, CHƯA SỬA.**
+
+### 11.3 Kiểm tra an toàn dữ liệu và tính bao phủ test
+
+| Chủ đề | Đánh giá | Chứng cứ / giới hạn |
+|---|---|---|
+| Các dự án tách riêng storage, vẫn đọc được sau khi tạo ProjectStore mới | 🟢 Có unit test, thuộc nhóm pass CI | `tests/desktop-projects.test.cjs`, test “projects isolate local storage and persist…” |
+| Ghi đồng thời được serialize và snapshot giá trị trước khi enqueue | 🟢 Có unit test, thuộc nhóm pass CI | `tests/desktop-projects.test.cjs`, test “concurrent storage patches…” |
+| Canvas trống đã lưu không bị tự ghi thành workflow mẫu | 🟢 Có unit test, thuộc nhóm pass CI | `tests/desktop-projects.test.cjs`, test “saved empty canvas remains empty…” |
+| Tệp hiện tại lỗi JSON: chặn ghi đè, cho khôi phục backup, giữ lại bytes bản hỏng | 🟢 Có unit test, thuộc nhóm pass CI | `tests/desktop-projects.test.cjs`, test “corrupt current file…” |
+| Backup hợp lệ phục hồi, backup sai không đè trạng thái hiện hành | 🟢 Có unit test, thuộc nhóm pass CI | `tests/desktop-projects.test.cjs` test restore/missing-corrupt backup |
+| Chặn ID dự án/path traversal/symlink project | 🟢 Có unit test, thuộc nhóm pass CI | `tests/desktop-projects.test.cjs` test invalid IDs/symlinks |
+| Tái tạo Node + **dây nối không rỗng** qua đóng/mở dự án | 🟡 **Chưa có bằng chứng end-to-end ở CI này** | Unit test ProjectStore dùng `edges: []`; các smoke khác có graph nhiều dây nhưng chưa chạy trong CI này |
+| Import workflow JSON + truyền ảnh/video qua dây | 🟡 Có test script; **chưa chạy trong CI này** | `tests/browser-smoke.cjs` chứa graph prompt+ảnh→generateImage và videoInput→generateText |
+| Mất media IndexedDB, autosave không ghi đè graph lỗi, khôi phục sau reload | 🟡 Có test script; **chưa chạy trong CI này** | `tests/core-reliability-smoke.cjs` |
+| Graph có chu trình ở nhánh khác vẫn chạy nhánh độc lập; chu trình trong nhánh đích bị chặn | 🟡 Có test script; **chưa chạy trong CI này** | `tests/core-reliability-smoke.cjs` |
+| Desktop thực: tắt ứng dụng khi chưa lưu, khôi phục dự án, từ chối save failure | 🟡 Có smoke script; **chưa chạy trong CI này** | `tests/desktop-smoke.cjs` |
+
+### 11.4 Kết luận Phần 01 và cửa kiểm soát trước khi đổi UI
+
+1. **Đã xác minh baseline bằng CI:** 96 test, 95 pass, 1 fail. Chưa đủ điều kiện gọi CI xanh hoặc công bố bản build mới.
+2. **Đã tìm lỗi cụ thể cần sửa:** BUG-007 (macOS canonical vs noncanonical path trong test). Ghi lại cách tái hiện, file liên quan và nguyên tắc sửa an toàn.
+3. **Đã xác minh có cơ chế giữ dữ liệu cũ** trong ProjectStore và các unit tests tương ứng. Điều này **chưa chứng minh toàn bộ 9 loại node V3 và mọi dây** luôn khôi phục đúng.
+4. **Chưa thay đổi UI hoặc production code**, không có ảnh trước/sau của app vì không có sự thay đổi hình ảnh. Khi làm UI ở các phần sau phải chụp ảnh trực tiếp từ app chạy thực tế.
+5. **Chưa thể đóng T-001 hoàn toàn**: còn thiếu kiểm thử độc lập cho workflow có nhiều node/dây thực sau save→close→reopen, và chạy browser/reliability/desktop smoke trên HEAD. Nên làm trước khi migrate hệ thống 9 node.
+6. Đề nghị chủ dự án duyệt bước sửa nhỏ **BUG-007 và bổ sung test round-trip cho node+dây nối** trong phần tiếp theo, rồi mới sửa UX. Mỗi sửa đổi cần commit riêng, có log chạy test và ảnh nếu có thay đổi hiển thị.
+
+**Nhật ký:** Phần 01 — đã hoàn thành đợt kiểm tra mã + log CI và lưu báo cáo, tình trạng tổng thể **🟡 còn hạng mục chưa xác minh**, không sửa runtime. Tham khảo GitHub commit đã chứa lần cập nhật mục 11 này.
