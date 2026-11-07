@@ -191,7 +191,7 @@
 | U18 | Tải video | Download. | 🟡 |
 | U19 | Phóng to video | Fullscreen/zoom. | 🟡 |
 | U20 | Kết nối sang Node khác | Output video có kiểu. | 🟡 |
-| U21 | Công cụ video AI (video tải lên) | **Ảnh người dùng 2026-11-08:** R02 khi **đã tải video thành công và được chọn** hiện thanh công cụ nổi phía trên, tương tự F04: **Chuyển động sâu (V10), HD (V11), Xóa phụ đề (V12), Làm lại đoạn video (V13)**, thêm **biểu tượng dạng camera/khung ngắm kèm mũi tên xổ xuống (chưa rõ, cần hỏi)**, **Tải video (U18), Xem lớn (U19)**. **Ẩn** Tách âm thanh/video (V14), Phân tích từng khung hình, Hơn (V15) theo yêu cầu trước; không đưa trở lại chỉ vì chúng xuất hiện trong ảnh tham chiếu. Các chức năng trùng F04 phải dùng chung UI, AI/model/tab, logic. | 🟡 Đã có ảnh toolbar, chưa code V3 |
+| U21 | Công cụ video AI (video tải lên) | **R02 đã tải video và được chọn:** toolbar nổi dùng chung F04 gồm Chuyển động sâu, HD, Xóa phụ đề, Làm lại đoạn, **Chụp/Trích khung hình** (biểu tượng camera/khung ngắm ▼), Tải xuống, Xem lớn. Menu camera đúng ảnh: **Chụp khung hình hiện tại**, **Chụp khung hình đầu tiên**, **Trích xuất khung hình cuối cùng**. **Bấm một lựa chọn là xuất ảnh ngay** từ frame tương ứng trong video, giữ **đúng tỷ lệ khung hình và chất lượng/độ phân giải nguồn**. Không cần AI, không cần Prompt hoặc nút gửi; không tăng chất lượng hay thay đổi nội dung. Các mục Tách âm thanh/video, Phân tích từng khung hình và Hơn vẫn ẩn theo yêu cầu. | 🟡 Đã chốt menu + chức năng, chưa code V3 |
 
 ## Các quy tắc chung (G01–G11)
 
@@ -428,8 +428,19 @@ Người dùng xác nhận riêng **A04 — Âm thanh → Video** là **giống 
 
 **Ảnh từ người dùng:** video dọc đã tải lên (có player/timeline/âm lượng trong Node) và được chọn; một **thanh công cụ nổi** màu tối, bo tròn hiển thị phía trên. Đây là **R02 — Node Video tải lên**, mã **U21**, không phải video tạo bằng AI F04. Tệp đã tải lên thành công được coi là **đã có kết quả/media hợp lệ** cho quy tắc hiện toolbar; không cần AI tạo video mới trước khi hiển thị. Khi click nền Canvas/bỏ chọn thì ẩn.
 
-**Các nút giữ chung với F04** theo thứ tự trái sang phải trên ảnh: **Chuyển động sâu**, **HD/nâng cấp video**, **Xóa phụ đề**, **Làm lại đoạn**. Ở phía phải còn **biểu tượng camera/khung ngắm cùng mũi tên xổ xuống** (chưa rõ chức năng: cần hỏi người dùng riêng), **Tải xuống**, **Xem lớn**. Các tác vụ AI tương đồng phải dùng chung component và luồng xử lý F04, chỉ AI/model/tab đã kết nối và hỗ trợ tác vụ, không mock kết quả. Giữ video tải lên nguyên bản.
+**Các nút giữ chung với F04** theo thứ tự trái sang phải trên ảnh: **Chuyển động sâu**, **HD/nâng cấp video**, **Xóa phụ đề**, **Làm lại đoạn**. Ở phía phải còn **nút Chụp/Trích khung hình** (camera/khung ngắm ▼; đã xác nhận menu), **Tải xuống**, **Xem lớn**. Các tác vụ AI tương đồng phải dùng chung component và luồng xử lý F04, chỉ AI/model/tab đã kết nối và hỗ trợ tác vụ, không mock kết quả. Giữ video tải lên nguyên bản.
 
 **Ba mục PHẢI ẨN mặc dù hiện trong ảnh gốc:** **Tách âm thanh/video (V14)**, **Phân tích từng khung hình**, **Hơn (V15)**. Các lệnh ẩn đã chốt có ưu tiên hơn việc sao chép nguyên thanh toolbar screenshot. Không xoá dữ liệu/media.
 
-**Trạng thái:** đã nhận ảnh U21 và đã hiểu các nút có chức năng chung, **chưa lập trình thanh toolbar V3 R02**. Câu hỏi duy nhất tiếp theo: **R02 — Video tải lên / U21 — biểu tượng camera/khung ngắm có mũi tên xổ xuống, ở sát bên trái nút Tải xuống**; khi bấm biểu tượng này xuất hiện gì? Người dùng có thể trả lời hoặc gửi ảnh.
+**Trạng thái:** đã xác nhận menu nút camera và chức năng trích frame, **chưa lập trình toolbar V3 R02**. Không hỏi lại ý nghĩa nút camera.
+
+
+### Quyết định mới — R02/U21 Chụp/Trích khung hình video (2026-11-08)
+
+**Ảnh menu do người dùng gửi:** nút camera/khung ngắm (có mũi tên xổ xuống), ngay trước Tải xuống/Xem lớn, mở ba lựa chọn theo thứ tự:
+
+1. **Chụp khung hình hiện tại** — lấy frame tại thời điểm player đang đứng.
+2. **Chụp khung hình đầu tiên** — lấy frame đầu tiên của video.
+3. **Trích xuất khung hình cuối cùng** — lấy frame cuối của video.
+
+**Xác nhận hành vi:** khi chọn một mục thì **ứng dụng xuất/sinh một ảnh từ khung hình video ngay lập tức**, **cùng khung hình (tỷ lệ, bố cục) và chất lượng/độ phân giải của video nguồn**. Không phát lệnh tạo ảnh AI, không mở Prompt, không cần model/tab và không tự nâng cấp hình. Giữ nguyên video gốc. Người dùng cung cấp thêm ảnh minh họa đầu ra sau khi làm rõ hành vi. Đích lưu/đặt Node của ảnh mới chỉ chốt khi ảnh minh họa thể hiện rõ; không phỏng đoán nếu chưa xác minh. Lúc hiện chỉ có **đặc tả**, chưa lập trình tính năng.
