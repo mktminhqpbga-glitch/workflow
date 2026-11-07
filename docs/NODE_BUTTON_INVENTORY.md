@@ -151,7 +151,7 @@
 | A01 | Nhập Prompt | Mô tả âm thanh. | 🟡 |
 | A02 | Tải âm thanh tham chiếu | Tệp/audio mẫu. | 🟡 |
 | A03 | Tham chiếu Canvas | Nhận audio/video/text có kiểu. | 🟡 |
-| A04 | Âm thanh → Video | Chức năng liên quan audio → video. **Chưa có xác nhận chi tiết nút A04**; ảnh workflow âm thanh–video ngày 2026-11-08 đã được chủ dự án xác nhận là **màn hình mở từ A10**, không tự gán ảnh đó cho A04. | 🔴 Chờ giải thích |
+| A04 | Âm thanh → Video | **Đã xác nhận 2026-11-08:** Khi bấm A04 trên Node F07 có âm thanh, mở **cùng giao diện Preset — Âm thanh thành Video** như A10 theo ảnh người dùng gửi: audio waveform và ảnh tham chiếu nối vào khung video trống, composer có Prompt, cấu hình tỷ lệ/chất lượng/thời lượng, chọn AI/model/tab đã kết nối và nút ↑. **Dùng chung một màn hình, trạng thái và logic** với A10; không dựng hai UI khác nhau. Giữ nguyên quy tắc ẩn “Hơn” ở mọi Node. | 🟡 Đã chốt UX, chưa code |
 | A05 | Chọn AI/model/tab | Provider, model và nơi gửi. | 🟡 |
 | A06 | WAV/MP3 | Chọn định dạng đầu ra. | 🟡 |
 | A07 | Thời lượng | Độ dài âm thanh. | 🟡 |
@@ -411,7 +411,14 @@ Chủ dự án yêu cầu **ẩn nút I13 — Phân đoạn lưới**, thuộc F
 
 Người dùng được hỏi **F07 — A10 (Cài đặt âm thanh nâng cao, biểu tượng ba thanh trượt)** và gửi ảnh có tiêu đề **“预设 - 音频生视频” (Preset — Sinh video từ âm thanh)**. Ảnh cho thấy: Node waveform âm thanh 0:03 và ảnh nguồn được nối vào Node preview video trống; composer bên dưới có nút **Upload, Tham khảo Canvas, Đánh dấu, Thư viện nhân vật, Hơn**, thumbnail ảnh/audio (chưa biết thao tác chi tiết), Prompt tạo video dựa vào âm thanh, chọn cấu hình 16:9, 720P, 5 giây, dịch, biểu tượng **ba thanh trượt** cạnh nút gửi ↑. **Ảnh KHÔNG cho thấy menu/bảng popup sau khi bấm biểu tượng ba thanh trượt**, vì thế chưa thể xác nhận cấu hình bên trong A10. Bốn chữ “Hơn” trong ảnh là thiết kế nguồn đã được chủ dự án yêu cầu ẩn toàn cục, **không được tự thêm lại**.
 
-**Chủ dự án trả lời “đúng” khi chọn nhánh “cửa sổ xuất hiện khi bấm A10”.** Chốt rằng bấm **F07/A10 — Cài đặt nâng cao** sẽ mở màn hình preset audio → video như ảnh. **Không gán ảnh này cho hành vi của A04**, vẫn cần hỏi A04 riêng khi đến lượt. Ảnh không thể hiện một popup thông số nhỏ đã xổ ra, vì thế không bịa thêm danh sách tham số. **Mới chốt yêu cầu, chưa lập trình A10**.
+**Chủ dự án xác nhận:** bấm **F07/A10 — Cài đặt nâng cao** mở màn hình preset audio → video như ảnh. **Sau đó xác nhận thêm F07/A04 — Âm thanh → Video cũng mở chính màn hình này**. Không tạo hai giao diện hoặc hai logic khác nhau. Ảnh không thể hiện popup thông số nhỏ đã xổ ra, vì thế không bịa thêm danh sách tham số. **Mới chốt yêu cầu, chưa lập trình A04/A10**.
 
 
-**Xác nhận mới nhất từ chủ dự án (2026-11-08):** Ảnh workflow Âm thanh → Video là **màn hình xuất hiện khi bấm A10**, không phải minh họa chung của A04. Chỉ đánh dấu 'đã hiểu' đặc tả A10; không chuyển trạng thái triển khai thành hoàn thành.
+**Xác nhận hợp nhất 2026-11-08:** **Cả A10 và A04** đều mở đúng giao diện workflow **Âm thanh → Video** từ ảnh mẫu; chia sẻ cùng UI và logic. Đây là đặc tả, chưa phải mã đã chạy.
+
+
+### Quyết định dùng chung — F07/A04 và F07/A10 (2026-11-08)
+
+Người dùng xác nhận riêng **A04 — Âm thanh → Video** là **giống A10 — Cài đặt nâng cao** khi bấm, cùng mở giao diện **Preset — Âm thanh thành Video** từ ảnh đã gửi: nguồn âm thanh waveform, ảnh tham chiếu, preview video, composer, bộ chọn AI/model/tab hỗ trợ video, thông số tỷ lệ/phân giải/thời lượng, nút ↑. **Hai lối vào cùng một giao diện và cùng một logic**, không copy hai bộ xử lý; không bật lại menu “Hơn” đã được yêu cầu ẩn. Chỉ hiển thị toolbar nổi khi Node có kết quả và đang được chọn.
+
+**Trạng thái:** đặc tả đã chốt, **chưa code** A04/A10. Câu hỏi tiếp theo cho người dùng khi sẵn sàng: **R02 — Node Video tải lên, U21 — Công cụ video AI**; cần xác nhận dùng thanh công cụ giống F04 hay có điểm khác. Trạng thái ảnh/video **đã được tải lên và Node đang được chọn**.
