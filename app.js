@@ -1108,6 +1108,129 @@
     return result.text.trim();
   }
 
+  // One capability-based adapter for all node types: shared UI, native graph actions.
+  const commonTextRuns=new Map();
+  const commonAIKind=n=>['generateImage','imageInput'].includes(n.type)?'image':
+    ['generateVideo','videoInput'].includes(n.type)?'video':
+    n.type==='voiceover'||n.type==='audioInput'?'audio':'text';
+  function commonConnectedModels(n){
+    const kind=commonAIKind(n);
+    return Object.entries(WorkflowAI.providers).filter(([id,p])=>
+      (kind==='audio'?id==='openai':p.types?.includes(kind))).map(([id,p])=>{
+      const online=providerHealth.get(id)?.status==='ready';
+      const tabs=p.urls?(aiChatTabs[id]||[]):[];
+      const available=online&&(p.urls?tabs.length>0:Boolean(aiKeys[id]));
+      const choices=p.urls?tabs.filter(tab=>Number.isInteger(tab.id)).map(tab=>({
+        value:String(tab.id),name:tab.title||('Tab '+tab.id),
+        tag:'Tab '+(Number.isInteger(tab.index)?tab.index+1:tab.id)
+      })):
+      [{value:kind==='audio'?'gpt-4o-mini-tts':WorkflowAI.models[id]?.[kind]||'',
+        name:kind==='audio'?'gpt-4o-mini-tts':WorkflowAI.models[id]?.[kind]||'',
+        tag:'API'}].filter(item=>item.value);
+      return {id,name:p.name,connected:available,choices,symbol:id==='chatgpt'?'✦':id==='muse'?'◈':'◎'};
+    });
+  }
+  function commonChooseModel(n,g,item){
+    if(runForNode(n.id)||commonTextRuns.has(n.id)){setRunStatus('Hãy đợi Node hoàn tất trước khi đổi AI.','warn');return;}
+    n.data.provider=g.id;
+    if(WorkflowAI.providers[g.id]?.urls){
+      const tab=(aiChatTabs[g.id]||[]).find(tab=>String(tab.id)===item.value);
+      if(!tab){setRunStatus('Tab AI đã đóng. Làm mới kết nối AI trước khi chọn.','error');return;}
+      n.data.chatTarget={tabId:tab.id,url:chatKey(tab.url)};delete n.data.apiModel;
+    }else{n.data.apiModel=item.value;delete n.data.chatTarget;}
+    n.data.error='';if(n.data.status==='error')n.data.status='idle';
+    scheduleAutoSave();render();
+  }
+  function commonReferenceInput(n){
+    return (nodeDefs[n.type]?.inputs||[]).find(p=>['image','video','audio'].includes(p.type) &&
+      ['reference','image','video','audio'].includes(p.id))||
+      (nodeDefs[n.type]?.inputs||[]).find(p=>['image','video','audio'].includes(p.type));
+  }
+  function commonCanvasSources(n,port){
+    const choices=[];
+    for(const source of state.nodes){
+      if(source.id===n.id)continue;
+      for(const output of nodeDefs[source.type]?.outputs||[]){
+        if(!portCompatible({nodeId:source.id,portId:output.id},n.id,port.id))continue;
+        if(wouldCreateCycle(source.id,n.id,isMultiInput(n.type,port.id)?null:port.id))continue;
+        choices.push({label:(source.data.customName||nodeDefs[source.type].title)+' · '+output.label,
+          action:()=>{state.connectingFrom={nodeId:source.id,portId:output.id,portType:output.type};connect(n.id,port.id);}});
+      }
+    }
+    return choices;
+  }
+  function commonReferenceActions(n,el){
+    const port=commonReferenceInput(n);if(!port)return null;
+    return ()=>{
+      const anchor=el.querySelector('.node-common-reference')||el;
+      const fileType=port.type+'/*';
+      return [
+        {label:'＋ Từ Canvas hiện tại',action:()=>{
+          const choices=commonCanvasSources(n,port);
+          if(!choices.length){setRunStatus('Chưa có Node nguồn tương thích trên Canvas.','warn');return;}
+          globalThis.WorkflowNodeCommonActions.referenceMenu(anchor,choices);
+        }},
+        {label:'↑ Tải lên cục bộ',action:()=>{
+          const picker=document.createElement('input');picker.type='file';picker.accept=fileType;picker.hidden=true;
+          picker.onchange=()=>{const files=[...(picker.files||[])];picker.remove();
+            if(files.length)void importMediaFiles(files,{node:n,port}).catch(error=>setRunStatus(error.message,'error'));};
+          document.body.append(picker);picker.click();
+        }},
+        {label:'◇ Kho tài sản cá nhân',title:'Chưa tích hợp bộ chọn tài sản cá nhân trong phiên bản GitHub hiện tại.',disabled:true}
+      ];
+    };
+  }
+  function commonAsset(n){
+    const asset=n.data.asset;
+    const url=asset?.url||n.data.localDataUrl;
+    if(!url)return null;
+    const kind=asset?.kind||(['videoInput','generateVideo'].includes(n.type)?'video':n.type==='audioInput'||n.type==='voiceover'?'audio':'image');
+    return {url,kind,name:asset?.name||n.data.fileName||n.data.customName||nodeDefs[n.type]?.title};
+  }
+  function commonDownload(n,media){
+    if(!media?.url)throw Error('Node chưa có kết quả để tải.');
+    const suffix=media.kind==='video'?'mp4':media.kind==='audio'?'mp3':'png';
+    const filename=WorkflowTools.safeName(media.name||n.data.customName||n.type)+'.'+suffix;
+    const link=document.createElement('a');link.href=media.url;link.download=filename;
+    document.body.append(link);link.click();link.remove();
+  }
+  function commonDuplicate(n){
+    if(state.isRunning||commonTextRuns.has(n.id)){setRunStatus('Đợi các tác vụ hoàn tất rồi nhân bản Node.','warn');return;}
+    createUndoSnapshot('Nhân bản '+(nodeDefs[n.type]?.title||'Node'));
+    cloneNodeBundle([n],state.edges,{dx:68,dy:68,externalInputs:true});
+    render();scheduleAutoSave();setRunStatus('Đã nhân bản Node, giữ cài đặt và đầu vào hợp lệ.','ok');
+  }
+  async function commonSendText(n){
+    if(commonTextRuns.has(n.id))return;
+    const prompt=String(n.data.localPrompt||n.data.text||n.data.script||'').trim();
+    if(!prompt)throw Error('Nhập Prompt trước khi gửi.');
+    const provider=n.data.provider||'gemini',config=WorkflowAI.providers[provider];
+    if(!config?.types?.includes('text'))throw Error('Chọn AI văn bản đã kết nối trước khi gửi.');
+    const choices=commonConnectedModels({...n,type:'generateText'}).find(x=>x.id===provider);
+    if(!choices?.connected)throw Error('AI này chưa kết nối; hãy mở Kết nối AI và làm mới.');
+    const controller=new AbortController();
+    commonTextRuns.set(n.id,controller);n.data.status='running';n.data.error='';render();
+    try{
+      const request={requestId:uid('shared-text'),mediaType:'text',prompt,
+        ...(n.data.apiModel?{model:n.data.apiModel}:{})};
+      const caller={type:'generateText',data:{provider,chatTarget:n.data.chatTarget||aiChatTargets[provider]}};
+      const result=await generateWithProvider(caller,request,controller.signal);
+      if(!result?.ok||!result.text)throw Error(result?.error||'AI không trả về văn bản.');
+      if(nodeById(n.id)!==n)throw Error('Node đã bị xóa hoặc thay thế trong lúc gửi.');
+      n.data.sharedGeneratedText=String(result.text);n.data.status='success';
+      setRunStatus('Đã nhận văn bản AI. Prompt gốc được giữ nguyên.','ok');
+    }catch(error){if(nodeById(n.id)===n){n.data.status='error';n.data.error=error.message||'Gửi Prompt thất bại';}setRunStatus(error.message,'error');}
+    finally{commonTextRuns.delete(n.id);if(nodeById(n.id)===n){render();scheduleAutoSave();}}
+  }
+  function commonSendAction(n){
+    if(['generateImage','generateVideo','generateText'].includes(n.type))
+      return ()=>runSingleNode(n.id);
+    if(n.type==='voiceover')return ()=>execute(n.id);
+    if(['prompt','masterScript','storyPrompt'].includes(n.type))
+      return ()=>commonSendText(n);
+    return null;
+  }
+
   function renderNode(n) {
     const el = document.createElement('section');
     el.className = `node ${['generateImage','generateVideo','generateText'].includes(n.type) ? 'generate' : ''} ${n.type==='timeline'?'timeline-node':''} ${state.selectedNodeIds.includes(n.id)||state.selectedNodeId===n.id ? 'selected' : ''}`;
