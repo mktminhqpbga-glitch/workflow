@@ -1561,6 +1561,8 @@
     }
 
     if(['generateImage','generateVideo','generateText'].includes(n.type))body.appendChild(providerControls(n));
+    if(['generateImage','generateVideo'].includes(n.type))
+      globalThis.WorkflowVisualPresets?.mount(n,body,()=>{scheduleAutoSave();render();});
     if(n.type==='generateText'){
       if(n.data.toolKind==='promptVariants'){toolField(body,n,'variantCount','Số biến thể',{type:'number',value:3,min:2,max:10});toolField(body,n,'variationStyle','Định hướng biến thể',{value:'góc máy, ánh sáng và bối cảnh'});}
       if(n.data.toolKind==='promptVariants'){const variants=WorkflowTools.variants(n.data.text);if(variants.length){const select=document.createElement('select');select.setAttribute('aria-label','Biến thể dùng làm đầu ra');variants.forEach((text,index)=>select.append(new Option(`Biến thể ${index+1}: ${text.slice(0,40)}`,String(index))));select.value=String(Math.min(variants.length-1,Number(n.data.selectedVariant)||0));select.onchange=()=>{n.data.selectedVariant=Number(select.value);scheduleAutoSave();};body.append(select);}}
@@ -1676,7 +1678,7 @@
     if(!['generateImage','generateVideo'].includes(node.type))return;
     body.classList.add('compact-generation');
     const children=[...body.children],provider=body.querySelector('.provider-controls'),controls=body.querySelector('.gen-controls'),status=body.querySelector('.status'),actions=body.querySelector('.node-generation-actions'),localDraft=body.querySelector('.node-local-prompt');
-    const media=children.find(el=>el.matches('video,.image-link')),options=document.createElement('div');options.className='node-options';
+    const media=children.find(el=>el.matches('video,.image-link')),visualOptions=body.querySelector('.visual-node-options'),options=document.createElement('div');options.className='node-options';
     const sections={};
     for(const [key,name] of [['connection','Kết nối AI'],['frames',node.type==='generateVideo'?'Khung hình':'Ảnh tham chiếu'],['tools','Công cụ'],['info','Chi tiết']]){
       const details=document.createElement('details');details.className='node-option';details.dataset.panel=key;const summary=document.createElement('summary');summary.textContent=name;const content=document.createElement('div');content.className='node-option-content';summary.title=key==='frames'?'Ảnh tham chiếu, khung mở đầu và khung cuối':name;details.append(summary,content);options.append(details);sections[key]={details,content};
@@ -1685,7 +1687,7 @@
     }
     if(provider){const first=provider.querySelector('select[aria-label="AI thực hiện"]');for(const el of [...provider.children])if(el!==first)sections.connection.content.append(el);}
     for(const el of children){
-      if([provider,controls,status,actions,media,localDraft].includes(el))continue;
+      if([provider,controls,status,actions,media,localDraft,visualOptions].includes(el))continue;
       if(el.matches('.tool-action,.video-timeline-drag')){
         if(/khung cuối/.test(el.textContent))sections.frames.content.append(el);else sections.tools.content.append(el);
       }else if(el.matches('.reference-id-list,.continuity-toggle,.end-frame-thumb,.end-frame-input')||/Khung (?:cuối|mở đầu)/.test(el.textContent))sections.frames.content.append(el);
@@ -1696,7 +1698,7 @@
     if(controls){[...controls.querySelectorAll('select')].forEach((select,i)=>select.setAttribute('aria-label',i===0?'Tỷ lệ khung hình':'Thời lượng video'));for(const model of [...controls.querySelectorAll('input')])sections.connection.content.append(model);}
     const refs=sections.frames.content.querySelector('.reference-id-list');if(refs){refs.title=refs.textContent;sections.frames.details.querySelector('summary').textContent=(node.type==='generateVideo'?'Khung hình':'Ảnh tham chiếu')+' · '+getIncoming(node.id,'reference').length;}
     if(node.data.status==='error')sections.info.details.open=true;
-    body.replaceChildren(...[provider,controls,status,media,localDraft,actions,options].filter(Boolean));
+    body.replaceChildren(...[provider,controls,status,media,localDraft,visualOptions,actions,options].filter(Boolean));
   }
 
   function createNodeRunActions(node){
@@ -2398,7 +2400,10 @@
           if(isVideo&&n.data.storyMasterId){const approval=storyNeedsApproval(n);if(approval)throw Error(approval);}
           if(!isVideo)delete n.data.storyApprovedAssetId;
           generationStep++;
-          const rawPrompt=resolvePrompt(n.id);
+          const sourcePrompt=resolvePrompt(n.id);
+          const rawPrompt=n.data.aiTask?.id?sourcePrompt:isVideo?
+            globalThis.WorkflowVisualPresets.cameraPrompt(sourcePrompt,n.data.cameraSettings):
+            globalThis.WorkflowVisualPresets.stylePrompt(sourcePrompt,n.data.stylePreset);
           if(n.data.aiTask?.id==='videoSegment'&&!rawPrompt.trim())
             throw Error('Nhập yêu cầu thay đổi đoạn video trước khi gửi AI.');
           const prompt=n.data.aiTask?.id?globalThis.WorkflowAITasks.buildPrompt(n.data.aiTask.id,n.data.aiTask.settings,rawPrompt):rawPrompt;
