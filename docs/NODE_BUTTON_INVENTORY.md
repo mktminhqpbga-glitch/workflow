@@ -36,9 +36,9 @@
 | T04 | Ảnh → suy ngược Prompt | Ảnh F01-3/4/5: nguồn ảnh nối tới F01; khi chọn mở Prompt phân tích ảnh, cho chọn ảnh tải máy hoặc lịch sử/tài sản; kết quả text đưa trở lại node. | 🟡 |
 | T05 | Văn bản → Nhạc | Ảnh F01-6: nội dung text nối tới audio node; không thay bằng mock âm thanh khi chưa tích hợp AI. | 🟡 |
 | T06 | Chọn AI, model và tab | Chọn nhà cung cấp AI và model, sau đó chọn tab/cuộc hội thoại đã đăng nhập tương ứng. Không chỉ là một dropdown tên model. | 🟡 |
-| T07 | Dịch hai chiều | Tự động dịch Việt → Anh hoặc Anh → Việt; phải giữ được nội dung nguồn và xác định rõ nội dung được gửi. | 🔴 |
+| T07 | Dịch hai chiều | Chỉ dịch nội dung chữ đang có trong ô nhập Prompt: Việt → Anh hoặc Anh → Việt; không dịch giao diện/tên Node. Giữ bản gốc để hoàn tác. | 🔴 |
 | T08 | Gửi Prompt ↑ | Nút mũi tên trắng gửi Prompt đang nhập tới AI/tab đã chọn; khi xử lý hiện spinner, khi lỗi màu đỏ; KHÔNG có nghĩa tự tạo nội dung nếu không bấm. | 🟡 |
-| T09 | Thu gọn / mở rộng Prompt | Ảnh T09 bổ sung ở lượt người dùng mới nhất: lấy chính ảnh đó làm chuẩn chuyển trạng thái khu Prompt; Prompt neo dưới node, kích thước hiển thị ổn định khi Zoom Canvas; không tự thay bằng modal/gallery. | 🔴 |
+| T09 | Thu gọn / mở rộng Prompt | **Hai ảnh mới ngày 2026-11-08:** chế độ thường là composer nằm dưới Node; bấm icon hai mũi tên chéo để phóng thành khung soạn thảo lớn nổi phía trước Canvas; bấm lại để thu về composer thường. Giữ chữ/ảnh tham chiếu/model, vị trí neo và zoom. | 🔴 |
 | T10 | Cổng nhận/gửi | Dấu + hai bên, dây cong; input/output text, ảnh (cho suy ngược), video/audio theo chức năng, chỉ truyền dữ liệu hợp lệ. | 🟡 |
 
 ## F02 — Kịch bản
@@ -51,9 +51,9 @@
 | S04 | Nhập nội dung kịch bản | Có vùng nhập/chỉnh sửa kịch bản bên trong Node và có thể nhận text từ F01. | 🟡 |
 | S05 | Thêm ảnh tham chiếu | Dùng ảnh từ Canvas, tệp cục bộ hoặc kho tài sản; nhận nhiều ảnh, hiển thị thumbnail đúng thứ tự. | 🟡 |
 | S06 | Chọn AI/model/tab | Giống F01-T06: provider, model, tab/cuộc trò chuyện đã đăng nhập. | 🟡 |
-| S07 | Dịch Việt ↔ Anh | Giống F01-T07; chọn chiều dịch theo ngôn ngữ đầu vào. | 🔴 |
+| S07 | Dịch Việt ↔ Anh | Giống T07: dịch **chỉ văn bản trong ô nhập Prompt** Việt ↔ Anh, không đổi toàn bộ UI. | 🔴 |
 | S08 | Gửi Prompt ↑ | Giống F01-T08: chỉ gửi tác vụ, ready/trong khi chạy/lỗi ba trạng thái; không tự chạy khi nguồn đổi. | 🟡 |
-| S09 | Thu gọn / mở rộng Prompt | Prompt neo theo Node F02; chiều rộng hiển thị không đổi khi Canvas zoom; giữ các thumbnail đã chọn. | 🔴 |
+| S09 | Thu gọn / mở rộng Prompt | Giống T09: thường = khung dưới Node, mở rộng = panel nhập lớn nổi trên Canvas bằng icon mũi tên chéo; không làm mất ảnh tham chiếu/chữ. | 🔴 |
 | S10 | Hiển thị và gửi kết quả kịch bản | Kết quả text/shot list cho phép xem, chỉnh và xuất sang node nối sau; đầu ra lỗi/rỗng không được phát. | 🟡 |
 
 ## F03 — Sinh ảnh AI
@@ -156,7 +156,7 @@
 | A06 | WAV/MP3 | Chọn định dạng đầu ra. | 🟡 |
 | A07 | Thời lượng | Độ dài âm thanh. | 🟡 |
 | A08 | Giọng nói | Chọn giọng khi có TTS. | 🟡 |
-| A09 | Dịch Việt ↔ Anh | Dịch Prompt khi cần. | 🔴 |
+| A09 | Dịch Việt ↔ Anh | Giống T07/S07: **chỉ dịch nội dung Prompt** Việt ↔ Anh, không dịch giao diện. | 🔴 |
 | A10 | Cài đặt nâng cao | Locale/tần số sample/codec theo model. | 🔴 |
 | A11 | Nút gửi ↑ | Gửi yêu cầu và trạng thái. | 🔴 |
 | A12 | Nghe kết quả | Audio player & waveform. | 🟡 |
@@ -205,7 +205,7 @@
 | G06 | Xóa | Hỏi xác nhận khi có rủi ro, giữ undo/restore thích hợp. |
 | G07 | Zoom Canvas | Card node zoom cùng Canvas. |
 | G08 | Composer zoom | Prompt dưới Node giữ kích thước theo màn hình khi zoom Canvas, neo đúng vị trí. |
-| G09 | Thu gọn Composer | Theo ảnh T09 (được gửi sau) và ảnh từng Node; không tự thay đổi UX. |
+| G09 | Composer thường ↔ phóng lớn | Một nút icon hai mũi tên chéo: bình thường hiện dưới Node, mở rộng thành vùng soạn lớn nổi trên Canvas rồi thu về; không mất dữ liệu. |
 | G10 | Gửi đang chạy | Nút ↑ đổi thành vòng xoay, dừng gửi lặp. |
 | G11 | Gửi lỗi | Nút ↑ chuyển đỏ, có thông tin lỗi và cách thử lại. |
 
@@ -243,12 +243,29 @@
 | Chức năng dùng chung | Các mã nút | Hành vi bắt buộc |
 |---|---|---|
 | Chọn AI/model/tab | T06, S06, I06, V06, A05 | Chọn provider, sau đó model phù hợp tác vụ và tab/cuộc hội thoại đang đăng nhập; cùng cách lưu/lỗi/chọn lại, không gửi nhầm tab. |
-| Dịch hai chiều | T07, S07, A09 | Nhận diện hoặc chọn chiều Việt→Anh / Anh→Việt, giữ nguyên bản gốc để có thể hoàn tác; tránh tự ghi đè đầu vào nguồn. |
+| Dịch hai chiều | T07, S07, A09 | **Chỉ dịch nội dung chữ trong ô nhập Prompt** Việt→Anh / Anh→Việt, không dịch UI và không làm thay đổi nội dung node nguồn; giữ bản gốc để hoàn tác. |
 | Gửi Prompt | T08, S08, I21, V19, D04, E15, A11 | Một cơ chế ready/working/error: nền trắng và mũi tên ↑; spinner xoay khi gửi/đang xử lý; đỏ và báo lỗi khi thất bại; không tự chạy do thay nguồn. Task-specific payload theo Node. |
-| Thu gọn/mở rộng Prompt | T09, S09, I22, V21, D09, E16, A13 | Một cơ chế giữ state theo node, không xóa Prompt/tham chiếu, composer neo Node và giữ screen-space khi Zoom Canvas; hình thức theo mẫu T09. |
+| Thu gọn/mở rộng Prompt | T09, S09, I22, V21, D09, E16, A13 | **Hai ảnh được duyệt:** composer thường dưới Node → click icon hai mũi tên chéo → panel soạn thảo cỡ lớn nổi trên Canvas → click lại thu về; giữ text/thumbnail/model/state. Composer thường không thay đổi size khi zoom Canvas. |
 | Thêm tham chiếu | T04, S05, I02, I03, V02, V03, D03, A02, A03, E01 | Một bộ chọn nguồn với các mục phù hợp: Canvas hiện tại, tải cục bộ, kho tài sản/lịch sử; xác minh loại media và thumbnail; lưu node connection/asset ID. |
 | Tải kết quả | S01, I19, V17, D08, E12, U06, U18 | Một hành vi tải thống nhất, đuôi file và quyền tải tùy loại media; không tải tài nguyên rỗng/lỗi. |
 | Xem/phóng to | I20, V18, E13, U07, U19 | Chung cơ chế preview/lightbox; player video, ảnh và timeline phù hợp media type. |
 | Nhân bản | I17, E10, U05, U17 | Sao chép đúng node, metadata và cài đặt, ID mới, giữ dữ liệu và xử lý dây nối theo chính sách clone. |
 
 **Yêu cầu kỹ thuật khi triển khai:** Tách module/helper chung cho hành vi giống nhau; ưu tiên cấu hình theo capabilities của từng Node. Component chia sẻ phải được dùng trên **Canvas thực**, không làm mock. Có test hồi quy đa Node: click, phím, status, chọn tab, save/reload, zoom, invalid media. Không đánh dấu 🟢 trước khi có code và bằng chứng test. Chưa thay đổi runtime trong commit tài liệu này.
+
+
+## Xác nhận nhóm điều khiển chung — 2026-11-08
+
+**Chủ dự án duyệt 8 nhóm được gom chung logic:** Chọn AI/model/tab; Dịch Prompt; Gửi Prompt; Composer thường/mở rộng; Chọn tham chiếu; Tải kết quả; Xem lớn/Zoom; Nhân bản Node. Chức năng tương ứng phải giống nhau giữa các Node, chỉ khác capability, định dạng tài nguyên, và model/tab có thể dùng.
+
+**Hai ảnh mới của chế độ Composer** (đã nhận trong hội thoại, chưa được đưa vào GitHub):
+- **Ảnh 1:** F02 Script card nằm phía trên, **khung Prompt thường** phía dưới, bao gồm nút thêm ảnh tham chiếu, nhập lệnh, bộ chọn model, dịch, năng lượng, nút ↑ gửi và nút phóng ở góc trên bên phải.
+- **Ảnh 2:** nhấn nút phóng → khung Prompt mở rộng thành **panel nhập cỡ lớn phủ gần toàn màn hình Canvas**, nút góc phải đổi chức năng thu về khung thường. Đây không phải hành động ẩn hẳn Prompt và không phải chỉ rút thành một dòng. Các dữ liệu và thiết lập vẫn giữ nguyên khi chuyển trạng thái.
+
+**Dịch (T07/S07/A09):** Chỉ dịch nội dung trong textarea/ô Prompt. Có thể dùng chiều Việt → Anh và Anh → Việt, không được tự dịch tên Node, thanh công cụ hay nội dung cả app. Không gửi yêu cầu AI tạo nội dung chỉ vì nhấn nút dịch.
+
+**Gửi Prompt:** vẫn đúng yêu cầu trắng / spinner đang chạy / đỏ khi lỗi; chỉ khi bấm mới thực hiện gửi và không chạy ngầm do kết nối mới.
+
+**Chọn model:** danh sách hiển thị **chỉ AI đã kết nối**, chọn provider rồi chọn model hoặc tab tương ứng trong cùng picker tối màu như ảnh đã gửi. Model chưa khả dụng không được thể hiện là chọn được.
+
+**Được duyệt khác không có nghĩa đã code:** 8 nhóm có **đặc tả được xác nhận**, nhưng trạng thái thực tế trên `main` còn vàng/đỏ như bảng trên. Việc triển khai giao diện và xử lý nút phải có PR/commit mã và kiểm thử thật trước khi chuyển xanh. Không có thay đổi runtime trong commit tài liệu này.
