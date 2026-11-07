@@ -8,8 +8,8 @@ const tasks=Object.freeze({
   imageHD:Object.freeze({code:'I11',name:'HD · Nâng cấp ảnh',kind:'image',source:'image',providers:['muse','gemini','google']}),
   imageAngles:Object.freeze({code:'I12',name:'Nhiều góc độ',kind:'image',source:'image',providers:['muse','gemini','google']}),
   videoDepth:Object.freeze({code:'V10',name:'Chuyển động chiều sâu',kind:'video',source:'video',providers:['fal']}),
-  videoHD:Object.freeze({code:'V11',name:'HD · Nâng cấp video',kind:'video',source:'video',providers:[]}),
-  videoSubtitles:Object.freeze({code:'V12',name:'Xóa phụ đề khỏi video',kind:'video',source:'video',providers:[]}),
+  videoHD:Object.freeze({code:'V11',name:'HD · Nâng cấp video',kind:'video',source:'video',providers:['fal']}),
+  videoSubtitles:Object.freeze({code:'V12',name:'Xóa phụ đề khỏi video',kind:'video',source:'video',providers:['fal']}),
   videoSegment:Object.freeze({code:'V13',name:'Làm lại đoạn video',kind:'video',source:'video',providers:[]})
 });
 function task(id){return tasks[id]||null;}
@@ -54,6 +54,8 @@ function supports(id,provider){
 function requireProvider(id,provider){
   if(!supports(id,provider))throw new Error('Tác vụ '+assertTask(id).name+' cần AI hỗ trợ '+(assertTask(id).source==='video'?'chỉnh sửa video từ video nguồn':'xử lý ảnh tham chiếu')+'. AI '+String(provider||'chưa chọn')+' hiện chưa có adapter phù hợp; không gửi giả hoặc tạo kết quả sai.');
 }
+// fal videoHD uses a dedicated upscale API with named settings rather than a text-prompt field.
+// fal videoSubtitles sends the internal instruction as the actual edit prompt to Kling O1.
 const api=Object.freeze({tasks,task,settings,buildPrompt,supports,requireProvider});
 root.WorkflowAITasks=api;
 if(typeof module!=='undefined'&&module.exports)module.exports=api;
