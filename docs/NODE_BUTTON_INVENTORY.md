@@ -113,11 +113,11 @@
 
 | Mã | Nút/điều khiển | Mẫu & hành vi theo yêu cầu | Trên GitHub main |
 |---|---|---|---|
-| D01 | Mở bàn làm việc | Đi tới trình làm việc đạo diễn. | 🔴 |
+| D01 | Mở bàn làm việc 3D | **ẨN TOÀN ỨNG DỤNG.** Không hiện nút mở bàn 3D ở F05 hay nơi khác; không xóa cảnh/Node/dữ liệu cũ. | ⛔ ẨN |
 | D02 | Nhập mô tả cảnh | Nhập brief scene. | 🟡 |
 | D03 | Thêm ảnh tham chiếu | Upload/chọn tham chiếu. | 🟡 |
 | D04 | Gửi tạo cảnh ↑ | Gửi Prompt tạo bối cảnh. | 🔴 |
-| D05 | Xem không gian 3D | Preview scene 3D thực. | 🔴 |
+| D05 | Xem không gian 3D | **ẨN TOÀN ỨNG DỤNG theo yêu cầu 2026-11-08.** Không render hành động xem không gian 3D ở F05 hoặc Node bất kỳ có cùng chức năng. Giữ nguyên cảnh/video/tài nguyên đã lưu. | ⛔ ẨN |
 | D06 | Điều khiển camera | Camera trong cảnh. | 🔴 |
 | D07 | Chọn góc máy | Lưu góc máy mong muốn. | 🔴 |
 | D08 | Xuất ảnh từ camera | Render/snapshot. | 🔴 |
@@ -275,7 +275,7 @@
 
 - **F01/T04 (Ảnh → suy ngược Prompt):** Khi nhận nhiều ảnh, tạo **một Prompt riêng cho từng ảnh**; không tự gộp tất cả ảnh vào một Prompt. Cần giữ liên kết Prompt ↔ ảnh nguồn; nếu UI kết quả chưa rõ thì xin duyệt trước khi triển khai.
 - **C05 (Kho tài sản):** Chỉ sử dụng **một kho tài sản chung cho toàn ứng dụng**, chia thành các **khu nhỏ theo loại tài nguyên** (ví dụ ảnh, video, âm thanh, nhân vật, bối cảnh, sản phẩm, hiệu ứng, mẫu). Mọi Node dùng chung một bộ chọn tài nguyên, tự lọc loại hợp lệ theo cổng đầu vào; không tự tạo 9 kho riêng biệt.
-- Các công cụ riêng còn chờ giải thích: F02 S01/S03; F03 I05/I10–I12/I18 (I04, I13–I16 đã được yêu cầu ẩn); F04 V05/V10–V13 (V14/V15 đã ẩn); F05 D01/D05–D08; F06 E03–E07/E11 (E14 đã ẩn); F07 A04/A10; R01 U10; R02 U21. **Các hình minh họa trợ giúp là đề xuất ý nghĩa thao tác, không phải chức năng đã được xác nhận hoặc đã triển khai.** Chủ dự án sẽ xem từng hình rồi chốt lại.
+- Các công cụ riêng còn chờ giải thích: F02 S01/S03; F03 I05/I10–I12/I18 (I04, I13–I16 đã được yêu cầu ẩn); F04 V05/V10–V13 (V14/V15 đã ẩn); F05 D06–D08 (D01/D05 đã ẩn); F06 E03–E07/E11 (E14 đã ẩn); F07 A04/A10; R01 U10; R02 U21. **Các hình minh họa trợ giúp là đề xuất ý nghĩa thao tác, không phải chức năng đã được xác nhận hoặc đã triển khai.** Chủ dự án sẽ xem từng hình rồi chốt lại.
 
 
 ### Quyết định giao diện — I04 (2026-11-08)
@@ -340,7 +340,7 @@ Chủ dự án yêu cầu **ẩn nút I13 — Phân đoạn lưới**, thuộc F
 
 **Phạm vi bắt buộc:** áp dụng cho toolbar, menu mở rộng và danh sách action trên **mọi loại Node F01–F07 và R01–R02** nơi những action này xuất hiện; **không chỉ F03**. Không được hiển thị các mục trên trong trạng thái đã chọn/có kết quả. Không thêm lại các nút đó khi xây lại toolbar dùng chung V3. Giữ nguyên các nút đã duyệt còn lại (**Chỉnh sửa phần tử, HD, Nhiều góc độ, Tải kết quả, Xem lớn/Zoom...**); không xoá kết quả, asset, cấu trúc graph hay thao tác của một menu khác không cùng ý nghĩa.
 
-**Các mã bị ẩn:** F03 `I13`, `I14`, `I15`, `I16`; F04 `V15` (Hơn). Các nút F03 `I04` (Đánh dấu đối tượng) và F05 `D01` đã được yêu cầu ẩn trước đó, giữ nguyên quyết định. Nếu có tên khác nhưng cùng chức năng trong node upload/khác, cũng phải ẩn.
+**Các mã bị ẩn:** F03 `I13`, `I14`, `I15`, `I16`; F04 `V15` (Hơn). Các nút F03 `I04` (Đánh dấu đối tượng) và F05 `D01` (Mở bàn 3D), `D05` (Xem không gian 3D), F06 `E14` (Timeline chuyên dụng), F04 `V14` (Tách âm thanh/video) đã được yêu cầu ẩn, giữ nguyên quyết định. Nếu có tên khác nhưng cùng chức năng trong node upload/khác, cũng phải ẩn.
 
 **Trạng thái repo:** tìm trong `app.js`, `app.html`, `node-common-actions.js`, `compact-toolbar.js`: chưa có mã hiển thị các action này trong UI legacy hiện tại. Vì vậy đợt này lưu **đặc tả ẩn và bài kiểm thử chống thêm lại**, không nhận là đã hoàn thành toàn bộ giao diện V3 hay thử được thao tác xóa nút trên bản đang chạy. Các media và nút còn lại không bị đổi.
 
@@ -467,3 +467,21 @@ Chủ dự án trả lời: **“nó chỉ cắt khung hình đó thôi, và sin
 Chủ dự án trả lời **“ẩn cái này đi nhé”** khi được hỏi về **E14 — Timeline chuyên dụng**, thuộc **F06 — Chỉnh sửa thông minh (Smart Edit)**. **Ẩn nút E14 hoàn toàn** khỏi Node F06 trong cả trạng thái trống và có video, không mở giao diện Timeline chuyên dụng và không yêu cầu ảnh mô tả nữa.
 
 **Phạm vi chính xác:** chỉ nút **E14** trong F06, **không ẩn/chặn thanh tua video** (U14), **không xóa Node timeline legacy** có sẵn ở repo, **không xóa timeline chọn đoạn** dùng cho F04/V13 vì đây là các chức năng khác đã được xác nhận. Giữ dữ liệu/project cũ. Kiểm tra hiện trạng `app.js`: có Node `timeline` legacy độc lập nhưng **chưa có action F06/E14 riêng**; đợt này lưu quy tắc ẩn để không đưa nút E14 vào giao diện V3 sau này. **Chưa lập trình F06 V3 đầy đủ.**
+
+
+### Quy tắc toàn ứng dụng — mọi nút đã yêu cầu ẩn phải ẩn ở MỌI Node (2026-11-08)
+
+**Chủ dự án xác nhận:** “ẩn đi, những nút đã yêu cầu ẩn dù ở nút nào thì cũng sẽ ẩn nhé”. Không gắn quy tắc ẩn chỉ với mã Node ban đầu: **cùng tính năng, tên hoặc biểu tượng tương ứng ở Node khác thì cũng ẩn**. Khi hoàn thiện UI V3, bộ toolbar/action chung phải loại các thao tác này khỏi danh sách render trước khi hiển thị, không chỉ làm mờ/disable nút. Nguyên tắc này ưu tiên hơn việc sao chép nguyên ảnh cũ chứa nút đã ẩn.
+
+**Các hành động đã bị ẩn tính đến lúc này:**
+
+- **I04 — Đánh dấu đối tượng** như *nút độc lập* (không ẩn công cụ chọn vùng bên trong I10 đã duyệt).
+- **I13 — Phân đoạn lưới; I14 — Phân tách lớp; I15 — Tầm nhìn toàn cảnh 720°**.
+- **I16/V15 — Hơn** trên thanh công cụ Node (không xóa các menu chức năng khác được duyệt).
+- **V14 — Tách âm thanh/video; Phân tích/tách cảnh từng khung hình** trên thanh công cụ (không xóa chức năng chụp khung hình hiện tại/đầu/cuối của R02/U21 đã duyệt).
+- **D01 — Mở bàn làm việc 3D; D05 — Xem không gian 3D** ở **F05** và các Node khác nếu xuất hiện cùng chức năng.
+- **E14 — Timeline chuyên dụng** (không xóa trình phát/tua video, timeline chọn đoạn của V13, hoặc dữ liệu timeline legacy đã lưu).
+
+**Không được suy rộng:** D06 — Điều khiển camera, D07 — Chọn góc máy, D08 — Xuất ảnh từ camera vẫn **chưa được yêu cầu ẩn riêng**; tạm để cần giải thích, không tự xóa. E07 — Chế độ chỉnh sửa đã được chủ dự án yêu cầu **bỏ qua việc hỏi**, không đồng nghĩa với ẩn. Dữ liệu các workflow/video/ảnh cũ giữ nguyên.
+
+**Hiện trạng code khi ghi:** các chức năng D01/D05 thuộc giao diện V3 chưa có action được render trong app.js, node-common-actions.js, app.html; chỉ cập nhật đặc tả và test chống đưa trở lại, không nhận đã hoàn thiện UI V3. Nút giống nhau ở các Node phải dùng chung thành phần và hành vi, bao gồm quy tắc ẩn.
