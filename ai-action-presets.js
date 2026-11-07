@@ -5,6 +5,7 @@
 (function(root){
 'use strict';
 const tasks=Object.freeze({
+  imageToPrompt:Object.freeze({code:'T04',name:'Ảnh → Prompt',kind:'text',source:'image',providers:['chatgpt','gemini','google','openai']}),
   imageHD:Object.freeze({code:'I11',name:'HD · Nâng cấp ảnh',kind:'image',source:'image',providers:['muse','gemini','google']}),
   imageAngles:Object.freeze({code:'I12',name:'Nhiều góc độ',kind:'image',source:'image',providers:['muse','gemini','google']}),
   videoDepth:Object.freeze({code:'V10',name:'Chuyển động chiều sâu',kind:'video',source:'video',providers:['fal']}),
@@ -34,6 +35,7 @@ function settings(id,raw={}){
 function buildPrompt(id,raw={},userPrompt=''){
   const s=settings(id,raw),intro='MUSEFLOW INTERNAL TASK INSTRUCTIONS. Treat attached source media as primary truth. Return the requested media result, not advice, a textual description, or a claim of success. Keep the source unchanged and create a separate result.';
   let body='';
+  if(id==='imageToPrompt')body='TASK: REVERSE ENGINEER IMAGE TO PROMPT. Examine the single attached source image. Describe ONLY what is visible: main subject, identity-neutral appearance, clothing, actions, composition, camera perspective, lens feel, lighting, color palette, background, texture and artistic style. Output ONE complete image-generation prompt that could reproduce the scene. No claims about real names or unseen details, no conversation, no multiple image prompts. If the image is unavailable, clearly say that instead of hallucinating.';
   if(id==='imageHD')body='TASK: AI IMAGE UPSCALE. Restore fine, natural detail in the attached ORIGINAL image. Preserve exact subject identity, facial features, pose, clothing, composition, colors, lighting, background and aspect ratio. Target scale '+s.scale+'× in BOTH pixel dimensions if the selected model supports it. Do not invent objects, replace the scene, sharpen unnaturally, add watermarks or text. If target dimensions cannot be guaranteed, do not claim that they were achieved.';
   if(id==='imageAngles'){
     const camera={custom:'custom camera placement',front:'front-facing',back:'from behind',side:'side-profile',overhead:'high-angle overhead',low:'low-angle',fisheye:'fisheye'}[s.preset];
