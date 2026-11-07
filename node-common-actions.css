@@ -1,0 +1,31 @@
+/* Single visual language for shared controls across all Canvas nodes. */
+.node .node-common-composer{margin-top:8px;padding-top:4px;border-top:1px solid #292929}
+.node-common-composer-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
+.node .node-common-composer button,.node .node-common-context-tools button{width:auto;margin:0;display:inline-flex;align-items:center;justify-content:center;min-height:34px;background:#282828;color:#ececec;border:1px solid #393939;border-radius:12px;font:inherit;font-size:12px;cursor:pointer;padding:7px 10px;white-space:nowrap}
+.node .node-common-composer button:hover,.node .node-common-context-tools button:hover{background:#3b3b3b}
+.node .node-common-composer button.node-common-model-picker{margin-right:auto;max-width:90%;white-space:normal;text-align:left}
+.node .node-common-composer button.node-common-send{background:#fff;color:#1b1b1b;font-size:22px;min-width:43px;min-height:43px;padding:2px;border-radius:15px}
+.node .node-common-composer button.node-common-send.is-error{background:#dc2626;color:#fff}
+.node .node-common-composer button.node-common-send.is-running{background:#eee;color:#222;cursor:wait;animation:node-shared-spin 1.2s linear infinite}
+@keyframes node-shared-spin{to{transform:rotate(360deg)}}
+.node .node-common-context-tools{position:absolute;bottom:calc(100% + 12px);left:50%;transform:translateX(-50%);display:none;align-items:center;gap:4px;background:#212121;border:1px solid #393939;border-radius:16px;box-shadow:0 14px 30px #000a;padding:7px;z-index:10;white-space:nowrap}
+.node.selected .node-common-context-tools{display:flex}
+.node:has(.node-common-send) .node-generation-actions>.node-run-button.primary{display:none}
+.node-common-popup{position:fixed;z-index:12050;border:1px solid #474747;background:#242424;color:#ededed;border-radius:18px;padding:9px;box-shadow:0 24px 60px #000c;max-height:min(70vh,520px);overflow:auto}
+.node-common-menu-title{color:#a8a8a8;font-size:12px;margin:6px 10px 10px}
+.node-common-popup button{width:100%;border:0;color:#ededed;background:transparent;cursor:pointer;text-align:left;border-radius:12px;padding:12px;display:flex;align-items:center;gap:9px;font:inherit;font-size:14px}
+.node-common-popup button:hover:not(:disabled),.node-common-popup button.is-active{background:#414141}
+.node-common-popup button:disabled{opacity:.35;cursor:not-allowed}
+.node-common-provider{font-weight:650;justify-content:space-between}
+.node-common-sublist{padding-left:10px}
+.node-common-popup button.node-common-model{min-height:49px}
+.node-common-model-icon{width:32px;height:32px;display:grid;place-items:center;background:#343434;border-radius:10px}
+.node-common-model-tag{font-size:11px;background:#353535;color:#c2c2c2;border-radius:99px;padding:3px 7px;margin-left:auto}
+.node-common-empty{color:#a0a0a0;padding:6px 12px;font-size:13px}
+.node-common-lightbox{position:fixed;inset:0;z-index:12060;display:flex;align-items:center;justify-content:center;padding:5vw;background:#000c}
+.node-common-lightbox-frame{width:min(100%,1100px);height:min(88vh,830px);border-radius:21px;background:#1c1c1c;border:1px solid #434343;padding:16px;display:flex;flex-direction:column;min-width:0;min-height:0}
+.node-common-lightbox-head{display:flex;justify-content:space-between;align-items:center;gap:10px;color:#c5c5c5;font-size:14px}
+.node-common-lightbox-head button{background:#303030;border:0;border-radius:8px;color:white;font-size:26px;cursor:pointer}
+.node-common-lightbox-frame>img,.node-common-lightbox-frame>video{flex:1;object-fit:contain;min-height:0;width:100%}
+.node-common-lightbox-frame>audio{width:100%;margin:auto 0}
+@media(max-width:480px){.node-common-popup{width:calc(100vw - 16px)!important}.node .node-common-composer button.node-common-reference{font-size:11px;padding:5px}}
