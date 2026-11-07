@@ -60,3 +60,12 @@ Các nhóm dùng chung C01–C08 đã được chốt. Các mục dưới đây 
 Tham khảo lịch sử commit của các file: `app.js`, `app.html`, `node-common-actions.js/.css`, `shared-node-controls.js/.css`, `tools/package.py`, và `tests/desktop-*.test.cjs`. Trong bước này không thay đổi `nodeDefs` cho những Node V3 chưa có backend; giữ backward compatibility cũ.
 
 **Trạng thái tổng thể của toàn bộ 9 Node V3: 🟡 CHƯA HOÀN THÀNH**. Phần lõi dùng chung đã được thêm vào những Node thực tế có khả năng tương ứng.
+
+
+## 5. CI cập nhật sau khi sửa kiểm thử (2026-11-08)
+
+- **Bằng chứng:** [GitHub Actions run #42407579737](https://github.com/mktminhqpbga-glitch/workflow/actions/runs/42407579737), commit code/test `60ae092980b729c32b1003e341b040aed99e8ff4`.
+- Kết quả `npm test` trên macOS: **102 test, 101 pass, 1 fail**. Các kiểm thử mới về node actions/đóng gói/shared Prompt đã qua.
+- Bài còn lỗi: `tests/desktop-policy.test.cjs:73` — lỗi đường dẫn canonical `/private/var` so với `/var` (BUG-007 đã có trước). Không sửa bảo vệ đường dẫn trong đợt này.
+- `npm run test:browser`, `npm run test:desktop`, `npm run test:reliability` và thử AI thật: **chưa chạy**. Chưa có bằng chứng screenshot từ app GitHub HEAD đã chạy. Vì vậy status vẫn 🟡.
+- Các commit phần tính năng: `5d01ed5d02da`, `8261d0de035b`, `0cde487f6860`, `74f9eb499d9f`, `0f96f2473513`, `7bcdf99144ed`, `934b97b6d6ed`, `5c8de103ec53`, `facd4493aa14`, `c1e741dd9a0d`, `aef2f88d909d`, `be79ff07744c`, `2219f9dda0a0`. Các SHA đầy đủ tra lịch sử GitHub.
