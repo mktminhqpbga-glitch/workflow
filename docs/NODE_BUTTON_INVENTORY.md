@@ -151,13 +151,13 @@
 | A01 | Nhập Prompt | Mô tả âm thanh. | 🟡 |
 | A02 | Tải âm thanh tham chiếu | Tệp/audio mẫu. | 🟡 |
 | A03 | Tham chiếu Canvas | Nhận audio/video/text có kiểu. | 🟡 |
-| A04 | Âm thanh → Video | **Ảnh tham chiếu mới 2026-11-08:** một nhóm workflow nhận Audio (waveform/độ dài, ví dụ 0:03) và Ảnh tham chiếu, nối vào Video output rỗng; Prompt có ảnh+âm thanh đính kèm, chọn chế độ/model, tỷ lệ/phân giải/thời lượng, dịch, cài đặt và ↑. Ghi nhận là ảnh mẫu khả dĩ cho A04, **chưa được chủ dự án xác nhận mã nút cụ thể của ảnh**. | 🟡 Có ảnh, chưa chốt ánh xạ |
+| A04 | Âm thanh → Video | Chức năng liên quan audio → video. **Chưa có xác nhận chi tiết nút A04**; ảnh workflow âm thanh–video ngày 2026-11-08 đã được chủ dự án xác nhận là **màn hình mở từ A10**, không tự gán ảnh đó cho A04. | 🔴 Chờ giải thích |
 | A05 | Chọn AI/model/tab | Provider, model và nơi gửi. | 🟡 |
 | A06 | WAV/MP3 | Chọn định dạng đầu ra. | 🟡 |
 | A07 | Thời lượng | Độ dài âm thanh. | 🟡 |
 | A08 | Giọng nói | Chọn giọng khi có TTS. | 🟡 |
 | A09 | Dịch Việt ↔ Anh | Giống T07/S07: **chỉ dịch nội dung Prompt** Việt ↔ Anh, không dịch giao diện. | 🔴 |
-| A10 | Cài đặt nâng cao | Locale/tần số sample/codec theo model. | 🔴 |
+| A10 | Cài đặt nâng cao | **Đã xác nhận:** bấm A10 (biểu tượng ba thanh trượt trong F07) mở **giao diện preset Âm thanh → Video** đúng ảnh ngày 2026-11-08: một nhóm trên Canvas gồm audio waveform/nguồn âm thanh, ảnh tham chiếu, preview video, composer nhập lệnh và cài đặt tỷ lệ/chất lượng/thời lượng. Giữ nguyên bố cục mẫu; chỉ chọn AI/model/tab đã kết nối theo C01, không tự thêm nút Hơn đã bị ẩn. **Không suy diễn rằng đã nhìn thấy popup chi tiết sau nút ba thanh trượt trong ảnh**. | 🟡 Đã xác nhận màn hình, chưa code |
 | A11 | Nút gửi ↑ | Gửi yêu cầu và trạng thái. | 🔴 |
 | A12 | Nghe kết quả | Audio player & waveform. | 🟡 |
 | A13 | Thu gọn Prompt | Chuẩn Prompt dưới node. | 🔴 |
@@ -407,8 +407,11 @@ Chủ dự án yêu cầu **ẩn nút I13 — Phân đoạn lưới**, thuộc F
 **Kiểm tra source lúc ghi yêu cầu:** hiện chưa có các nút này trong `app.js`, `app.html`, `node-common-actions.js`, `compact-toolbar.js` ở nhánh `main`; yêu cầu được ghi thành quy tắc thiết kế và bảo vệ bằng test cho các lần sửa UI V3. Không báo đã xóa công cụ trên một bản ứng dụng chưa được commit lên GitHub.
 
 
-### 2026-11-08 — Ảnh mới về F07 Âm thanh → Video, cần xác nhận ánh xạ A04/A10
+### 2026-11-08 — Ảnh F07 đã xác nhận là màn hình mở từ A10
 
 Người dùng được hỏi **F07 — A10 (Cài đặt âm thanh nâng cao, biểu tượng ba thanh trượt)** và gửi ảnh có tiêu đề **“预设 - 音频生视频” (Preset — Sinh video từ âm thanh)**. Ảnh cho thấy: Node waveform âm thanh 0:03 và ảnh nguồn được nối vào Node preview video trống; composer bên dưới có nút **Upload, Tham khảo Canvas, Đánh dấu, Thư viện nhân vật, Hơn**, thumbnail ảnh/audio (chưa biết thao tác chi tiết), Prompt tạo video dựa vào âm thanh, chọn cấu hình 16:9, 720P, 5 giây, dịch, biểu tượng **ba thanh trượt** cạnh nút gửi ↑. **Ảnh KHÔNG cho thấy menu/bảng popup sau khi bấm biểu tượng ba thanh trượt**, vì thế chưa thể xác nhận cấu hình bên trong A10. Bốn chữ “Hơn” trong ảnh là thiết kế nguồn đã được chủ dự án yêu cầu ẩn toàn cục, **không được tự thêm lại**.
 
-**Quy tắc ghi nhận:** giữ ảnh như tham chiếu cho **A04 Audio→Video** nếu đúng ý người dùng; **không được đổi A10 từ 🔴 sang 🟢**, không tự bịa mẫu popup. Câu hỏi tiếp theo: ảnh này là mô tả **A04 — Âm thanh → Video**, hay chính là màn hình xuất hiện sau khi nhấn **A10 — Cài đặt nâng cao**? Chỉ hỏi một điều và chờ phản hồi. Chưa lập trình.
+**Chủ dự án trả lời “đúng” khi chọn nhánh “cửa sổ xuất hiện khi bấm A10”.** Chốt rằng bấm **F07/A10 — Cài đặt nâng cao** sẽ mở màn hình preset audio → video như ảnh. **Không gán ảnh này cho hành vi của A04**, vẫn cần hỏi A04 riêng khi đến lượt. Ảnh không thể hiện một popup thông số nhỏ đã xổ ra, vì thế không bịa thêm danh sách tham số. **Mới chốt yêu cầu, chưa lập trình A10**.
+
+
+**Xác nhận mới nhất từ chủ dự án (2026-11-08):** Ảnh workflow Âm thanh → Video là **màn hình xuất hiện khi bấm A10**, không phải minh họa chung của A04. Chỉ đánh dấu 'đã hiểu' đặc tả A10; không chuyển trạng thái triển khai thành hoàn thành.
