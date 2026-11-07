@@ -53,7 +53,46 @@
    if(!videos.length)throw Error('Nối video đầu vào trước.');
    const args=[],filters=[],base=info[0],factor=Math.min(1,1280/Math.max(base.width,base.height)),initialW=Math.max(2,Math.floor(base.width*factor/2)*2),initialH=Math.max(2,Math.floor(base.height*factor/2)*2);let w=initialW,h=initialH;if(type==='frameFit'){const ratios={'9:16':9/16,'16:9':16/9,'1:1':1,'4:3':4/3,'3:4':3/4},ratio=ratios[settings.size];if(!ratio)throw Error('Tỷ lệ video không hợp lệ.');const height=Math.max(base.height,base.width/ratio),scale=Math.min(1,1280/Math.max(height,height*ratio));h=Math.max(2,Math.round(height*scale/2)*2);w=Math.max(2,Math.round(height*ratio*scale/2)*2);}const normalize=`scale=${w}:${h}:force_original_aspect_ratio=decrease,pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=24,format=yuv420p`,videoOut=['-c:v','libx264','-preset','ultrafast','-crf','20','-pix_fmt','yuv420p'],audioOut=['-c:a','aac','-b:a','160k','-ar','48000'];let report='',outputDuration=base.duration;
    paths.forEach((path,i)=>{if(type==='audioMix'&&i===videos.length&&settings.loop!==false)args.push('-stream_loop','-1');args.push('-i',path);});
-   if(type==='frameFit'){args.push('-vf',normalize,'-map','0:v:0','-map','0:a?');report='Đã đặt video vào khung '+settings.size+' bằng viền đệm, giữ toàn bộ hình gốc.';}else if(type==='videoAssembly'){
+   if(type==='clipTrim'){
+     const start=finite(settings.start,0,base.duration-.05,'Điểm bắt đầu');
+     const end=finite(settings.end,start+.05,base.duration,'Điểm kết thúc');
+     args.push('-ss',String(start),'-t',String(end-start),'-vf',normalize,
+       '-map','0:v:0','-map','0:a?');
+     outputDuration=end-start;
+     report='Trích đoạn '+start.toFixed(2)+'–'+end.toFixed(2)+
+       ' giây để gửi AI, video nguồn được giữ nguyên.';
+    }else if(type==='clipReplace'){
+     if(videos.length!==2)throw Error('Cần video gốc và đúng một video AI của đoạn chọn.');
+     const start=finite(settings.start,0,base.duration-.05,'Điểm bắt đầu');
+     const end=finite(settings.end,start+.05,base.duration,'Điểm kết thúc');
+     const len=end-start,pieces=[];
+     // Splice exact source time ranges, rather than regenerating all scenes.
+     // Local re-encoding may change compression, but not the original content.
+     const piece=(id,source,from,to,useSourceAudio=false)=>{
+       const duration=to-from;
+       filters.push('['+source+':v]trim=start='+from+':end='+to+
+         ',setpts=PTS-STARTPTS,tpad=stop_mode=clone:stop_duration='+duration+
+         ',trim=duration='+duration+','+normalize+'[v'+id+']');
+       const audioSource=useSourceAudio?0:source;
+       const audioFrom=useSourceAudio?start:from;
+       if(info[audioSource].audio)filters.push('['+audioSource+':a]atrim=start='+audioFrom+
+         ':duration='+duration+',asetpts=PTS-STARTPTS,aresample=48000,'+
+         'aformat=sample_fmts=fltp:channel_layouts=stereo,apad,'+
+         'atrim=duration='+duration+'[a'+id+']');
+       else filters.push('anullsrc=r=48000:cl=stereo,atrim=duration='+
+         duration+'[a'+id+']');
+       pieces.push('[v'+id+'][a'+id+']');
+     };
+     let index=0;
+     if(start>.01)piece(index++,0,0,start);
+     piece(index++,1,0,len,!info[1].audio&&base.audio);
+     if(end<base.duration-.01)piece(index++,0,end,base.duration);
+     filters.push(pieces.join('')+'concat=n='+index+':v=1:a=1[v][a]');
+     args.push('-filter_complex',filters.join(';'),'-map','[v]','-map','[a]');
+     outputDuration=base.duration;
+     report='Đã chèn đoạn AI '+start.toFixed(2)+'–'+end.toFixed(2)+
+       ' giây và giữ nội dung cảnh khác; đầu ra được mã hóa lại.';
+    }else if(type==='frameFit'){args.push('-vf',normalize,'-map','0:v:0','-map','0:a?');report='Đã đặt video vào khung '+settings.size+' bằng viền đệm, giữ toàn bộ hình gốc.';}else if(type==='videoAssembly'){
     const signature=x=>JSON.stringify(x.streams),compatible=videos.every((_,i)=>signature(info[i])===signature(base))&&base.streams?.some(s=>s.codec_type==='video'&&s.codec_name==='h264')&&base.streams?.some(s=>s.codec_type==='audio'&&s.codec_name==='aac');
     if(compatible){
      await ffmpeg.writeFile('/concat.txt',new TextEncoder().encode(paths.slice(0,videos.length).map(path=>"file '"+path+"'").join('\n')),{signal});progress('Đang ghép trực tiếp các video cùng định dạng…');const code=await ffmpeg.exec(['-f','concat','-safe','0','-i','/concat.txt','-map','0:v:0','-map','0:a:0','-c','copy','-movflags','+faststart','-y','/output.mp4'],-1,{signal});if(code!==0)throw Error(tail.join(' ').slice(-900)||'Không ghép được video.');const result=await ffmpeg.readFile('/output.mp4','binary',{signal});if(!result.length)throw Error('Video ghép trống.');return {blob:new Blob([result],{type:'video/mp4'}),duration:info.slice(0,videos.length).reduce((sum,x)=>sum+x.duration,0),width:base.width,height:base.height,report:`Đã ghép ${videos.length} video cùng định dạng, giữ nguyên hình/âm thanh, không mã hóa lại.`};
