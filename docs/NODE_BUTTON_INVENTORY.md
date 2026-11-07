@@ -70,7 +70,7 @@
 | I08 | Độ phân giải 1K/2K/4K | Thiết lập chất lượng khi model hỗ trợ. | 🔴 |
 | I09 | Số lượng ảnh | Chọn số ảnh đầu ra. | 🔴 |
 | I10 | Chỉnh sửa phần tử | **Chỉ khi F03 đã có ảnh kết quả và ảnh đang được chọn:** toolbar nằm phía trên ảnh (ảnh 1, 2026-11-08), bấm **Chỉnh sửa phần tử** → chuyển sang chế độ chọn/chỉnh trực tiếp trên ảnh (ảnh 2), ảnh phủ lớp tối, có thanh riêng với nút Đóng (×), chọn theo điểm/ghim, chọn vùng nét đứt, bút vẽ và Hoàn tác. Không mở Node tạo ảnh mới, không đưa ảnh thủ công vào Prompt. **Khi Node chưa có ảnh:** không hiển thị/không bật I10. Phân biệt các điều khiển chọn vùng *bên trong I10* với nút I04 đã bị ẩn. | 🟡 Đã chốt UX, chưa code |
-| I11 | HD | Nâng cấp HD khi model hỗ trợ. | 🔴 |
+| I11 | HD / Nâng cấp độ phân giải | **F03 đã có ảnh kết quả và ảnh được chọn** → bấm HD trên toolbar nổi → xuất hiện Node **HD** mới, nối từ ảnh gốc; có bảng thiết lập nâng cấp độ phân giải với **Chọn model/dịch vụ** (ảnh mẫu: Topazlabs), **chế độ/model** (ảnh mẫu: Thông dụng), **hệ số phóng** 2× / 4× / 6× và nút **↑ tạo**. AI xử lý ảnh gốc thành **một ảnh kết quả mới có chất lượng theo thiết lập**; không chỉ kéo giãn ảnh hiển thị. Node HD rỗng có placeholder, không có toolbar kết quả nổi phía trên. Chỉ cho chọn dịch vụ/model có kết nối, nếu thiếu phải thông báo. Chưa code. | 🟡 Đã chốt UX, chưa code |
 | I12 | Nhiều góc độ | Tạo các góc nhìn. | 🔴 |
 | I13 | Phân đoạn lưới | Cắt/chia ảnh theo lưới. | 🔴 |
 | I14 | Phân tách lớp | Tách lớp ảnh. | 🔴 |
@@ -307,3 +307,12 @@ Người dùng gửi **hai ảnh chụp giao diện thật** và xác nhận tr�
 - Click nền Canvas/bỏ chọn phải tắt toolbar ngay, không hiển thị trên hover. Không nhầm nút thường trong Prompt với toolbar nổi.
 
 **Thay đổi mã ngày 2026-11-08:** `node-common-actions.js` thêm điều kiện `hasResult` để chỉ tạo toolbar nổi khi có kết quả, `app.js` truyền kết quả dựa trên media/tài liệu script/kết quả AI. Có bài kiểm thử mới trong `tests/desktop-node-common-controls.test.cjs`. Đây là quy tắc được áp dụng trên bộ công cụ chung hiện có; 9 Node V3 chưa triển khai đủ nên chưa xem là xong toàn bộ.
+
+
+### Quyết định giao diện — F03/I11 HD (2026-11-08)
+
+**Ảnh mẫu mới:** người dùng gửi ảnh Node F03 có ảnh thành phẩm bên trái kết nối bằng dây tới Node **HD** chưa có kết quả bên phải; bên dưới Node HD là bảng **高清放大** (Nâng cấp độ phân giải cao). Chữ trên ảnh: model/provider **Topazlabs**, model/chế độ **通用** (Thông dụng), nút hệ số **2 / 4 / 6**, hiển thị chi phí dự kiến và nút gửi **↑**. Cần Việt hóa nhãn trong ứng dụng nhưng giữ layout sát ảnh. Không gán mặc định Topazlabs hoặc một API cụ thể nếu chưa thực sự kết nối và hỗ trợ.
+
+**Chức năng người dùng xác nhận:** I11 yêu cầu AI tạo **ảnh nâng chất lượng mới** từ ảnh nguồn với cài đặt đã chọn, không đơn thuần resize ảnh. Mỗi lần bấm gửi là tác vụ có chủ đích, trạng thái chờ/chạy/lỗi/kết quả; ảnh mới hiển thị ở Node HD, có thể nối tiếp Node khác, không ghi đè ảnh gốc. Thanh công cụ nổi trên kết quả tuân thủ quy tắc chung: chỉ xuất hiện khi **đã có kết quả và được chọn**.
+
+**Trạng thái:** chỉ ghi đặc tả, chưa tạo node xử lý upscale hay nối dịch vụ thật. **Nút tiếp theo chờ user giải thích: F03/I12 — Nhiều góc độ; trạng thái ảnh đã có kết quả và được chọn.**
