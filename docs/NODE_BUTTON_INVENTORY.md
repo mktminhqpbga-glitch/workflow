@@ -234,3 +234,21 @@
 7. Cập nhật trạng thái khi **đã sửa và kiểm thử**, ghi commit + ảnh chụp thực tế. Không chèn ảnh giả, không tự gọi AI tính phí.
 
 **Các tình trạng trên GitHub là kiểm kê sơ bộ, KHÔNG kết luận mọi nút màu đỏ hoàn toàn không tồn tại ở module legacy.** Vẫn cần rà kỹ chức năng tương ứng trước mỗi commit triển khai.
+
+
+## Quy tắc bắt buộc: một chức năng chung cho các nút tương đương
+
+**Chủ dự án xác nhận 2026-11-08:** Các nút có chức năng giống nhau, kể cả thuộc các loại Node khác nhau, **phải dùng chung logic và component khi phù hợp**. Chỉ khác cài đặt về loại dữ liệu, model được hỗ trợ, hoặc định dạng đầu ra. Không tạo các bản sao code có hành vi sai khác.
+
+| Chức năng dùng chung | Các mã nút | Hành vi bắt buộc |
+|---|---|---|
+| Chọn AI/model/tab | T06, S06, I06, V06, A05 | Chọn provider, sau đó model phù hợp tác vụ và tab/cuộc hội thoại đang đăng nhập; cùng cách lưu/lỗi/chọn lại, không gửi nhầm tab. |
+| Dịch hai chiều | T07, S07, A09 | Nhận diện hoặc chọn chiều Việt→Anh / Anh→Việt, giữ nguyên bản gốc để có thể hoàn tác; tránh tự ghi đè đầu vào nguồn. |
+| Gửi Prompt | T08, S08, I21, V19, D04, E15, A11 | Một cơ chế ready/working/error: nền trắng và mũi tên ↑; spinner xoay khi gửi/đang xử lý; đỏ và báo lỗi khi thất bại; không tự chạy do thay nguồn. Task-specific payload theo Node. |
+| Thu gọn/mở rộng Prompt | T09, S09, I22, V21, D09, E16, A13 | Một cơ chế giữ state theo node, không xóa Prompt/tham chiếu, composer neo Node và giữ screen-space khi Zoom Canvas; hình thức theo mẫu T09. |
+| Thêm tham chiếu | T04, S05, I02, I03, V02, V03, D03, A02, A03, E01 | Một bộ chọn nguồn với các mục phù hợp: Canvas hiện tại, tải cục bộ, kho tài sản/lịch sử; xác minh loại media và thumbnail; lưu node connection/asset ID. |
+| Tải kết quả | S01, I19, V17, D08, E12, U06, U18 | Một hành vi tải thống nhất, đuôi file và quyền tải tùy loại media; không tải tài nguyên rỗng/lỗi. |
+| Xem/phóng to | I20, V18, E13, U07, U19 | Chung cơ chế preview/lightbox; player video, ảnh và timeline phù hợp media type. |
+| Nhân bản | I17, E10, U05, U17 | Sao chép đúng node, metadata và cài đặt, ID mới, giữ dữ liệu và xử lý dây nối theo chính sách clone. |
+
+**Yêu cầu kỹ thuật khi triển khai:** Tách module/helper chung cho hành vi giống nhau; ưu tiên cấu hình theo capabilities của từng Node. Component chia sẻ phải được dùng trên **Canvas thực**, không làm mock. Có test hồi quy đa Node: click, phím, status, chọn tab, save/reload, zoom, invalid media. Không đánh dấu 🟢 trước khi có code và bằng chứng test. Chưa thay đổi runtime trong commit tài liệu này.
