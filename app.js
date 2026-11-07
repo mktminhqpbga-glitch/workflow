@@ -80,7 +80,7 @@
     },
     generateVideo: {
       title: 'Tạo video',
-      inputs: [{id:'video',label:'Video chuyển động',type:'video'}, { id: 'prompt', label: 'prompt', type: 'text' }, { id: 'negative', label: 'negative', type: 'negative' }, { id: 'reference', label: 'reference', type: 'image' }],
+      inputs: [{id:'video',label:'Video chuyển động',type:'video'}, {id:'audio',label:'Âm thanh nguồn',type:'audio'}, { id: 'prompt', label: 'prompt', type: 'text' }, { id: 'negative', label: 'negative', type: 'negative' }, { id: 'reference', label: 'reference', type: 'image' }],
       outputs: [{ id: 'video', label: 'video', type: 'video' }, { id: 'endFrame', label: 'end frame', type: 'image' }]
     },
     timeline: { title: 'Timeline', inputs: Array.from({length:6},(_,i)=>({id:`clip${i+1}`,label:`clip ${i+1}`,type:'video'})), outputs: [] },
@@ -224,6 +224,7 @@
   $('#bindMuseSendBtn').onclick=()=>runMuseSupport('bind');
   $('#copyMuseReportBtn').onclick=async()=>{try{await navigator.clipboard.writeText($('#museSupportReport').value);$('#museSupportStatus').textContent='Đã sao chép báo cáo chẩn đoán.';}catch{$('#museSupportReport').focus();$('#museSupportReport').select();$('#museSupportStatus').textContent='Hãy nhấn Ctrl+C để sao chép báo cáo đã chọn.';}};
 
+  function resolveAudios(id){return getIncoming(id,'audio').map(sourceFor).filter(Boolean).map(n=>n.data.asset?.url||n.data.localDataUrl).filter(Boolean);}
   function resolveVideos(id,seen=new Set()){if(seen.has(id))return [];seen.add(id);return getIncoming(id,'video').map(sourceFor).filter(Boolean).flatMap(n=>n.type==='review'?resolveVideos(n.id,new Set(seen)):[n.data.localDataUrl||n.data.asset?.url]).filter(Boolean);}
   function providerControls(n){
     const wrap=document.createElement('div');wrap.className='provider-controls';
@@ -1153,7 +1154,9 @@
     scheduleAutoSave();render();
   }
   function commonReferenceInput(n){
-    return (nodeDefs[n.type]?.inputs||[]).find(p=>['image','video','audio'].includes(p.type) &&
+    const ports=nodeDefs[n.type]?.inputs||[];
+    return ports.find(p=>p.id==='reference'&&['image','video','audio'].includes(p.type))||
+      ports.find(p=>['image','video','audio'].includes(p.type) &&
       ['reference','image','video','audio'].includes(p.id))||
       (nodeDefs[n.type]?.inputs||[]).find(p=>['image','video','audio'].includes(p.type));
   }
@@ -1279,6 +1282,8 @@
       return [make('imageHD','HD'),make('imageAngles','Nhiều góc độ'),
         ...(source.data.nodeRole==='director'?[{label:'Xuất ảnh góc máy',title:'Lấy ảnh từ camera hiện tại',
           run:()=>void saveDirectorSnapshot(source).catch(error=>setRunStatus(error.message,'error'))}]:[])];
+    if(media.kind==='audio'&&['audioInput','voiceover'].includes(source.type))
+      return [make('audioToVideo','Âm thanh → Video'),make('audioToVideo','Cài đặt âm thanh nâng cao')];
     if(media.kind==='video'&&['generateVideo','videoInput'].includes(source.type))
       return [make('videoDepth','Chuyển động sâu'),make('videoHD','HD'),
         make('videoSubtitles','Xóa phụ đề'),make('videoSegment','Làm lại đoạn')];
@@ -1343,8 +1348,8 @@
     const config=globalThis.WorkflowAITasks.settings(id,{});
     // Always detect actual source dimensions, including user-uploaded assets
     // that have no stored width/height metadata.
-    const dimensions=await mediaDimensions(media.url,kind);
-    if(kind==='video'){
+    const dimensions=spec.source==='audio'?null:await mediaDimensions(media.url,kind);
+    if(kind==='video'&&spec.source==='video'){
       if(id==='videoDepth'&&(dimensions.duration<3||dimensions.duration>30))
         throw Error('Motion Control yêu cầu video nguồn từ 3 đến 30 giây.');
       if(id==='videoSubtitles'&&
@@ -1368,7 +1373,8 @@
     const data={provider:provider.id,model:kind==='image'?'muse-image':'muse-video',
       localPrompt:'',size:resultTaskAspect(source,dimensions,kind),
       status:'idle',aiTask:{id,settings:config,sourceNodeId:source.id}};
-    if(kind==='video')data.duration=Math.max(0.1,Number(dimensions?.duration)||5);
+    if(id==='audioToVideo'){data.duration=config.duration;data.size=config.aspect;}
+    else if(kind==='video')data.duration=Math.max(0.1,Number(dimensions?.duration)||5);
     if(WorkflowAI.providers[provider.id]?.urls){
       const tab=(aiChatTabs[provider.id]||[]).find(t=>
         String(t.id)===String(provider.choices[0]?.value));
@@ -1378,7 +1384,7 @@
       x:source.x+420,y:source.y+20,data};
     const added=[target],edges=[{id:uid('edge'),source:source.id,
       sourcePort:spec.source,target:idNew,
-      targetPort:spec.source==='image'?'reference':'video'}];
+      targetPort:spec.source==='image'?'reference':spec.source==='audio'?'audio':'video'}];
     if(initialFrame){
       const refId=uid('imageInput');
       const reference={id:refId,type:'imageInput',x:source.x+25,y:source.y+315,
@@ -1392,6 +1398,10 @@
     createUndoSnapshot('Tạo Node '+spec.name);
     state.nodes.push(...added);state.edges.push(...edges);
     normalizeSavedGraph();render();selectNode(idNew);scheduleAutoSave();
+    if(id==='audioToVideo'){
+      setRunStatus('Preset Âm thanh thành Video đã mở. Có thể thêm ảnh tham chiếu và Prompt rồi bấm Gửi.','warn');
+      return;
+    }
     if(id==='videoSegment'){
       setRunStatus('Chọn đoạn trên player, nhập yêu cầu vào Prompt, rồi bấm Gửi trên Node mới.','warn');
       return;
@@ -1433,6 +1443,13 @@
       const reset=document.createElement('button');reset.type='button';reset.textContent='Đặt lại góc máy';
       reset.onclick=()=>{node.data.aiTask.settings=globalThis.WorkflowAITasks.settings('imageAngles',{});render();};
       box.append(reset);
+    }
+    if(spec.code==='A04/A10'){
+      const audio=resolveAudios(node.id)[0];
+      if(audio){const player=document.createElement('audio');player.controls=true;player.src=audio;box.append(player);}
+      choose('Tỷ lệ video','aspect',[['16:9','16:9'],['9:16','9:16']]);
+      choose('Thời lượng (giây)','duration',[[5,'5 giây'],[10,'10 giây']]);
+      const note=document.createElement('small');note.textContent='LTX tạo video theo âm thanh; thêm ảnh tham chiếu từ Canvas/kho nếu cần, rồi bấm Gửi.';box.append(note);
     }
     if(spec.code==='V10')choose('Xem trước','preview',[['480P','480P'],['720P','720P']]);
     if(spec.code==='V13'){
@@ -2385,7 +2402,7 @@
             const fidelityInstruction=isVideo&&again?'\n\nPROMPT FIDELITY: Follow the provided prompt closely and depict its requested characters, actions, setting, sequence, mood, and visual details. Keep the main action clear and recognizable throughout the clip. Do not substitute a different scene, omit requested actions, or add unrelated events. Use the connected reference images to preserve subject identity and appearance.':'';
             const musePrompt=n.data.aiTask?.id?prompt:isVideo?`Create a ${n.data.size} aspect ratio video clip, ${n.data.duration} seconds long. ${sizeInstruction}\n\n${audioRequirement}${continuityInstruction?`\n\n${continuityInstruction}`:''}${referenceImages.length?`\n\nUse the attached reference image${referenceImages.length===1?'':'s'} as visual guidance${continuityStartFrame?' while keeping image 1 as the exact opening frame.':'.'}`:''}\n\nPrompt: ${prompt}${negativePrompt?`\n\nAvoid: ${negativePrompt}`:''}${fidelityInstruction}`:WorkflowTools.imagePrompt(prompt,n.data.size,negativePrompt);
             const generationRequest={type:'MUSEFLOW_GENERATE',requestId:uid('generation'),prompt:musePrompt,negativePrompt,size:n.data.size,model:n.data.model,duration:n.data.duration,mediaType:isVideo?'video':'image',referenceImages:referenceImages.map(item=>item.url),timeoutSec:600,...(n.data.aiTask?{aiTask:n.data.aiTask}:{})};run.requestId=generationRequest.requestId;
-            generationRequest.referenceVideos=resolveVideos(n.id);generationRequest.model=n.data.apiModel;
+            generationRequest.referenceVideos=resolveVideos(n.id);generationRequest.referenceAudios=resolveAudios(n.id);generationRequest.model=n.data.apiModel;
             if(n.data.aiTask?.id==='videoSegment'){
               const sourceUrl=generationRequest.referenceVideos[0];
               if(!sourceUrl)throw Error('Không tìm thấy video gốc cần sửa đoạn.');
