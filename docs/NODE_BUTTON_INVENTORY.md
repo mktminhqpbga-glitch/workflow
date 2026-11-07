@@ -118,7 +118,7 @@
 | D03 | Thêm ảnh tham chiếu | Upload/chọn tham chiếu. | 🟡 |
 | D04 | Gửi tạo cảnh ↑ | Gửi Prompt tạo bối cảnh. | 🔴 |
 | D05 | Xem không gian 3D | **ẨN TOÀN ỨNG DỤNG theo yêu cầu 2026-11-08.** Không render hành động xem không gian 3D ở F05 hoặc Node bất kỳ có cùng chức năng. Giữ nguyên cảnh/video/tài nguyên đã lưu. | ⛔ ẨN |
-| D06 | Điều khiển camera | Camera trong cảnh. | 🔴 |
+| D06 | Điều khiển camera | **ẨN TOÀN ỨNG DỤNG THEO YÊU CẦU 2026-11-08.** Không hiển thị điều khiển camera của bàn đạo diễn 3D trên F05 hoặc Node khác có cùng chức năng. Không xóa dữ liệu/cảnh/project đã lưu. Phân biệt với thiết lập góc máy trong F03/I12 và F04/V05 đã được duyệt (không ẩn các chức năng khác này). | ⛔ ẨN |
 | D07 | Chọn góc máy | Lưu góc máy mong muốn. | 🔴 |
 | D08 | Xuất ảnh từ camera | Render/snapshot. | 🔴 |
 | D09 | Thu gọn Prompt | Theo chuẩn Node. | 🔴 |
@@ -275,7 +275,7 @@
 
 - **F01/T04 (Ảnh → suy ngược Prompt):** Khi nhận nhiều ảnh, tạo **một Prompt riêng cho từng ảnh**; không tự gộp tất cả ảnh vào một Prompt. Cần giữ liên kết Prompt ↔ ảnh nguồn; nếu UI kết quả chưa rõ thì xin duyệt trước khi triển khai.
 - **C05 (Kho tài sản):** Chỉ sử dụng **một kho tài sản chung cho toàn ứng dụng**, chia thành các **khu nhỏ theo loại tài nguyên** (ví dụ ảnh, video, âm thanh, nhân vật, bối cảnh, sản phẩm, hiệu ứng, mẫu). Mọi Node dùng chung một bộ chọn tài nguyên, tự lọc loại hợp lệ theo cổng đầu vào; không tự tạo 9 kho riêng biệt.
-- Các công cụ riêng còn chờ giải thích: F02 S01/S03; F03 I05/I10–I12/I18 (I04, I13–I16 đã được yêu cầu ẩn); F04 V05/V10–V13 (V14/V15 đã ẩn); F05 D06–D08 (D01/D05 đã ẩn); F06 E03–E07/E11 (E14 đã ẩn); F07 A04/A10; R01 U10; R02 U21. **Các hình minh họa trợ giúp là đề xuất ý nghĩa thao tác, không phải chức năng đã được xác nhận hoặc đã triển khai.** Chủ dự án sẽ xem từng hình rồi chốt lại.
+- Các công cụ riêng còn chờ giải thích: F02 S01/S03; F03 I05/I10–I12/I18 (I04, I13–I16 đã được yêu cầu ẩn); F04 V05/V10–V13 (V14/V15 đã ẩn); F05 D07–D08 (D01/D05/D06 đã ẩn); F06 E03–E07/E11 (E14 đã ẩn); F07 A04/A10; R01 U10; R02 U21. **Các hình minh họa trợ giúp là đề xuất ý nghĩa thao tác, không phải chức năng đã được xác nhận hoặc đã triển khai.** Chủ dự án sẽ xem từng hình rồi chốt lại.
 
 
 ### Quyết định giao diện — I04 (2026-11-08)
@@ -485,3 +485,10 @@ Chủ dự án trả lời **“ẩn cái này đi nhé”** khi được hỏi 
 **Không được suy rộng:** D06 — Điều khiển camera, D07 — Chọn góc máy, D08 — Xuất ảnh từ camera vẫn **chưa được yêu cầu ẩn riêng**; tạm để cần giải thích, không tự xóa. E07 — Chế độ chỉnh sửa đã được chủ dự án yêu cầu **bỏ qua việc hỏi**, không đồng nghĩa với ẩn. Dữ liệu các workflow/video/ảnh cũ giữ nguyên.
 
 **Hiện trạng code khi ghi:** các chức năng D01/D05 thuộc giao diện V3 chưa có action được render trong app.js, node-common-actions.js, app.html; chỉ cập nhật đặc tả và test chống đưa trở lại, không nhận đã hoàn thiện UI V3. Nút giống nhau ở các Node phải dùng chung thành phần và hành vi, bao gồm quy tắc ẩn.
+
+
+### Quyết định — F05/D06 Điều khiển camera (2026-11-08)
+
+Chủ dự án trả lời **“ẩn”** khi được hỏi về **D06 — Điều khiển camera** thuộc **F05 — Node Đạo diễn (Director's Desk)**. Không hiển thị D06 tại F05 hoặc bất kỳ Node nào có cùng công cụ điều khiển camera không gian 3D này. Tiếp tục áp dụng quy tắc toàn ứng dụng: nút nào được yêu cầu ẩn thì mọi bản sao cùng chức năng đều ẩn. Không xóa dữ liệu/asset/đường nối cũ. Các nút chỉnh góc máy sinh ảnh hoặc sinh video (F03/I12, F04/V05) có mục đích khác nên **không bị suy rộng thành ẩn**.
+
+**Trạng thái:** quyết định ẩn đã chốt; giao diện V3 chưa có nút D06 trên GitHub main, chưa cần sửa một nút runtime không tồn tại. **Tiếp theo cần hỏi một nút:** F05 — Đạo diễn / D07 — Chọn góc máy (trong cảnh 3D), giữ hay ẩn?
