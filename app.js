@@ -1376,7 +1376,6 @@
     addPorts(el, n);
     if(['generateImage','generateVideo','generateText'].includes(n.type))studioButton(body,'Xóa kết quả cũ',()=>clearNodeOutput(n),{disabled:!!runForNode(n.id)});
     compactGenerator(n,body);
-    if(n.data.aiTask?.id)renderSpecialTaskSettings(n,body);
     // A single composer UX for editable prompts on all supported node types.
     // Legacy processing stays in place; unavailable V3 tasks are not simulated.
     if(globalThis.WorkflowSharedNodeControls){
@@ -1402,8 +1401,6 @@
         onReference:commonReferenceActions(n,el),
         onSend:commonSendAction(n),
         onDuplicate:contextTypes?()=>commonDuplicate(n):null,
-        onTools:media?()=>specialResultActions(n,media):null,
-        onFrameCapture:media?.kind==='video'&&['videoInput','generateVideo'].includes(n.type)?mode=>void saveVideoFrame(n,mode).catch(e=>setRunStatus(e.message,'error')):null,
         onDownload:media?()=>commonDownload(n,media):scripted?()=>commonDownloadText(n):null,
         readText:scripted?()=>n.data.script:null
       });
