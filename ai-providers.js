@@ -37,7 +37,7 @@
         if(Number(r.aiTask?.settings?.slowdown||1)!==1)throw new Error('Model nâng cấp video chưa hỗ trợ giảm tốc. Chọn tốc độ 1×.');
       }
       if(action==='videoSubtitles'&&images.length>4)throw new Error('Model edit video chỉ hỗ trợ tối đa 4 ảnh tham chiếu.');
-      if(!['videoDepth','videoHD','videoSubtitles'].includes(action))
+      if(!['videoDepth','videoHD','videoSubtitles','videoSegment'].includes(action))
         throw new Error('Tác vụ fal.ai này chưa có adapter xử lý video nguồn phù hợp.');
     }
   }
@@ -84,7 +84,7 @@
     if(provider==='fal') {
       const action=r.aiTask?.id||'videoDepth';
       const id=action==='videoHD'?'fal-ai/bytedance-upscaler/upscale/video':
-        action==='videoSubtitles'?'fal-ai/kling-video/o1/standard/video-to-video/edit':
+        ['videoSubtitles','videoSegment'].includes(action)?'fal-ai/kling-video/o1/standard/video-to-video/edit':
         'fal-ai/kling-video/v2.6/standard/motion-control';
       // The AI task selects a verified schema; never use a model from another task.
       const requestedModel=r.aiTask?.id?id:model;
