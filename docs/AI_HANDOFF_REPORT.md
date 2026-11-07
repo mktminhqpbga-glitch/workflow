@@ -301,3 +301,32 @@ Chủ dự án yêu cầu **cập nhật lại danh sách nút trước khi code
 - T06/S06/I06/V06/A05: chọn AI → model/tab; **chỉ hiển thị AI đã kết nối**; dropdown giống ảnh người dùng, không hardcode tên model giả.
 - Thêm tham chiếu, tải kết quả, zoom/xem lớn, nhân bản Node: chủ dự án đã chấp nhận yêu cầu hành vi dùng chung được mô tả trong tài liệu kiểm kê.
 - Trạng thái **đã chốt đặc tả** ≠ **đã code và test**. Không đổi các nút từ 🟡/🔴 sang 🟢 nếu không có commit sửa mã và bằng chứng test. Muốn bắt đầu code phải báo phạm vi sửa và được chủ dự án duyệt.
+
+
+## 15. C02/C04 — Đợt sửa code dùng chung và kiểm tra thành phần (2026-11-08)
+
+**Được chủ dự án phê duyệt:** bắt đầu sửa các nút dùng chung **C02 Dịch Prompt (T07/S07/A09)** và **C04 Mở rộng/thu gọn Prompt (T09/S09/I22/V21/D09/E16/A13)**; gửi hình và ghi báo cáo vào commit. Phạm vi trong đợt này là xây dựng bộ điều khiển dùng chung, bước đầu gắn vào **các Node cũ thực sự có ô textarea chỉnh sửa trên GitHub**, không tự tuyên bố hoàn tất đủ 3/7 Node V3.
+
+### Mã đã thay đổi và commit
+
+- `shared-node-controls.js`: component dùng chung, nút dịch Prompt, dò chiều Việt↔Anh, giữ bản gốc để hoàn tác; mở rộng thành editor cỡ lớn và thu về; đồng bộ textarea nguồn, đóng an toàn khi Canvas render lại.
+- `shared-node-controls.css`: style khung editor lớn và nút tương ứng.
+- `app.html`: tải hai asset mới.
+- `app.js`: `translateNodeDraft()` gọi provider AI đã chọn **chỉ khi bấm Dịch**, tích hợp `WorkflowSharedNodeControls.attach()` với ô nhập hiện có trên Canvas. Chưa có model picker V3 hay tất cả composer V3.
+- `tests/desktop-shared-node-controls.test.cjs`: kiểm tra nhận diện tiếng Việt/Anh. Tệp test được thêm vào glob `npm test` do tên khớp `tests/desktop-*.test.cjs`.
+- Các commit code liên quan (theo thứ tự): `0e3e5157106f`, `399a154be50b`, `c46859756f29`, `57c356f01e29`, `750c749ab363`, `dca13b80c81a`, `8a2d8b843604`, `99bf19501788`, `ce73dfe198fc` (bao gồm file test tạm đã xóa).
+
+### Bằng chứng kiểm thử
+
+1. **CI GitHub Actions macOS run #42404826169** (SHA `ce73dfe198fc`): `npm test` **97 tổng / 96 pass / 1 fail**. Bài kiểm thử mới `desktop-shared-node-controls.test.cjs` được chạy trong tổng 97 bài; lỗi duy nhất vẫn là **BUG-007: macOS `/private/var` vs `/var`** trong `desktop-policy.test.cjs`. Build macOS bị skip. URL: https://github.com/mktminhqpbga-glitch/workflow/actions/runs/42404826169
+2. **Kiểm thử GUI độc lập trong Chromium bằng Playwright tại môi trường làm việc:** PASS cho attach, expand, đồng bộ chỉnh sửa, shrink, **dịch mô phỏng**, undo và không có `pageerror`. Ảnh đã chụp: `MuseFlow_Shared_Nuts_Binh_Thuong.png`, `MuseFlow_Shared_Nuts_Prompt_Mo_Rong.png`, `MuseFlow_Shared_Nuts_Sau_Khi_Dich_Mo_Phong.png`. **Đây là fixture của component, không phải ảnh screenshot toàn bộ GitHub app đang chạy**; ảnh cung cấp trong cuộc hội thoại và chưa thêm vào repo.
+3. **Chưa kiểm thử**: dịch thật qua tài khoản AI, nhiều Node V3 khác nhau, lưu/khôi phục toàn bộ Prompt và thumbnail, zoom và tương tác trên Canvas app thật. Không đánh dấu hai nhóm “🟢 đã hoàn thiện V3”.
+
+### Vấn đề còn lại, ưu tiên tiếp
+
+- **C02 và C04 = 🟡 đang triển khai**, vì chỉ gắn vào ô textarea phù hợp trong mã cũ. Các Node V3 như Script/Audio đang dùng cấu trúc khác hoặc chưa có composer chuẩn. Cần code tích hợp từng Node và test thật, đặc biệt S07/A09, S09/I22/V21/D09/E16/A13.
+- Editor mở rộng hiện có chữ và nút dịch nhưng **chưa mang đầy đủ model picker, tài nguyên tham chiếu và nút gửi từ composer V3 theo ảnh mẫu**. Không được gọi là pixel-perfect hoặc hoàn chỉnh.
+- Chưa có các bài test giao diện toàn ứng dụng qua browser smoke hoặc desktop smoke sau thay đổi. Khâu này phải thực hiện/ghi rõ blocker trước khi công bố hoàn thành.
+- Lỗi BUG-007 vẫn chưa được sửa theo yêu cầu hoãn trước đó.
+
+**Quy tắc báo cáo:** chỉ tăng trạng thái lên 🟢 sau khi code đúng Node, chức năng thật hoạt động và có bằng chứng kiểm thử; cập nhật bản chụp màn hình chạy thực của toàn ứng dụng và commit mới ở giai đoạn đó.
