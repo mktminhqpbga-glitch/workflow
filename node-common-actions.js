@@ -73,7 +73,7 @@ function viewMedia(src,kind,title){
   backdrop.addEventListener('keydown',e=>{if(e.key==='Escape'){e.stopPropagation();backdrop.remove();}});
   document.body.append(backdrop);close.focus();
 }
-function attach({node,root:el,body,modelGroups,onModelPick,onTranslate,onReference,onSend,onDownload,onDuplicate,media,readText}={}){
+function attach({node,root:el,body,modelGroups,onModelPick,onTranslate,onReference,onSend,onDownload,onDuplicate,media,readText,hasResult=false}={}){
   if(!node||!el||!body)return;
   const editable=[...body.querySelectorAll('textarea')].find(x=>!x.readOnly&&!x.disabled);
   const isDraft=!!editable;
@@ -108,14 +108,17 @@ function attach({node,root:el,body,modelGroups,onModelPick,onTranslate,onReferen
     }
     if(actions.childElementCount){container.append(actions);body.append(container);}
   }
-  // Context toolbar is visible ONLY when the node is selected.
+  // One rule for every node: NO floating toolbar before a real output exists.
+  // Even after a result exists, CSS displays it ONLY for a selected node.
   const showMedia=!!media?.url;
   const hasText=typeof readText==='function'&&Boolean(String(readText()||'').trim());
-  const top=create('div','node-common-context-tools');
-  if((showMedia||hasText)&&onDownload)top.append(button('↓','Tải kết quả',onDownload));
-  if(showMedia)top.append(button('⤢','Xem lớn / Zoom',()=>viewMedia(media.url,media.kind,media.name)));
-  if(onDuplicate)top.append(button('⧉','Nhân bản Node',onDuplicate));
-  if(top.childElementCount){el.append(top);el.classList.add('has-common-context-tools');}
+  if(hasResult){
+    const top=create('div','node-common-context-tools');
+    if((showMedia||hasText)&&onDownload)top.append(button('↓','Tải kết quả',onDownload));
+    if(showMedia)top.append(button('⤢','Xem lớn / Zoom',()=>viewMedia(media.url,media.kind,media.name)));
+    if(onDuplicate)top.append(button('⧉','Nhân bản Node',onDuplicate));
+    if(top.childElementCount){el.append(top);el.classList.add('has-common-context-tools');}
+  }
 }
 root.WorkflowNodeCommonActions=Object.freeze({attach,connectedOnly,modelMenu,referenceMenu,viewMedia,stateLabel,dismissPopup});
 })(typeof globalThis!=='undefined'?globalThis:window);
