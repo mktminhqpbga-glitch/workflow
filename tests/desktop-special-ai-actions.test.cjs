@@ -9,11 +9,11 @@ require('../ai-providers.js');
 const providers=globalThis.WorkflowAI;
 
 test('every specialist action has unique task, media type and explicit provider capability',()=>{
-  assert.equal(Object.keys(tasks.tasks).length,6);
+  assert.equal(Object.keys(tasks.tasks).length,7);
   for(const [id,spec] of Object.entries(tasks.tasks)){
     assert.equal(tasks.task(id),spec);
     assert.ok(spec.name&&spec.source&&spec.kind);
-    assert.equal(spec.source,spec.kind);
+    assert.equal(spec.source,id==='audioToVideo'?'audio':spec.kind);
     assert.ok(tasks.buildPrompt(id,{}).includes('TASK:'));
   }
   assert.equal(tasks.supports('videoDepth','fal'),true);
@@ -21,6 +21,8 @@ test('every specialist action has unique task, media type and explicit provider 
   assert.equal(tasks.supports('videoHD','fal'),true);
   assert.equal(tasks.supports('videoSubtitles','fal'),true);
   assert.equal(tasks.supports('videoSegment','fal'),true);
+  assert.equal(tasks.supports('audioToVideo','fal'),true);
+  assert.equal(tasks.supports('audioToVideo','google'),false);
   assert.throws(()=>tasks.requireProvider('videoSegment','muse'),/chưa có adapter phù hợp/);
   assert.throws(()=>tasks.requireProvider('videoHD','muse'),/chưa có adapter phù hợp/);
 });
@@ -47,6 +49,11 @@ test('AI hidden prompts carry task, configuration and user direction independent
   const subtitles=tasks.buildPrompt('videoSubtitles');
   assert.match(subtitles,/VIDEO INPAINTING/);
   assert.match(subtitles,/hard-burned subtitle/);
+  const audio=tasks.buildPrompt('audioToVideo',{aspect:'9:16',duration:10},'đèn sân khấu');
+  assert.match(audio,/AUDIO-DRIVEN VIDEO/);
+  assert.match(audio,/9:16/);
+  assert.match(audio,/10 seconds/);
+  assert.match(audio,/đèn sân khấu/);
   const segment=tasks.buildPrompt('videoSegment',{start:2,end:3.5},'thay nền');
   assert.match(segment,/2\.00s to 3\.50s/);
   assert.throws(()=>tasks.buildPrompt('videoSegment',{start:8,end:2}),/lớn hơn/);
@@ -70,6 +77,8 @@ test('fal adapters refuse missing video sources and unsupported task inputs',()=
   assert.throws(()=>providers.validate('fal',{mediaType:'video',aiTask:{id:'videoHD'}}),/video nguồn/);
   assert.throws(()=>providers.validate('fal',{...valid,referenceImages:['image'],aiTask:{id:'videoHD'}}),/không nhận ảnh/);
   assert.doesNotThrow(()=>providers.validate('fal',{...valid,aiTask:{id:'videoSegment',settings:{start:0,end:5}}}));
+  assert.doesNotThrow(()=>providers.validate('fal',{mediaType:'video',referenceAudios:['data:audio/mpeg;base64,QUJDRA=='],aiTask:{id:'audioToVideo'}}));
+  assert.throws(()=>providers.validate('fal',{mediaType:'video',referenceAudios:[],aiTask:{id:'audioToVideo'}}),/audio nguồn/);
   assert.throws(()=>providers.validate('fal',{...valid,aiTask:{id:'videoHD',settings:{slowdown:0.5}}}),/tốc độ 1×/);
   assert.throws(()=>providers.validate('openai',{...valid,aiTask:{id:'videoHD'}}),/không hỗ trợ/);
 });
