@@ -1251,12 +1251,22 @@
   // All specialised buttons reuse one task router. Every AI task is checked
   // against connected provider capabilities, keeps the source, and gets its
   // internal instruction at request time instead of modifying the visible Prompt.
-  function resultTaskAspect(source){
-    const ratio=source.data.size||source.data.asset?.requestedSize;
-    if(['16:9','9:16','1:1','4:3','3:4'].includes(ratio))return ratio;
-    const width=source.data.asset?.width,height=source.data.asset?.height;
-    if(width&&height)return width/height>1.2?'16:9':height/width>1.2?'9:16':'1:1';
-    return '16:9';
+  function resultTaskAspect(source,dimensions,kind){
+    const w=dimensions?.width||source.data.asset?.width;
+    const h=dimensions?.height||source.data.asset?.height;
+    if(w>0&&h>0){
+      // The media's real dimensions, not its earlier requested ratio, are the
+      // source of truth: otherwise an uploaded portrait could get black bars.
+      const options=kind==='video'?['16:9','9:16','1:1']:
+        ['16:9','9:16','1:1','4:3','3:4'];
+      return options.reduce((best,next)=>{
+        const aspect=key=>{const a=key.split(':').map(Number);return a[0]/a[1];};
+        return Math.abs(Math.log(w/h/aspect(next)))<
+          Math.abs(Math.log(w/h/aspect(best)))?next:best;
+      },options[0]);
+    }
+    return source.data.size||source.data.asset?.requestedSize||
+      (kind==='image'?'1:1':'16:9');
   }
   function specialResultActions(source,media){
     if(!media?.url)return [];
@@ -1305,10 +1315,10 @@
     const provider=candidates.find(g=>g.id===source.data.provider)||candidates[0];
     globalThis.WorkflowAITasks.requireProvider(id,provider.id);
     const config=globalThis.WorkflowAITasks.settings(id,{});
-    // Material preflight prevents paid AI calls on invalid source video lengths.
-    let dimensions=null;
+    // Always detect actual source dimensions, including user-uploaded assets
+    // that have no stored width/height metadata.
+    const dimensions=await mediaDimensions(media.url,kind);
     if(kind==='video'){
-      dimensions=await mediaDimensions(media.url,'video');
       if(id==='videoDepth'&&(dimensions.duration<3||dimensions.duration>30))
         throw Error('Motion Control yêu cầu video nguồn từ 3 đến 30 giây.');
       if(id==='videoSubtitles'&&
@@ -1323,9 +1333,9 @@
     if(nodeById(source.id)!==source||commonAsset(source)?.url!==media.url)
       throw Error('Node nguồn đã thay đổi, không gửi tác vụ cũ.');
     const data={provider:provider.id,model:kind==='image'?'muse-image':'muse-video',
-      localPrompt:'',size:resultTaskAspect(source),
+      localPrompt:'',size:resultTaskAspect(source,dimensions,kind),
       status:'idle',aiTask:{id,settings:config,sourceNodeId:source.id}};
-    if(kind==='video')data.duration=Math.max(5,Math.min(40,Math.round(dimensions?.duration||5)));
+    if(kind==='video')data.duration=Math.max(0.1,Number(dimensions?.duration)||5);
     if(WorkflowAI.providers[provider.id]?.urls){
       const tab=(aiChatTabs[provider.id]||[]).find(t=>
         String(t.id)===String(provider.choices[0]?.value));
@@ -1489,7 +1499,7 @@
     if(n.type==='generateVideo'){
       const controls=document.createElement('div');controls.className='gen-controls video-controls';
       const ratio=document.createElement('select');[['16:9','Landscape 16:9'],['9:16','Portrait 9:16'],['1:1','Square']].forEach(([v,label])=>{const o=document.createElement('option');o.value=v;o.textContent=label;ratio.appendChild(o);});ratio.value=['16:9','9:16','1:1'].includes(n.data.size)?n.data.size:'16:9';ratio.onchange=()=>n.data.size=ratio.value;
-      const duration=document.createElement('select');[5,10,15,30,40].forEach(v=>{const o=document.createElement('option');o.value=String(v);o.textContent=`${v} giây`;duration.appendChild(o);});n.data.duration=[5,10,15,30,40].reduce((a,b)=>Math.abs(b-(n.data.duration||5))<Math.abs(a-(n.data.duration||5))?b:a,5);duration.value=String(n.data.duration);duration.onchange=()=>n.data.duration=Number(duration.value);
+      const duration=document.createElement('select');[5,10,15,30,40].forEach(v=>{const o=document.createElement('option');o.value=String(v);o.textContent=`${v} giây`;duration.appendChild(o);});if(n.data.aiTask?.id){const actual=String(n.data.duration||5);duration.add(new Option('Giữ thời lượng nguồn · '+Number(actual).toFixed(1)+' giây',actual));duration.value=actual;duration.disabled=true;}else{n.data.duration=[5,10,15,30,40].reduce((a,b)=>Math.abs(b-(n.data.duration||5))<Math.abs(a-(n.data.duration||5))?b:a,5);duration.value=String(n.data.duration);duration.onchange=()=>n.data.duration=Number(duration.value);}
       controls.append(ratio,duration);body.appendChild(controls);
       const continuityLabel=document.createElement('label');continuityLabel.className='continuity-toggle';continuityLabel.htmlFor=`continuity-${n.id}`;continuityLabel.onpointerdown=event=>event.stopPropagation();const continuity=document.createElement('input');continuity.id=`continuity-${n.id}`;continuity.type='checkbox';continuity.checked=Boolean(n.data.continuity);continuity.onchange=()=>{n.data.continuity=continuity.checked;scheduleAutoSave();};continuityLabel.append(continuity,document.createTextNode('Use previous clip end frame as start reference'));body.appendChild(continuityLabel);
       for(const edge of getIncoming(n.id,'reference').filter(e=>e.sourcePort==='endFrame')){const source=sourceFor(edge),note=document.createElement('p');note.className='hint';note.textContent='Khung mở đầu từ '+(source?.data.componentId||edge.source)+'-END';body.append(note);if(frameMatchesVideo(source)){const inputFrame=new Image();inputFrame.className='end-frame-input';inputFrame.src=source.data.endFrame.url;inputFrame.alt=note.textContent;body.append(inputFrame);}else{note.textContent+=' · chưa có ảnh, cần chạy hoặc trích khung cuối ở video nguồn.';}}
