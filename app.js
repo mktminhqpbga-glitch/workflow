@@ -1248,6 +1248,156 @@
     return null;
   }
 
+  // All specialised buttons reuse one task router. Every AI task is checked
+  // against connected provider capabilities, keeps the source, and gets its
+  // internal instruction at request time instead of modifying the visible Prompt.
+  function resultTaskAspect(source){
+    const ratio=source.data.size||source.data.asset?.requestedSize;
+    if(['16:9','9:16','1:1','4:3','3:4'].includes(ratio))return ratio;
+    const width=source.data.asset?.width,height=source.data.asset?.height;
+    if(width&&height)return width/height>1.2?'16:9':height/width>1.2?'9:16':'1:1';
+    return '16:9';
+  }
+  function specialResultActions(source,media){
+    if(!media?.url)return [];
+    const make=(id,label)=>({label,title:label+' · '+(globalThis.WorkflowAITasks?.task(id)?.name||label),
+      run:()=>void startSpecialAIAction(source,id).catch(error=>setRunStatus(error.message,'error'))});
+    if(media.kind==='image'&&['generateImage','imageInput','videoFrame'].includes(source.type))
+      return [make('imageHD','HD'),make('imageAngles','Nhiều góc độ')];
+    if(media.kind==='video'&&['generateVideo','videoInput'].includes(source.type))
+      return [make('videoDepth','Chuyển động sâu'),make('videoHD','HD'),
+        make('videoSubtitles','Xóa phụ đề'),make('videoSegment','Làm lại đoạn')];
+    return [];
+  }
+  async function saveVideoFrame(source,mode){
+    const media=commonAsset(source);
+    if(!media||media.kind!=='video')throw Error('Chưa có video để trích khung hình.');
+    if(runForNode(source.id))throw Error('Hãy đợi video xử lý xong trước khi trích ảnh.');
+    const el=document.querySelector('.node[data-id="'+CSS.escape(source.id)+'"] video');
+    const playhead=el?.currentTime||0;
+    const frame=await globalThis.WorkflowVideoFrameCapture.capture(media.url,mode,playhead);
+    if(nodeById(source.id)!==source||commonAsset(source)?.url!==media.url)
+      throw Error('Video nguồn đã thay đổi, hãy thử lại.');
+    const id=uid('videoFrame');
+    createUndoSnapshot('Chụp ảnh từ video');
+    const result={id,type:'videoFrame',x:source.x+390,y:source.y+45,
+      data:{captureMode:mode,captureTime:frame.time,
+        asset:{id:uid('asset'),kind:'image',url:frame.url,
+          name:'Khung '+mode+'.png',width:frame.width,height:frame.height,sourceNodeId:id}}};
+    state.nodes.push(result);
+    state.edges.push({id:uid('edge'),source:source.id,sourcePort:'video',
+      target:id,targetPort:'video'});
+    render();selectNode(id);scheduleAutoSave();
+    setRunStatus('Đã chụp khung '+frame.width+'×'+frame.height+
+      ' tại '+frame.time.toFixed(2)+' giây, không sử dụng AI.','ok');
+  }
+  async function startSpecialAIAction(source,id){
+    const spec=globalThis.WorkflowAITasks?.task(id),media=commonAsset(source);
+    if(!spec||!media||media.kind!==spec.source)throw Error('Công cụ không có nguồn ảnh/video đúng kiểu.');
+    if(runForNode(source.id))throw Error('Node nguồn đang xử lý. Hãy đợi hoàn thành.');
+    const kind=spec.kind,targetType=kind==='image'?'generateImage':'generateVideo';
+    const candidates=commonConnectedModels({type:targetType,data:{}}).filter(g=>
+      g.connected&&globalThis.WorkflowAITasks.supports(id,g.id));
+    if(!candidates.length){
+      throw Error('Chưa kết nối AI có adapter '+spec.name+' thực sự. '+
+        'Không gửi ảnh/video tới model sai tác vụ hoặc tạo kết quả giả.');
+    }
+    const provider=candidates.find(g=>g.id===source.data.provider)||candidates[0];
+    globalThis.WorkflowAITasks.requireProvider(id,provider.id);
+    const config=globalThis.WorkflowAITasks.settings(id,{});
+    // Material preflight prevents paid AI calls on invalid source video lengths.
+    let dimensions=null;
+    if(kind==='video'){
+      dimensions=await mediaDimensions(media.url,'video');
+      if(id==='videoDepth'&&(dimensions.duration<3||dimensions.duration>30))
+        throw Error('Motion Control yêu cầu video nguồn từ 3 đến 30 giây.');
+      if(id==='videoSubtitles'&&
+        (dimensions.duration<3||dimensions.duration>10||Math.min(dimensions.width,dimensions.height)<720||
+        Math.max(dimensions.width,dimensions.height)>2160))
+        throw Error('AI xóa phụ đề hiện chỉ nhận video 3–10 giây, mỗi chiều 720–2160px.');
+    }
+    let initialFrame=null;
+    if(id==='videoDepth')
+      initialFrame=await globalThis.WorkflowVideoFrameCapture.capture(media.url,'first',0);
+    globalThis.WorkflowAITasks.buildPrompt(id,config,'');
+    if(nodeById(source.id)!==source||commonAsset(source)?.url!==media.url)
+      throw Error('Node nguồn đã thay đổi, không gửi tác vụ cũ.');
+    const data={provider:provider.id,model:kind==='image'?'muse-image':'muse-video',
+      localPrompt:'',size:resultTaskAspect(source),
+      status:'idle',aiTask:{id,settings:config,sourceNodeId:source.id}};
+    if(kind==='video')data.duration=Math.max(5,Math.min(40,Math.round(dimensions?.duration||5)));
+    if(WorkflowAI.providers[provider.id]?.urls){
+      const tab=(aiChatTabs[provider.id]||[]).find(t=>
+        String(t.id)===String(provider.choices[0]?.value));
+      if(tab)data.chatTarget={tabId:tab.id,url:chatKey(tab.url)};
+    }else data.apiModel=provider.choices[0]?.value||WorkflowAI.models[provider.id]?.[kind];
+    const idNew=uid(targetType),target={id:idNew,type:targetType,
+      x:source.x+420,y:source.y+20,data};
+    const added=[target],edges=[{id:uid('edge'),source:source.id,
+      sourcePort:spec.source,target:idNew,
+      targetPort:spec.source==='image'?'reference':'video'}];
+    if(initialFrame){
+      const refId=uid('imageInput');
+      const reference={id:refId,type:'imageInput',x:source.x+25,y:source.y+315,
+        data:{localDataUrl:initialFrame.url,fileName:'Khung đầu video.png',
+          asset:{id:uid('asset'),kind:'image',url:initialFrame.url,
+            sourceNodeId:refId,width:initialFrame.width,height:initialFrame.height}}};
+      added.push(reference);
+      edges.push({id:uid('edge'),source:refId,sourcePort:'image',
+        target:idNew,targetPort:'reference'});
+    }
+    createUndoSnapshot('Tạo Node '+spec.name);
+    state.nodes.push(...added);state.edges.push(...edges);
+    normalizeSavedGraph();render();selectNode(idNew);scheduleAutoSave();
+    setRunStatus('Đang gửi '+spec.name+' với prompt AI ẩn và dữ liệu gốc…','warn');
+    await executeGenerationNode(idNew);
+  }
+  function renderSpecialTaskSettings(node,body){
+    const spec=globalThis.WorkflowAITasks?.task(node.data.aiTask.id);
+    if(!spec)return;
+    const config=node.data.aiTask.settings||(node.data.aiTask.settings={});
+    const box=document.createElement('div');box.className='node-ai-task-settings';
+    const label=document.createElement('b');label.textContent=spec.name;
+    const help=document.createElement('small');help.textContent='Hướng dẫn AI nội bộ theo tác vụ. Prompt gốc không bị ghi đè.';
+    box.append(label,help);
+    const choose=(caption,key,choices)=>{
+      const field=document.createElement('label');field.textContent=caption;
+      const select=document.createElement('select');
+      for(const [value,name] of choices)select.append(new Option(name,String(value)));
+      select.value=String(config[key]??choices[0][0]);
+      select.onchange=()=>{config[key]=select.value;scheduleAutoSave();};
+      field.append(select);box.append(field);
+    };
+    const range=(caption,key,min,max,fallback,step=1)=>{
+      const field=document.createElement('label');field.textContent=caption;
+      const input=document.createElement('input');input.type='range';input.min=String(min);
+      input.max=String(max);input.step=String(step);input.value=String(config[key]??fallback);
+      const output=document.createElement('output');output.textContent=input.value;
+      input.oninput=()=>{config[key]=Number(input.value);output.textContent=input.value;scheduleAutoSave();};
+      field.append(input,output);box.append(field);
+    };
+    if(spec.code==='I11')choose('Nâng độ phân giải','scale',[[2,'2×'],[4,'4×'],[6,'6×']]);
+    if(spec.code==='I12'){
+      choose('Góc camera','preset',[['custom','Tùy chỉnh'],['front','Trước'],['back','Sau'],
+        ['side','Nghiêng'],['overhead','Từ trên'],['low','Từ dưới'],['fisheye','Mắt cá']]);
+      range('Xoay ngang','horizontal',-180,180,0);
+      range('Xoay dọc','vertical',-90,90,0);
+      range('Zoom','zoom',0.25,4,1,0.05);
+      const reset=document.createElement('button');reset.type='button';reset.textContent='Đặt lại góc máy';
+      reset.onclick=()=>{node.data.aiTask.settings=globalThis.WorkflowAITasks.settings('imageAngles',{});render();};
+      box.append(reset);
+    }
+    if(spec.code==='V10')choose('Xem trước','preview',[['480P','480P'],['720P','720P']]);
+    if(spec.code==='V11'){
+      choose('Video HD','resolution',[['1080P','1080p'],['2K','2K'],['4K','4K']]);
+      const field=document.createElement('label');field.textContent='Nội suy lên 60 FPS';
+      const input=document.createElement('input');input.type='checkbox';input.checked=!!config.interpolate;
+      input.onchange=()=>{config.interpolate=input.checked;scheduleAutoSave();};
+      field.append(input);box.append(field);
+    }
+    body.append(box);
+  }
+
   function renderNode(n) {
     const el = document.createElement('section');
     el.className = `node ${['generateImage','generateVideo','generateText'].includes(n.type) ? 'generate' : ''} ${n.type==='timeline'?'timeline-node':''} ${state.selectedNodeIds.includes(n.id)||state.selectedNodeId===n.id ? 'selected' : ''}`;
@@ -1382,6 +1532,7 @@
     addPorts(el, n);
     if(['generateImage','generateVideo','generateText'].includes(n.type))studioButton(body,'Xóa kết quả cũ',()=>clearNodeOutput(n),{disabled:!!runForNode(n.id)});
     compactGenerator(n,body);
+    if(n.data.aiTask?.id)renderSpecialTaskSettings(n,body);
     // A single composer UX for editable prompts on all supported node types.
     // Legacy processing stays in place; unavailable V3 tasks are not simulated.
     if(globalThis.WorkflowSharedNodeControls){
@@ -1407,6 +1558,9 @@
         onReference:commonReferenceActions(n,el),
         onSend:commonSendAction(n),
         onDuplicate:contextTypes?()=>commonDuplicate(n):null,
+        onTools:media?()=>specialResultActions(n,media):null,
+        onFrameCapture:media?.kind==='video'&&['videoInput','generateVideo'].includes(n.type)
+          ?mode=>void saveVideoFrame(n,mode).catch(error=>setRunStatus(error.message,'error')):null,
         onDownload:media?()=>commonDownload(n,media):scripted?()=>commonDownloadText(n):null,
         readText:scripted?()=>n.data.script:null
       });
