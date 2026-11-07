@@ -63,7 +63,7 @@
 | I01 | Nhập Prompt | Nhập mô tả ảnh; Prompt dưới Node. | 🟡 |
 | I02 | Tải ảnh tham chiếu | Upload ảnh từ máy. | 🟡 |
 | I03 | Tham chiếu từ Canvas | Chọn ảnh đã có trên Canvas. | 🟡 |
-| I04 | Đánh dấu đối tượng | Đánh dấu đối tượng được tham chiếu trong Prompt. | 🔴 |
+| I04 | Đánh dấu đối tượng | **ẨN THEO YÊU CẦU 2026-11-08.** Không render trên thanh công cụ F03, không có thao tác click; giữ nguyên dữ liệu ảnh và Node cũ. Không đưa I04 trở lại nếu chưa được duyệt. | ⛔ ẨN |
 | I05 | Chọn phong cách | Preset phong cách ảnh. | 🔴 |
 | I06 | Chọn AI/model/tab | Chọn provider, model và phiên tab hợp lệ. | 🟡 |
 | I07 | Tỷ lệ khung hình | Ví dụ 1:1, 9:16, 16:9. | 🟡 |
@@ -275,4 +275,9 @@
 
 - **F01/T04 (Ảnh → suy ngược Prompt):** Khi nhận nhiều ảnh, tạo **một Prompt riêng cho từng ảnh**; không tự gộp tất cả ảnh vào một Prompt. Cần giữ liên kết Prompt ↔ ảnh nguồn; nếu UI kết quả chưa rõ thì xin duyệt trước khi triển khai.
 - **C05 (Kho tài sản):** Chỉ sử dụng **một kho tài sản chung cho toàn ứng dụng**, chia thành các **khu nhỏ theo loại tài nguyên** (ví dụ ảnh, video, âm thanh, nhân vật, bối cảnh, sản phẩm, hiệu ứng, mẫu). Mọi Node dùng chung một bộ chọn tài nguyên, tự lọc loại hợp lệ theo cổng đầu vào; không tự tạo 9 kho riêng biệt.
-- Các công cụ riêng còn chờ giải thích: F02 S01/S03; F03 I04/I05/I10–I15/I18; F04 V05/V10–V14; F05 D01/D05–D08; F06 E03–E07/E11/E14; F07 A04/A10; R01 U10; R02 U21. **Các hình minh họa trợ giúp là đề xuất ý nghĩa thao tác, không phải chức năng đã được xác nhận hoặc đã triển khai.** Chủ dự án sẽ xem từng hình rồi chốt lại.
+- Các công cụ riêng còn chờ giải thích: F02 S01/S03; F03 I05/I10–I15/I18 (I04 đã được yêu cầu ẩn); F04 V05/V10–V14; F05 D01/D05–D08; F06 E03–E07/E11/E14; F07 A04/A10; R01 U10; R02 U21. **Các hình minh họa trợ giúp là đề xuất ý nghĩa thao tác, không phải chức năng đã được xác nhận hoặc đã triển khai.** Chủ dự án sẽ xem từng hình rồi chốt lại.
+
+
+### Quyết định giao diện — I04 (2026-11-08)
+
+Chủ dự án yêu cầu **ẩn nút I04 — Đánh dấu đối tượng** khỏi **F03 — Sinh ảnh AI**. Không hiển thị I04 trong toolbar hay menu F03, không thêm chức năng giả cho nút này, không xóa dữ liệu Node/ảnh đã lưu. Mã `app.js`, `app.html` và `node-common-actions.js` ở trạng thái hiện tại chưa có nút I04 được render; vì thế thay đổi này là **quyết định UI đã chốt và tránh tái thêm trong V3**, không phải bằng chứng đã hoàn thành toàn bộ F03.
