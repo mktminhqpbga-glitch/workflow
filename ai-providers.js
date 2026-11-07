@@ -27,8 +27,19 @@
     if(!providers[provider]?.types.includes(r.mediaType))throw new Error('AI này không hỗ trợ loại đầu ra đã chọn.');
     if(r.referenceVideos?.length&&provider==='openai')throw new Error('OpenAI adapter chưa hỗ trợ video gốc. Chọn Gemini để phân tích video.');
     if(r.mediaType==='video'&&provider==='google'&&![4,6,8].includes(Number(r.duration)))throw new Error('Veo adapter hỗ trợ clip 4, 6 hoặc 8 giây; không thể bảo đảm một clip 15–60 giây.');
-    if(provider==='fal'&&(!r.referenceImages?.length||r.referenceVideos?.length!==1))throw new Error('Motion Control cần ảnh nhân vật và đúng một video chuyển động gốc.');
-    if(provider==='fal'&&r.referenceImages.length!==1)throw new Error('Motion Control nhận đúng một ảnh nhân vật.');
+    if(provider==='fal'){
+      const action=r.aiTask?.id||'videoDepth';
+      const images=r.referenceImages||[],videos=r.referenceVideos||[];
+      if(videos.length!==1)throw new Error('Tác vụ fal.ai cần đúng một video nguồn, không được thay bằng văn bản.');
+      if(action==='videoDepth'&&images.length!==1)throw new Error('Motion Control cần đúng một ảnh nhân vật và một video chuyển động nguồn.');
+      if(action==='videoHD'){
+        if(images.length)throw new Error('Nâng video HD không nhận ảnh thay cho video nguồn.');
+        if(Number(r.aiTask?.settings?.slowdown||1)!==1)throw new Error('Model nâng cấp video chưa hỗ trợ giảm tốc. Chọn tốc độ 1×.');
+      }
+      if(action==='videoSubtitles'&&images.length>4)throw new Error('Model edit video chỉ hỗ trợ tối đa 4 ảnh tham chiếu.');
+      if(!['videoDepth','videoHD','videoSubtitles'].includes(action))
+        throw new Error('Tác vụ fal.ai này chưa có adapter xử lý video nguồn phù hợp.');
+    }
   }
   async function api(provider,r,key,signal) {
     validate(provider,r);if(!key)throw new Error('Chưa nhập API key trong Cài đặt.');abort(signal);
@@ -71,13 +82,59 @@
       const text=(result.output||[]).flatMap(item=>item.content||[]).filter(item=>item.type==='output_text').map(item=>item.text).join('\n');if(!text)throw new Error('OpenAI không trả về văn bản.');return {ok:true,text};
     }
     if(provider==='fal') {
-      if(!/^fal-ai\/[a-zA-Z0-9/_.-]+$/.test(model)||model.includes('..'))throw new Error('Model fal.ai không hợp lệ.');
-      const image=(await media(r.referenceImages[0],signal)).dataUrl,video=(await media(r.referenceVideos[0],signal)).dataUrl;
-      const headers={'Content-Type':'application/json',Authorization:`Key ${key}`};
-      const task=await json(`https://queue.fal.run/${model}`,{method:'POST',headers,signal,body:JSON.stringify({prompt:r.prompt,image_url:image,video_url:video,character_orientation:'video',keep_original_sound:true})});
-      for(const url of [task.status_url,task.response_url,task.cancel_url].filter(Boolean))if(new URL(url).origin!=='https://queue.fal.run')throw new Error('Địa chỉ tác vụ fal.ai không hợp lệ.');
-      const cancel=()=>{if(task.cancel_url)void fetch(task.cancel_url,{method:'PUT',headers}).catch(()=>{});};signal?.addEventListener('abort',cancel,{once:true});
-      try {const end=Date.now()+600000;while(Date.now()<end){abort(signal);const status=await json(task.status_url,{headers,signal});if(status.status==='COMPLETED'){const result=await json(task.response_url,{headers,signal});if(!result.video?.url)throw new Error('fal.ai không trả về video.');return {ok:true,url:result.video.url};}if(status.status==='FAILED')throw new Error('fal.ai tạo video thất bại.');await sleep(4000,signal);}throw new Error('fal.ai chưa hoàn tất sau 10 phút.');}finally{signal?.removeEventListener('abort',cancel);}
+      const action=r.aiTask?.id||'videoDepth';
+      const id=action==='videoHD'?'fal-ai/bytedance-upscaler/upscale/video':
+        action==='videoSubtitles'?'fal-ai/kling-video/o1/standard/video-to-video/edit':
+        'fal-ai/kling-video/v2.6/standard/motion-control';
+      // The AI task selects a verified schema; never use a model from another task.
+      const requestedModel=r.aiTask?.id?id:model;
+      if(requestedModel!==id||!/^fal-ai\/[a-zA-Z0-9/_.-]+$/.test(id))
+        throw new Error('Adapter fal.ai không nhận model không phù hợp tác vụ.');
+      const url=(await media(r.referenceVideos[0],signal)).dataUrl;
+      const headers={'Content-Type':'application/json',Authorization:'Key '+key};
+      let input;
+      if(action==='videoDepth'){
+        const img=(await media(r.referenceImages[0],signal)).dataUrl;
+        input={prompt:r.prompt,image_url:img,video_url:url,
+          character_orientation:'video',keep_original_sound:true};
+      }else if(action==='videoHD'){
+        const settings=r.aiTask.settings||{};
+        const resolution=({ '1080P':'1080p','2K':'2k','4K':'4k' })[settings.resolution||'1080P'];
+        if(!resolution)throw new Error('Độ phân giải nâng video không hợp lệ.');
+        input={video_url:url,target_resolution:resolution,
+          target_fps:settings.interpolate===true?60:30,
+          enhancement_preset:'general',enhancement_tier:'standard',
+          fidelity:'high'};
+      }else{
+        const images=await Promise.all((r.referenceImages||[]).map(async ref=>(await media(ref,signal)).dataUrl));
+        input={prompt:r.prompt,video_url:url,keep_audio:true};
+        if(images.length)input.image_urls=images;
+      }
+      const task=await json('https://queue.fal.run/'+id,{
+        method:'POST',headers,signal,body:JSON.stringify(input)
+      });
+      for(const endpoint of [task.status_url,task.response_url,task.cancel_url].filter(Boolean))
+        if(new URL(endpoint).origin!=='https://queue.fal.run')
+          throw new Error('fal.ai trả URL hàng đợi không hợp lệ.');
+      if(!task.status_url||!task.response_url)throw new Error('fal.ai không trả mã tác vụ để theo dõi.');
+      const cancel=()=>{if(task.cancel_url)void fetch(task.cancel_url,{method:'PUT',headers}).catch(()=>{});};
+      signal?.addEventListener('abort',cancel,{once:true});
+      try{
+        const end=Date.now()+600000;
+        while(Date.now()<end){
+          abort(signal);
+          const status=await json(task.status_url,{headers,signal});
+          if(status.status==='COMPLETED'){
+            const result=await json(task.response_url,{headers,signal});
+            if(!result.video?.url)throw new Error('fal.ai chưa trả video kết quả.');
+            return {ok:true,url:result.video.url};
+          }
+          if(status.status==='FAILED')throw new Error('fal.ai không hoàn tất xử lý video.');
+          await sleep(4000,signal);
+        }
+        throw new Error('fal.ai chưa hoàn tất sau 10 phút.');
+      }finally{signal?.removeEventListener('abort',cancel);}
+
     }
   }
   globalThis.WorkflowAI={providers,models,validate,api};
