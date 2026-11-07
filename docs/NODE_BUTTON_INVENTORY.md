@@ -97,7 +97,7 @@
 | V08 | Thời lượng | Độ dài clip theo model. | 🟡 |
 | V09 | Chất lượng video | Cấu hình phân giải/quality. | 🔴 |
 | V10 | Ghi hình chuyển động chiều sâu | **F04 đã có video kết quả và đang chọn:** bấm V10 mở một **Node xử lý video mới**, có đường nối từ video nguồn sang khung preview video đầu ra (rỗng trước khi chạy). Bảng nhỏ bên dưới: tiêu đề **Ghi hình chuyển động chiều sâu**, mục **Sự rõ ràng** chọn **480P / 720P**, nút trắng **Xác nhận quá trình chiết xuất**. Dùng video nguồn để tạo **video preview độ phân giải thấp, ưu tiên chủ thể chính và cảm giác chiều sâu/chuyển động**, không ghi đè video nguồn; chờ dịch vụ thật. Theo yêu cầu chung, phần tạo video sẽ cho chọn **AI đã kết nối → model/tab khả dụng** khi tích hợp. | 🟡 Đã chốt UX, chưa code |
-| V11 | HD | Nâng chất lượng video. | 🔴 |
+| V11 | HD / Nâng chất lượng video | **F04 có video kết quả và đang được chọn:** bấm HD tạo Node **Video HD** mới kết nối từ video nguồn; preview rỗng trước khi xử lý. Bảng dưới Node như ảnh user: **Chọn AI đã kết nối → model/tab thực tế hỗ trợ xử lý video**, độ phân giải **1080P / 2K / 4K**, **chế độ bù khung hình** (mẫu: Không bù khung), **hệ số làm chậm** (mẫu: 1×), chi phí nếu có và nút ↑. AI tạo **video chất lượng cao mới**, không thay hoặc tự động gửi video gốc. Chỉ hiện toolbar kết quả khi đã có video mới và Node được chọn. | 🟡 Đã chốt UX, chưa code |
 | V12 | Xóa phụ đề | Chỉ hoạt động khi có bộ xử lý thật. | 🔴 |
 | V13 | Làm lại đoạn video | Chỉnh và tái tạo một phân đoạn. | 🔴 |
 | V14 | Tách âm thanh | Trích audio từ video. | 🟡 |
@@ -367,3 +367,14 @@ Chủ dự án yêu cầu **ẩn nút I13 — Phân đoạn lưới**, thuộc F
 **Độ phân giải:** 480P và 720P là hai mức lựa chọn trong ảnh; mặc định ảnh thể hiện 480P đang được chọn. Không tự thêm 1080P/4K vào bảng V10 nếu chưa được duyệt.
 
 **Trạng thái:** **đã nhận và hiểu ảnh + chức năng**, **chưa code V10**. Nút tiếp theo cần giải thích **F04 — Sinh video AI / V11 — HD**, trạng thái **đã có video kết quả và đang chọn**, cần ảnh sau khi nhấn.
+
+
+### Quyết định giao diện — F04/V11 HD nâng cấp video (2026-11-08)
+
+**Ảnh tham chiếu mới:** video nguồn bên trái nối dây đến Node “高清 (1080P)” bên phải chưa có kết quả, có ô preview trống và bảng “视频高清” ngay bên dưới. Bảng cấu hình gồm **model/provider** (ảnh ví dụ Topazlabs), lựa chọn **1080P / 2K / 4K**, **bù khung hình** (mẫu: Không bù khung), **hệ số làm chậm** (mẫu: 1×), chỉ báo chi phí, nút **↑** để chạy.
+
+**Chức năng đã xác nhận:** nâng chất lượng video nguồn và tạo ra **video kết quả mới** theo thiết lập, không ghi đè bản gốc; không xem việc chỉ thay thuộc tính hiển thị/kích thước video là xử lý HD. Nếu AI/provider không hỗ trợ một độ phân giải hay tùy chọn thì vô hiệu hóa/giải thích, không tạo kết quả giả.
+
+**Yêu cầu bổ sung mới nhất:** người dùng muốn **được chọn AI rồi chọn model/tab trong chính V11**. Sử dụng **cùng bộ chọn C01**, chỉ hiển thị provider **đã kết nối** và model/tab phù hợp với tác vụ **nâng cấp video**. Chọn xong giữ nguyên toàn bộ cấu hình và video nguồn, bấm ↑ gửi tới lựa chọn thực tế. Tên Topazlabs ở ảnh chỉ là ví dụ của màn hình nguồn, **không mặc định là đã tích hợp Topazlabs**. UI phải bám ảnh gốc, thêm chọn AI/tab trong vùng chọn model mà không thay toàn bộ bố cục.
+
+**Trạng thái:** đã chốt đặc tả, **chưa triển khai runtime V11**. Nút tiếp theo cần hỏi từng cái: **F04 — Sinh video AI / V12 — Xóa phụ đề**, trạng thái **đã có video kết quả và đang được chọn**.
