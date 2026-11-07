@@ -71,7 +71,7 @@
 | I09 | Số lượng ảnh | Chọn số ảnh đầu ra. | 🔴 |
 | I10 | Chỉnh sửa phần tử | **Chỉ khi F03 đã có ảnh kết quả và ảnh đang được chọn:** toolbar nằm phía trên ảnh (ảnh 1, 2026-11-08), bấm **Chỉnh sửa phần tử** → chuyển sang chế độ chọn/chỉnh trực tiếp trên ảnh (ảnh 2), ảnh phủ lớp tối, có thanh riêng với nút Đóng (×), chọn theo điểm/ghim, chọn vùng nét đứt, bút vẽ và Hoàn tác. Không mở Node tạo ảnh mới, không đưa ảnh thủ công vào Prompt. **Khi Node chưa có ảnh:** không hiển thị/không bật I10. Phân biệt các điều khiển chọn vùng *bên trong I10* với nút I04 đã bị ẩn. | 🟡 Đã chốt UX, chưa code |
 | I11 | HD / Nâng cấp độ phân giải | **F03 đã có ảnh kết quả và ảnh được chọn** → bấm HD trên toolbar nổi → xuất hiện Node **HD** mới, nối từ ảnh gốc; có bảng thiết lập nâng cấp độ phân giải với **Chọn model/dịch vụ** (ảnh mẫu: Topazlabs), **chế độ/model** (ảnh mẫu: Thông dụng), **hệ số phóng** 2× / 4× / 6× và nút **↑ tạo**. AI xử lý ảnh gốc thành **một ảnh kết quả mới có chất lượng theo thiết lập**; không chỉ kéo giãn ảnh hiển thị. Node HD rỗng có placeholder, không có toolbar kết quả nổi phía trên. Chỉ cho chọn dịch vụ/model có kết nối, nếu thiếu phải thông báo. Chưa code. | 🟡 Đã chốt UX, chưa code |
-| I12 | Nhiều góc độ | Tạo các góc nhìn. | 🔴 |
+| I12 | Nhiều góc độ | **F03 có ảnh kết quả và đang chọn:** bấm nút Nhiều góc độ mở bảng **Trình chỉnh sửa nhiều góc độ** ở dưới ảnh (ảnh user 2026-11-08); có preset góc nhìn (Tùy chỉnh, mắt cá, nghiêng, trước nhìn từ trên, trước từ dưới, toàn cảnh từ trên, phía sau), mô hình quả cầu xoay xem hướng camera, thanh trượt xoay ngang/dọc và zoom cảnh, bật/tắt hiển thị Prompt, Đặt lại, nút ↑. Sau khi cài đặt, AI **sinh một ảnh MỚI cùng nhân vật/đối tượng từ ảnh gốc theo góc camera mới**; không chỉ xoay/zoom ảnh sẵn có và không ghi đè ảnh nguồn. | 🟡 Đã chốt UX, chưa code |
 | I13 | Phân đoạn lưới | Cắt/chia ảnh theo lưới. | 🔴 |
 | I14 | Phân tách lớp | Tách lớp ảnh. | 🔴 |
 | I15 | Toàn cảnh 720° | Công cụ pano 720°. | 🔴 |
@@ -316,3 +316,14 @@ Người dùng gửi **hai ảnh chụp giao diện thật** và xác nhận tr�
 **Chức năng người dùng xác nhận:** I11 yêu cầu AI tạo **ảnh nâng chất lượng mới** từ ảnh nguồn với cài đặt đã chọn, không đơn thuần resize ảnh. Mỗi lần bấm gửi là tác vụ có chủ đích, trạng thái chờ/chạy/lỗi/kết quả; ảnh mới hiển thị ở Node HD, có thể nối tiếp Node khác, không ghi đè ảnh gốc. Thanh công cụ nổi trên kết quả tuân thủ quy tắc chung: chỉ xuất hiện khi **đã có kết quả và được chọn**.
 
 **Trạng thái:** chỉ ghi đặc tả, chưa tạo node xử lý upscale hay nối dịch vụ thật. **Nút tiếp theo chờ user giải thích: F03/I12 — Nhiều góc độ; trạng thái ảnh đã có kết quả và được chọn.**
+
+
+### Quyết định giao diện — F03/I12 Nhiều góc độ (2026-11-08)
+
+**Nguồn:** ảnh chụp thực tế do chủ dự án gửi (chưa nhập file vào repo). Điều kiện mở: Node **F03 — Sinh ảnh AI đã có ảnh kết quả và được chọn**, click **I12 — Nhiều góc độ** ở thanh công cụ nổi phía trên kết quả. Node trống không có toolbar nổi.
+
+**Bảng nổi phía dưới ảnh** có tiêu đề **Trình chỉnh sửa nhiều góc độ**, nút × đóng. Các preset lần lượt: **Tùy chỉnh, Góc mắt cá, Góc nghiêng, Góc trực diện từ trên, Góc trực diện từ dưới, Toàn cảnh từ trên, Góc nhìn phía sau**. Bên trái là **bộ điều khiển 3D dạng quả cầu/dây lưới** với ảnh xem trước và các mũi tên thay đổi hướng; bên phải là **Xoay ngang (°), Xoay dọc (°), Thu/phóng cảnh (cỡ cảnh)**. Có công tắc Prompt, nút **Đặt lại thông số**; hàng dưới có chỉ báo chi phí và nút **↑** gửi.
+
+**Chức năng đã được người dùng xác nhận:** sau khi lựa chọn camera và thiết lập, AI **tạo ra ảnh kết quả khác với cùng nhân vật/đối tượng của ảnh gốc** nhưng góc máy theo tham số mới. Không chỉ thao tác CSS xoay ảnh cũ; ảnh gốc vẫn được giữ nguyên. Khi triển khai, chỉ dùng AI/provider thực tế hỗ trợ image-to-image / đổi góc nhìn, không mô phỏng kết quả nếu không có model đã kết nối. Kết quả mới phải có nguồn gốc từ ảnh tham chiếu và có trạng thái chạy/lỗi/hoàn tất.
+
+**Trạng thái:** mới ghi đặc tả, **chưa triển khai mã**. Nút tiếp theo cần giải thích: **F03 — Sinh ảnh AI / I13 — Phân đoạn lưới**, trạng thái **đã có ảnh kết quả và đang chọn**; cần ảnh sau khi click.
