@@ -289,3 +289,15 @@ Chủ dự án yêu cầu **cập nhật lại danh sách nút trước khi code
 - Danh sách này phân biệt **mẫu đã chốt** và **mức độ triển khai thật trên GitHub**. Một phần legacy có thể tồn tại dưới tên khác; màu vàng/đỏ vẫn cần code/test xác nhận.
 - F01 T02 viết tay, không gửi AI; T06 chọn provider/model/tab; T07 dịch Việt↔Anh; T08 chỉ là nút gửi; T09 theo ảnh mới. F02 S01 là toolbar các tác vụ kịch bản/đồ họa, không phải toolbar HD ảnh; S02 có ảnh nhân vật, S03 là bảng phân cảnh nhiều cột.
 - **Chưa sửa runtime, chưa có screenshot app sau sửa**, chỉ cập nhật tài liệu. Phần tiếp theo phải được chủ dự án duyệt riêng, sửa xong gửi ảnh app thật, test và commit.
+
+
+## 14. Xác nhận tám nhóm nút chung: dịch Prompt và chế độ soạn mở rộng
+
+**Chủ dự án xác nhận 2026-11-08.** Xem tài liệu triển khai chuẩn **[NODE_BUTTON_INVENTORY.md](NODE_BUTTON_INVENTORY.md)** (mục *Quy tắc bắt buộc* và *Xác nhận nhóm điều khiển chung*). Chưa có thay đổi runtime.
+
+- T07/S07/A09: **chỉ dịch chữ bên trong ô nhập Prompt** giữa tiếng Việt và tiếng Anh; không đổi giao diện/Node. Giữ nguyên bản gốc để hoàn tác.
+- T09/S09/I22/V21/D09/E16/A13: chế độ thường là **Prompt bên dưới Node**; bấm icon mũi tên chéo thì **panel Prompt phóng lớn nổi phủ Canvas** như hai ảnh người dùng gửi, bấm lại về thường; không làm mất Prompt và ảnh tham chiếu, model, cài đặt. Không nhầm mở rộng với ẩn Prompt hoặc rút thành một hàng.
+- T08/S08/I21/V19/D04/E15/A11: nút gửi Prompt chỉ gửi khi bấm, trắng khi sẵn sàng, spinner khi chạy, đỏ khi lỗi.
+- T06/S06/I06/V06/A05: chọn AI → model/tab; **chỉ hiển thị AI đã kết nối**; dropdown giống ảnh người dùng, không hardcode tên model giả.
+- Thêm tham chiếu, tải kết quả, zoom/xem lớn, nhân bản Node: chủ dự án đã chấp nhận yêu cầu hành vi dùng chung được mô tả trong tài liệu kiểm kê.
+- Trạng thái **đã chốt đặc tả** ≠ **đã code và test**. Không đổi các nút từ 🟡/🔴 sang 🟢 nếu không có commit sửa mã và bằng chứng test. Muốn bắt đầu code phải báo phạm vi sửa và được chủ dự án duyệt.
