@@ -9,11 +9,11 @@ require('../ai-providers.js');
 const providers=globalThis.WorkflowAI;
 
 test('every specialist action has unique task, media type and explicit provider capability',()=>{
-  assert.equal(Object.keys(tasks.tasks).length,7);
+  assert.equal(Object.keys(tasks.tasks).length,8);
   for(const [id,spec] of Object.entries(tasks.tasks)){
     assert.equal(tasks.task(id),spec);
     assert.ok(spec.name&&spec.source&&spec.kind);
-    assert.equal(spec.source,id==='audioToVideo'?'audio':spec.kind);
+    assert.equal(spec.source,id==='audioToVideo'?'audio':id==='imageToPrompt'?'image':spec.kind);
     assert.ok(tasks.buildPrompt(id,{}).includes('TASK:'));
   }
   assert.equal(tasks.supports('videoDepth','fal'),true);
@@ -28,6 +28,10 @@ test('every specialist action has unique task, media type and explicit provider 
 });
 
 test('AI hidden prompts carry task, configuration and user direction independently',()=>{
+  const reverse=tasks.buildPrompt('imageToPrompt',{},'Giữ màu nắng chiều');
+  assert.match(reverse,/REVERSE ENGINEER IMAGE TO PROMPT/);
+  assert.match(reverse,/ONE complete image-generation prompt/);
+  assert.match(reverse,/Giữ màu nắng chiều/);
   const depth=tasks.buildPrompt('videoDepth',{preview:'480P'},'chuyển động nhẹ');
   assert.match(depth,/DEPTH MOTION VIDEO/);
   assert.match(depth,/parallax/);
