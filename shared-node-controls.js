@@ -2,6 +2,7 @@
   'use strict';
   // Shared, optional prompt controls; no provider request is made until Translate is clicked.
   const active = new Map();
+  function closeAll() { for (const close of [...active.values()]) close(); }
   const vi = /[ăâđêôơưĂÂĐÊÔƠƯàáảãạằắẳẵặầấẩẫậèéẻẽẹềếểễệìíỉĩịòóỏõọồốổỗộờớởỡợùúủũụừứửữựỳýỷỹỵ]/u;
   const commonVi = /(?:^|[^\p{L}])(?:tôi|bạn|chúng|của|trong|với|được|không|hãy|tạo|viết|một|những|đây|tiếng)(?=$|[^\p{L}])/iu;
   function targetLanguage(text) { return vi.test(text) || commonVi.test(text) ? 'en' : 'vi'; }
@@ -31,6 +32,11 @@
     };
     let enlarged = null;
     let busy = false;
+    const undo = control('↶', 'shared-prompt-undo', 'Hoàn tác bản dịch gần nhất');
+    undo.hidden = true;
+    let translationBefore = null; let translationAfter = null;
+    undo.onclick = event => { event.stopPropagation(); if (translationBefore === null || field.value !== translationAfter) return; commit(translationBefore); translationBefore = translationAfter = null; undo.hidden = true; };
+    if (canTranslate) controls.append(undo);
     async function doTranslate(editor, button, status) {
       if (busy) return;
       const starting = editor.value;
@@ -43,9 +49,12 @@
         const result = await translate(starting, targetLanguage(starting));
         if (typeof result !== 'string' || !result.trim()) throw new Error('AI không trả về bản dịch.');
         if (editor.value !== starting || !editor.isConnected) throw new Error('Prompt đã thay đổi khi dịch; không ghi đè nội dung mới.');
-        commit(result.trim());
-        editor.value = result.trim();
-        status.textContent = 'Đã dịch Prompt. Có thể hoàn tác bằng Ctrl+Z.';
+        translationBefore = starting;
+        translationAfter = result.trim();
+        commit(translationAfter);
+        editor.value = translationAfter;
+        undo.hidden = false;
+        status.textContent = 'Đã dịch Prompt. Bấm ↶ để hoàn tác.';
       } catch (error) {
         status.textContent = error.message || 'Không thể dịch Prompt.';
         onError?.(error);
@@ -101,5 +110,5 @@
     expand.onclick = event => { event.stopPropagation(); enlarged ? close() : open(); };
     return {close};
   }
-  root.WorkflowSharedNodeControls = Object.freeze({attach, targetLanguage});
+  root.WorkflowSharedNodeControls = Object.freeze({attach, targetLanguage, closeAll});
 })(typeof globalThis !== 'undefined' ? globalThis : window);
