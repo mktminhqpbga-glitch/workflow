@@ -119,7 +119,7 @@
 | D04 | Gửi tạo cảnh ↑ | Gửi Prompt tạo bối cảnh. | 🔴 |
 | D05 | Xem không gian 3D | **ẨN TOÀN ỨNG DỤNG theo yêu cầu 2026-11-08.** Không render hành động xem không gian 3D ở F05 hoặc Node bất kỳ có cùng chức năng. Giữ nguyên cảnh/video/tài nguyên đã lưu. | ⛔ ẨN |
 | D06 | Điều khiển camera | **ẨN TOÀN ỨNG DỤNG THEO YÊU CẦU 2026-11-08.** Không hiển thị điều khiển camera của bàn đạo diễn 3D trên F05 hoặc Node khác có cùng chức năng. Không xóa dữ liệu/cảnh/project đã lưu. Phân biệt với thiết lập góc máy trong F03/I12 và F04/V05 đã được duyệt (không ẩn các chức năng khác này). | ⛔ ẨN |
-| D07 | Chọn góc máy | Lưu góc máy mong muốn. | 🔴 |
+| D07 | Chọn góc máy | **GIỮ LẠI theo yêu cầu 2026-11-08.** Nút Chọn góc máy trong F05 — Đạo diễn không bị ẩn dù D01/D05/D06 đã ẩn. Cần ảnh/giải thích khi bấm D07 để chốt giao diện và chức năng thực tế; không tự đồng nhất với D06 hoặc với nút chọn góc máy của F03/F04. | 🟡 Đã chốt giữ, chờ chi tiết |
 | D08 | Xuất ảnh từ camera | Render/snapshot. | 🔴 |
 | D09 | Thu gọn Prompt | Theo chuẩn Node. | 🔴 |
 
@@ -491,4 +491,9 @@ Chủ dự án trả lời **“ẩn cái này đi nhé”** khi được hỏi 
 
 Chủ dự án trả lời **“ẩn”** khi được hỏi về **D06 — Điều khiển camera** thuộc **F05 — Node Đạo diễn (Director's Desk)**. Không hiển thị D06 tại F05 hoặc bất kỳ Node nào có cùng công cụ điều khiển camera không gian 3D này. Tiếp tục áp dụng quy tắc toàn ứng dụng: nút nào được yêu cầu ẩn thì mọi bản sao cùng chức năng đều ẩn. Không xóa dữ liệu/asset/đường nối cũ. Các nút chỉnh góc máy sinh ảnh hoặc sinh video (F03/I12, F04/V05) có mục đích khác nên **không bị suy rộng thành ẩn**.
 
-**Trạng thái:** quyết định ẩn đã chốt; giao diện V3 chưa có nút D06 trên GitHub main, chưa cần sửa một nút runtime không tồn tại. **Tiếp theo cần hỏi một nút:** F05 — Đạo diễn / D07 — Chọn góc máy (trong cảnh 3D), giữ hay ẩn?
+**Trạng thái:** quyết định ẩn đã chốt; giao diện V3 chưa có nút D06 trên GitHub main, chưa cần sửa một nút runtime không tồn tại. **Cập nhật câu trả lời:** F05/D07 — Chọn góc máy **GIỮ**, cần hỏi tiếp giao diện xuất hiện khi bấm để chốt UX.
+
+
+### Quyết định — F05/D07 Chọn góc máy (2026-11-08)
+
+Chủ dự án trả lời **“giữ lại”** khi được hỏi về **D07 — Chọn góc máy**, thuộc **F05 — Node Đạo diễn (Director's Desk)**. Phải giữ nút D07 khi dựng UI; không tự áp dụng việc ẩn D01/D05/D06 để xóa D07. **Chưa có ảnh hoặc mô tả thao tác D07**, chỉ xác nhận việc GIỮ, không được ghi đã hiểu toàn bộ chức năng hoặc đã code. Câu hỏi tiếp theo: bấm nút D07 trên F05 sẽ mở giao diện nào và dùng để làm gì?
