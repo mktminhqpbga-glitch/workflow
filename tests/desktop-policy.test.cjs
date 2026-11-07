@@ -70,9 +70,11 @@ test('app protocol serves only bundled public resources and rejects traversal/sy
   fs.symlinkSync(path.join(temp, 'secret.json'), path.join(root, 'escape.json'));
   fs.symlinkSync(path.join(root, '.git', 'config.json'), path.join(root, 'private.json'));
   fs.symlinkSync(path.join(root, 'desktop', 'main.cjs'), path.join(root, 'private.js'));
-  assert.equal(resolveAppPath(root, 'workflow://app/app.html'), path.join(root, 'app.html'));
-  assert.equal(resolveAppPath(root, 'workflow://app/'), path.join(root, 'app.html'));
-  assert.equal(resolveAppPath(root, 'workflow://app/desktop/home.js?v=1'), path.join(root, 'desktop', 'home.js'));
+  // On macOS os.tmpdir() may use /var while realpath() canonicalizes to /private/var.
+  const canonicalRoot=fs.realpathSync(root);
+  assert.equal(resolveAppPath(root, 'workflow://app/app.html'), path.join(canonicalRoot, 'app.html'));
+  assert.equal(resolveAppPath(root, 'workflow://app/'), path.join(canonicalRoot, 'app.html'));
+  assert.equal(resolveAppPath(root, 'workflow://app/desktop/home.js?v=1'), path.join(canonicalRoot, 'desktop', 'home.js'));
   for (const url of ['workflow://app/../secret.json', 'workflow://app/%2e%2e/secret.json',
     'workflow://app/%252e%252e/secret.json', 'workflow://app/%2e%2e%2fsecret.json',
     'workflow://app/%2e%2e%5csecret.json', 'workflow://app/%00.json', 'workflow://app/%zz.json',
