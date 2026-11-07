@@ -1360,16 +1360,38 @@
     addPorts(el, n);
     if(['generateImage','generateVideo','generateText'].includes(n.type))studioButton(body,'Xóa kết quả cũ',()=>clearNodeOutput(n),{disabled:!!runForNode(n.id)});
     compactGenerator(n,body);
-    // Shared prompt controls: same translation and full-screen editing behavior across
-    // text/script/audio draft fields; media generators will join when V3 composer lands.
+    // A single composer UX for editable prompts on all supported node types.
+    // Legacy processing stays in place; unavailable V3 tasks are not simulated.
     if(globalThis.WorkflowSharedNodeControls){
-      const allowTranslate=['prompt','textAppend','storyPrompt','storyMaster','storyScript','speech'].includes(n.type);
+      const allowTranslate=['prompt','negativePrompt','textAppend','masterScript','storyPrompt','sceneSplit','voiceover','generateText','generateImage','generateVideo'].includes(n.type);
       globalThis.WorkflowSharedNodeControls.attach({
         node:n,body,canTranslate:allowTranslate,
         translate:(value,lang)=>translateNodeDraft(n,value,lang),
         onChange:()=>scheduleAutoSave(),
         onError:error=>setRunStatus(error.message||'Không thể dịch Prompt.','error')
       });
+    }
+    if(globalThis.WorkflowNodeCommonActions){
+      const media=commonAsset(n);
+      const usesAI=['prompt','masterScript','storyPrompt','generateText','generateImage','generateVideo','voiceover'].includes(n.type);
+      const contextTypes=['masterScript','imageInput','videoInput','audioInput','generateImage','generateVideo',
+        'imageResize','preview','voiceover','finalOutput','audioMix','subtitles'].includes(n.type);
+      const scripted=n.type==='masterScript'&&String(n.data.script||'').trim();
+      globalThis.WorkflowNodeCommonActions.attach({
+        node:n,root:el,body,media,
+        modelGroups:usesAI?()=>commonConnectedModels(n):null,
+        onModelPick:(g,item)=>commonChooseModel(n,g,item),
+        onReference:commonReferenceActions(n,el),
+        onSend:commonSendAction(n),
+        onDuplicate:contextTypes?()=>commonDuplicate(n):null,
+        onDownload:media?()=>commonDownload(n,media):scripted?()=>commonDownloadText(n):null,
+        readText:scripted?()=>n.data.script:null
+      });
+    }
+    if(n.data.sharedGeneratedText){
+      const result=document.createElement('pre');result.className='shared-generated-text';
+      result.textContent=n.data.sharedGeneratedText;result.title='Kết quả AI; nội dung Prompt gốc vẫn được giữ';
+      body.append(result);
     }
     el.addEventListener('pointerdown',event=>{if(event.button!==0)return;if(event.target.closest('textarea,input,select'))selectNode(n.id);},true);
     el.onmousedown = event => {if(event.target.closest('button,input,textarea,select,summary,details,.port,.node-header'))return;if(event.shiftKey||event.ctrlKey||event.metaKey)selectNode(n.id,{toggle:true});else if(!state.selectedNodeIds.includes(n.id))selectNode(n.id);};
@@ -1380,7 +1402,7 @@
   function compactGenerator(node,body){
     if(!['generateImage','generateVideo'].includes(node.type))return;
     body.classList.add('compact-generation');
-    const children=[...body.children],provider=body.querySelector('.provider-controls'),controls=body.querySelector('.gen-controls'),status=body.querySelector('.status'),actions=body.querySelector('.node-generation-actions');
+    const children=[...body.children],provider=body.querySelector('.provider-controls'),controls=body.querySelector('.gen-controls'),status=body.querySelector('.status'),actions=body.querySelector('.node-generation-actions'),localDraft=body.querySelector('.node-local-prompt');
     const media=children.find(el=>el.matches('video,.image-link')),options=document.createElement('div');options.className='node-options';
     const sections={};
     for(const [key,name] of [['connection','Kết nối AI'],['frames',node.type==='generateVideo'?'Khung hình':'Ảnh tham chiếu'],['tools','Công cụ'],['info','Chi tiết']]){
@@ -1390,7 +1412,7 @@
     }
     if(provider){const first=provider.querySelector('select[aria-label="AI thực hiện"]');for(const el of [...provider.children])if(el!==first)sections.connection.content.append(el);}
     for(const el of children){
-      if([provider,controls,status,actions,media].includes(el))continue;
+      if([provider,controls,status,actions,media,localDraft].includes(el))continue;
       if(el.matches('.tool-action,.video-timeline-drag')){
         if(/khung cuối/.test(el.textContent))sections.frames.content.append(el);else sections.tools.content.append(el);
       }else if(el.matches('.reference-id-list,.continuity-toggle,.end-frame-thumb,.end-frame-input')||/Khung (?:cuối|mở đầu)/.test(el.textContent))sections.frames.content.append(el);
@@ -1401,7 +1423,7 @@
     if(controls){[...controls.querySelectorAll('select')].forEach((select,i)=>select.setAttribute('aria-label',i===0?'Tỷ lệ khung hình':'Thời lượng video'));for(const model of [...controls.querySelectorAll('input')])sections.connection.content.append(model);}
     const refs=sections.frames.content.querySelector('.reference-id-list');if(refs){refs.title=refs.textContent;sections.frames.details.querySelector('summary').textContent=(node.type==='generateVideo'?'Khung hình':'Ảnh tham chiếu')+' · '+getIncoming(node.id,'reference').length;}
     if(node.data.status==='error')sections.info.details.open=true;
-    body.replaceChildren(...[provider,controls,status,media,actions,options].filter(Boolean));
+    body.replaceChildren(...[provider,controls,status,media,localDraft,actions,options].filter(Boolean));
   }
 
   function createNodeRunActions(node){
