@@ -151,7 +151,7 @@
 | A01 | Nhập Prompt | Mô tả âm thanh. | 🟡 |
 | A02 | Tải âm thanh tham chiếu | Tệp/audio mẫu. | 🟡 |
 | A03 | Tham chiếu Canvas | Nhận audio/video/text có kiểu. | 🟡 |
-| A04 | Âm thanh → Video | Nối tín hiệu phù hợp. | 🔴 |
+| A04 | Âm thanh → Video | **Ảnh tham chiếu mới 2026-11-08:** một nhóm workflow nhận Audio (waveform/độ dài, ví dụ 0:03) và Ảnh tham chiếu, nối vào Video output rỗng; Prompt có ảnh+âm thanh đính kèm, chọn chế độ/model, tỷ lệ/phân giải/thời lượng, dịch, cài đặt và ↑. Ghi nhận là ảnh mẫu khả dĩ cho A04, **chưa được chủ dự án xác nhận mã nút cụ thể của ảnh**. | 🟡 Có ảnh, chưa chốt ánh xạ |
 | A05 | Chọn AI/model/tab | Provider, model và nơi gửi. | 🟡 |
 | A06 | WAV/MP3 | Chọn định dạng đầu ra. | 🟡 |
 | A07 | Thời lượng | Độ dài âm thanh. | 🟡 |
@@ -405,3 +405,10 @@ Chủ dự án yêu cầu **ẩn nút I13 — Phân đoạn lưới**, thuộc F
 **Mapping kiểm kê:** V14 = Tách âm/video → ⛔ ẨN; V15 = Hơn → giữ ⛔ ẨN. “Phân tích/tách cảnh từng khung hình” **chưa được gán mã riêng trong danh sách 122 nút**, nhưng cũng ⛔ ẨN theo lệnh người dùng; không tự thêm mã mới hoặc bật lại. Giữ nguyên các nút AI video đã duyệt: V10 Chuyển động sâu, V11 HD, V12 Xóa phụ đề, V13 Làm lại đoạn.
 
 **Kiểm tra source lúc ghi yêu cầu:** hiện chưa có các nút này trong `app.js`, `app.html`, `node-common-actions.js`, `compact-toolbar.js` ở nhánh `main`; yêu cầu được ghi thành quy tắc thiết kế và bảo vệ bằng test cho các lần sửa UI V3. Không báo đã xóa công cụ trên một bản ứng dụng chưa được commit lên GitHub.
+
+
+### 2026-11-08 — Ảnh mới về F07 Âm thanh → Video, cần xác nhận ánh xạ A04/A10
+
+Người dùng được hỏi **F07 — A10 (Cài đặt âm thanh nâng cao, biểu tượng ba thanh trượt)** và gửi ảnh có tiêu đề **“预设 - 音频生视频” (Preset — Sinh video từ âm thanh)**. Ảnh cho thấy: Node waveform âm thanh 0:03 và ảnh nguồn được nối vào Node preview video trống; composer bên dưới có nút **Upload, Tham khảo Canvas, Đánh dấu, Thư viện nhân vật, Hơn**, thumbnail ảnh/audio (chưa biết thao tác chi tiết), Prompt tạo video dựa vào âm thanh, chọn cấu hình 16:9, 720P, 5 giây, dịch, biểu tượng **ba thanh trượt** cạnh nút gửi ↑. **Ảnh KHÔNG cho thấy menu/bảng popup sau khi bấm biểu tượng ba thanh trượt**, vì thế chưa thể xác nhận cấu hình bên trong A10. Bốn chữ “Hơn” trong ảnh là thiết kế nguồn đã được chủ dự án yêu cầu ẩn toàn cục, **không được tự thêm lại**.
+
+**Quy tắc ghi nhận:** giữ ảnh như tham chiếu cho **A04 Audio→Video** nếu đúng ý người dùng; **không được đổi A10 từ 🔴 sang 🟢**, không tự bịa mẫu popup. Câu hỏi tiếp theo: ảnh này là mô tả **A04 — Âm thanh → Video**, hay chính là màn hình xuất hiện sau khi nhấn **A10 — Cài đặt nâng cao**? Chỉ hỏi một điều và chờ phản hồi. Chưa lập trình.
