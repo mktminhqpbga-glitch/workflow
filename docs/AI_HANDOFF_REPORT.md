@@ -151,3 +151,40 @@ Test browser/desktop có thể yêu cầu môi trường, dependency hoặc disp
 ---
 
 **Vị trí tài liệu chính:** docs/AI_HANDOFF_REPORT.md. File AGENTS.md ở gốc repo trỏ đến tài liệu này. AI khác có thể đọc lại và tiếp tục các nhiệm vụ theo từng phiên làm việc; tài liệu **không** tự chạy sửa lỗi hoặc theo dõi liên tục.
+
+
+## 10. Lộ trình làm lần lượt, hỏi trước khi sửa (cập nhật 2026-11-08)
+
+**Quy tắc được chủ dự án yêu cầu:** Mỗi phần phải được mô tả trước cho chủ dự án biết và hỏi duyệt khi cần quyết định; hoàn thành từng phần mới chuyển phần khác. Khi sửa giao diện, gửi **ảnh chụp từ mã chạy thực tế** (trước/sau và trạng thái cần kiểm tra), không thay bằng mock. Sau mỗi phần ghi lại thay đổi, test, lỗi còn lại và **SHA/link commit** trong tài liệu GitHub. Không tự xuất ZIP trừ khi yêu cầu. Với phần chỉ đọc tài liệu/kiểm thử không có thay đổi UI thì báo cáo kết quả, không tạo ảnh “sau sửa” giả.
+
+### Kết quả rà soát bước đầu (chỉ kiểm tra tệp, KHÔNG phải test chạy)
+
+- Nhánh GitHub `main` đang thể hiện `Workflow · MuseFlow 0.31.0` trong `README.md`, `manifest.json` và `package.json`. Có extension + Electron desktop, cần bảo toàn đường dữ liệu của cả hai.
+- `app.html` còn thanh công cụ cũ, `#addNodeMenu` chứa **nhiều hơn 9 kiểu node**; không tương ứng UI đã duyệt của V3. Không được thay/xóa các node cũ trong dữ liệu workflow mà không có kiểm thử tương thích.
+- `app.js` có `nodeDefs` cho prompt, text, imageInput, generateImage, generateVideo, videoInput, timeline, imageResize, preview và nối định nghĩa module `WorkflowTools`/`WorkflowStudio`/`WorkflowStory`. Không kết luận 9 node V3 hoàn chỉnh chỉ vì có những định nghĩa này.
+- `styles.css` hiện còn quy tắc node dạng card truyền thống và thanh status có màu nền riêng; yêu cầu thiết kế V3 khác. Những mô tả “đã làm V3” ở hội thoại trước không phải bằng chứng phần code ấy đã nằm trên GitHub.
+- `package.json` định nghĩa `npm test`, `npm run test:browser`, `npm run test:reliability`, `npm run test:desktop`. **Chưa chạy** các lệnh này trong bước rà soát tài liệu.
+
+### Chia phần triển khai
+
+| Phần | Mã liên quan | Công việc và sản phẩm cần duyệt | Điều kiện để đánh dấu xong | Trạng thái |
+|---|---|---|---|---|
+| 01 — Khảo sát hiện trạng & an toàn dữ liệu | T-001, BUG-006 | Đối chiếu repo 0.31.0 với yêu cầu V3; lấy workflow mẫu/bộ test; lập bảng tương thích; kiểm tra cách sao lưu | Bảng delta chi tiết, kiểm thử import/export/không mất dữ liệu; chưa sửa UX | **Đã bắt đầu; chưa hoàn tất** |
+| 02 — Đo baseline và lỗi click | T-016, T-002, T-004, BUG-001–003 | Chạy test hiện có, tái hiện chọn node/menu, lỗi nút nháy (nếu có) | Log before/after, ảnh chọn/bỏ chọn, regression test | Chờ |
+| 03 — Menu + và hành vi cơ bản Canvas | T-005, T-010, T-015 | Menu đúng 9 loại; giữ đọc node legacy; fit, minimap, hiện dây, audit nối, menu N | Ảnh từ app chạy thật; thao tác click và import cũ pass | Chờ |
+| 04 — Ngoại hình 9 Node | T-006, T-007 | Phục dựng theo ảnh người dùng: F01–F07, R01–R02; chọn thì mới hiện toolbar, prompt neo đúng zoom; nút ↑ ba trạng thái | Ảnh chụp node trạng thái chưa/chọn, zoom 50/100/150%, test event và run state | Chờ |
+| 05 — Luồng dữ liệu Canvas | T-003, BUG-004 | Typed input/output, một output tới nhiều node, topo/cycle, truyền text/image/video/audio, stale output, lỗi/dừng | Test graph/branch/missing media/khôi phục; không tự rerun AI | Chờ |
+| 06 — Workflow và Kho tài sản | T-008, T-009 | Tên/sao chép/xóa/sort; JSON/prompt tổng; lịch sử tài nguyên, drag-drop, follow/freeze phiên bản | Test lưu/đóng/mở/khôi phục và ảnh các cửa sổ | Chờ |
+| 07 — Settings và nhập tài nguyên | T-011, T-012 | Theme sáng/tối/màu nhấn; Settings AI riêng; AI Chat ẩn mặc định; ảnh dán/tải, video tải/phát | Test theme persistence, clipboard/media, ảnh giao diện | Chờ |
+| 08 — Kết nối AI bổ sung | T-013, BUG-005 | AI âm thanh, AI tạo nhân vật và AI chat | Chỉ làm khi chủ dự án xác nhận model/provider và quyền thử; có test thật | Chờ |
+| 09 — Tính năng chuyên biệt | T-014 | Director 3D, chỉnh sửa thông minh và từng mục “Tất cả tính năng” | Xin mô tả cụ thể từng tính năng rồi mới code; test end-to-end | Chờ |
+
+### Nhật ký thực hiện (bổ sung theo mỗi commit)
+
+**2026-11-08 — Khởi động Phần 01: rà soát sơ bộ và chia lộ trình**
+- Phạm vi: đọc `AGENTS.md`, `README.md`, `docs/AI_HANDOFF_REPORT.md`, `docs/APP-ARCHITECTURE.md`, `docs/PROGRESS.md`, `package.json`, phần đầu `app.html`, `app.js`, `styles.css` trên `main`.
+- Phát hiện: sự khác nhau giữa phiên bản 0.31.0 trên GitHub và yêu cầu giao diện V3; menu tạo node hiện chưa giới hạn 9 mục; nhiều thành phần CSS/HTML vẫn là bố cục cũ.
+- Thay đổi: **chỉ thêm báo cáo và kế hoạch vào tài liệu này**, không sửa mã chương trình/không thay đổi hành vi người dùng.
+- Kiểm thử: **chưa chạy** npm test/browser/desktop; không có ảnh UI trước-sau vì chưa thay đổi UI. Đây không phải báo cáo sửa bug.
+- Việc cần duyệt tiếp: **Phần 01 bước tiếp theo — khảo sát chi tiết và chạy kiểm thử bảo toàn dữ liệu trước khi bắt đầu sửa UI.**
+- Commit: xem lịch sử commit tệp `docs/AI_HANDOFF_REPORT.md` cho cập nhật ngày 2026-11-08.
