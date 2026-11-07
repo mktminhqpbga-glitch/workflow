@@ -31,6 +31,8 @@
       onChange?.();
     };
     let enlarged = null;
+    let commonPlaceholder = null;
+    let movedCommon = null;
     let busy = false;
     const undo = control('↶', 'shared-prompt-undo', 'Hoàn tác bản dịch gần nhất');
     undo.hidden = true;
@@ -69,9 +71,13 @@
       if (!enlarged) return;
       const dialog = enlarged;
       enlarged = null; active.delete(node.id);
+      if (movedCommon && commonPlaceholder?.parentNode) {
+        commonPlaceholder.replaceWith(movedCommon);
+      }
+      movedCommon = null; commonPlaceholder = null;
       dialog.remove();
       expand.setAttribute('aria-expanded', 'false');
-      field.focus();
+      if (field.isConnected) field.focus();
     }
     function open() {
       if (active.has(node.id)) { active.get(node.id)(); return; }
@@ -96,6 +102,15 @@
         footer.append(translateButton);
       }
       footer.append(status);
+      // Move the *real* shared controls, preserving click handlers, model and references,
+      // rather than cloning inert buttons in the expanded editor.
+      const common = body.querySelector('.node-common-composer');
+      if (common) {
+        commonPlaceholder = document.createComment('shared-composer-position');
+        common.parentNode.insertBefore(commonPlaceholder, common);
+        movedCommon = common;
+        footer.prepend(common);
+      }
       panel.append(head, editor, footer); backdrop.append(panel);
       backdrop.addEventListener('pointerdown', event => { if (event.target === backdrop) close(); });
       shrink.onclick = close;
