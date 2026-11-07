@@ -2382,7 +2382,12 @@
           run.activeNodeId=n.id;n.data.status='running';n.data.text='';n.data.progress='';n.data.error='';render();
           try{
             if(n.data.toolKind==='videoAnalysis'&&!resolveVideos(n.id).length)throw new Error('Nối video gốc trước khi phân tích.');
-            const prompt=resolvePrompt(n.id);if(!prompt.trim())throw new Error('Nối node yêu cầu vào cổng Prompt trước.');
+            const rawPrompt=resolvePrompt(n.id);
+            const prompt=n.data.aiTask?.id?globalThis.WorkflowAITasks.buildPrompt(n.data.aiTask.id,n.data.aiTask.settings,rawPrompt):rawPrompt;
+            if(n.data.aiTask?.id)globalThis.WorkflowAITasks.requireProvider(n.data.aiTask.id,n.data.provider||'gemini');
+            if(!prompt.trim())throw new Error('Nối node yêu cầu vào cổng Prompt trước.');
+            if(n.data.aiTask?.id==='imageToPrompt'&&resolveReferences(n.id).length!==1)
+              throw Error('Ảnh → Prompt yêu cầu đúng một ảnh nguồn để trả một Prompt riêng.');
             const request={requestId:uid('text'),mediaType:'text',stageBeforeSend:n.data.sendMode==='delay',prompt,rules:[WorkflowTools.rules(n.data),...getIncoming(n.id,'rules').map(sourceFor).filter(Boolean).map(source=>resolveText(source.id))].filter(Boolean).join('\n'),referenceImages:resolveReferences(n.id).map(item=>item.url),referenceVideos:resolveVideos(n.id),model:n.data.apiModel};run.requestId=request.requestId;
             const reply=await generateWithProvider(n,request,abortController.signal);if(!reply?.ok||!reply.text)throw new Error(reply?.error||'AI không trả về văn bản.');
             if(abortController.signal.aborted)throw new DOMException('Đã dừng.','AbortError');n.data.text=reply.text;if(n.data.toolKind==='promptVariants'&&!WorkflowTools.variants(reply.text).length)throw new Error('AI chưa trả các biến thể tách biệt. Xem kết quả và chạy lại; chưa chuyển sang node tạo ảnh.');n.data.status='success';n.data.storyDirty=false;if(n.data.storyMasterId)storyDirtyAfter(n.id);render();continue;
