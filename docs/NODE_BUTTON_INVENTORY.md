@@ -137,7 +137,7 @@
 | E08 | Tỷ lệ khung hình | Thông số xuất. | 🟡 |
 | E09 | Thời lượng đầu ra | Thiết lập độ dài. | 🟡 |
 | E10 | Nhân bản | Duplicate. | 🟡 |
-| E11 | Cắt khung | Crop theo ảnh mẫu. | 🔴 |
+| E11 | Cắt khung / Lấy ảnh khung hình | **F06 — Smart Edit có video đầu vào và được chọn:** bấm Cắt khung để **lấy khung hình đang chọn từ video và sinh ra một ảnh riêng**. Đây là thao tác trích xuất khung hình, không mặc định gọi AI tạo lại hình ảnh; giữ nguyên video nguồn. Khi có biểu tượng/chức năng giống U21 (R02 video tải lên), dùng chung logic phù hợp. Chưa có ảnh chi tiết phần chọn khung hoặc khu vực cắt, không suy đoán thêm. | 🟡 Đã chốt chức năng, chưa code |
 | E12 | Tải video | Lưu output. | 🟡 |
 | E13 | Zoom xem video | Preview lớn. | 🟡 |
 | E14 | Timeline chuyên dụng | Mở editor timeline thật. | 🟡 |
@@ -453,3 +453,10 @@ Chủ dự án xác nhận rõ: **“đúng rồi đó, biểu tượng giống 
 **Loại trừ trên mọi toolbar:** F03/I04 — Đánh dấu đối tượng độc lập; I13 — Phân đoạn lưới; I14 — Phân tách lớp; I15 — Toàn cảnh 720°; I16/V15 — Hơn; cùng các nút đã yêu cầu ẩn khác. Không đưa lại chỉ vì ảnh tham chiếu cũ có biểu tượng đó. Không xóa ảnh tài nguyên gốc hoặc thay thế Node đã lưu.
 
 **Trạng thái:** chốt đặc tả dùng chung; **chưa triển khai đầy đủ UI R01/U10 bản V3**. Nút tiếp theo có thể hỏi riêng: **F06 — Smart Edit / E11 — Cắt khung**, trạng thái có video đầu vào và đã chọn Node; cần ảnh khi bấm.
+
+
+### Quyết định — F06/E11 Cắt khung (2026-11-08)
+
+Chủ dự án trả lời: **“nó chỉ cắt khung hình đó thôi, và sinh ra ảnh.”** Đây là công cụ chuyển **khung hình được chọn của video** thành **một ảnh kết quả riêng**, không phải preset edit dài hay yêu cầu AI sửa toàn bộ video. Giữ nguyên video gốc. Mặc định đây là thao tác trích hình ảnh; không gọi AI nếu chỉ cần lấy frame. Chỉ hiển thị công cụ ngữ cảnh khi đã có video và Node được chọn, theo quy tắc chung. Nếu cùng biểu tượng/hành vi với R02/U21, tái sử dụng handler thay vì copy code.
+
+**Chưa có ảnh xác nhận:** giao diện chọn frame/tọa độ crop hoặc Node chứa ảnh mới sau thao tác; không thêm UI phụ ngoài yêu cầu. **Trạng thái:** đã hiểu chức năng, chưa code E11. Nút tiếp theo hỏi lần lượt: **F06 — Smart Edit / E14 — Timeline chuyên dụng**, trạng thái Node có video đầu vào/đang được chọn.
