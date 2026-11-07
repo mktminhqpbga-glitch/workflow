@@ -1253,6 +1253,14 @@
     if(['generateImage','generateVideo','generateText'].includes(n.type)){const refs=resolveReferences(n.id);if(refs.length){const list=document.createElement('div');list.className='reference-id-list';list.textContent=refs.map((ref,index)=>`Ảnh ${index+1}: ${ref.componentId}`).join(' · ');body.append(list);}}
 
 
+    if (['generateImage','generateVideo','generateText'].includes(n.type)) {
+      const composer=document.createElement('textarea');
+      composer.className='node-local-prompt';composer.placeholder='Nhập Prompt cho Node này hoặc nối từ Node khác…';
+      composer.setAttribute('aria-label','Prompt của '+nodeDefs[n.type].title);
+      composer.value=n.data.localPrompt||'';
+      composer.oninput=()=>{n.data.localPrompt=composer.value;scheduleAutoSave();};
+      body.appendChild(composer);
+    }
     if (['prompt','negativePrompt','textAppend'].includes(n.type)) {
       const ta = document.createElement('textarea');
       ta.value = n.data.text || '';
@@ -1363,6 +1371,7 @@
         onError:error=>setRunStatus(error.message||'Không thể dịch Prompt.','error')
       });
     }
+    el.addEventListener('pointerdown',event=>{if(event.button!==0)return;if(event.target.closest('textarea,input,select'))selectNode(n.id);},true);
     el.onmousedown = event => {if(event.target.closest('button,input,textarea,select,summary,details,.port,.node-header'))return;if(event.shiftKey||event.ctrlKey||event.metaKey)selectNode(n.id,{toggle:true});else if(!state.selectedNodeIds.includes(n.id))selectNode(n.id);};
     return el;
   }
@@ -1887,8 +1896,11 @@
     const source=sourceFor(getIncoming(nodeId,'text')[0]);return source?resolveText(source.id,seen):'';
   }
   function resolvePrompt(nodeId){
-    const node=nodeById(nodeId);if(node?.data.toolKind==='videoAnalysis'&&!getIncoming(nodeId,'prompt').length)return 'Phân tích video đính kèm và viết prompt tái tạo chi tiết.';
-    return getIncoming(nodeId,'prompt').map(edge=>nodeById(edge.source)).filter(Boolean).map(source=>resolveText(source.id).trim()).filter(Boolean).join('\n\n');
+    const node=nodeById(nodeId);
+    const inputs=getIncoming(nodeId,'prompt').map(edge=>nodeById(edge.source)).filter(Boolean).map(source=>resolveText(source.id).trim()).filter(Boolean);
+    const local=String(node?.data?.localPrompt||'').trim();if(local)inputs.push(local);
+    if(node?.data.toolKind==='videoAnalysis'&&!inputs.length)return 'Phân tích video đính kèm và viết prompt tái tạo chi tiết.';
+    return inputs.join('\n\n');
   }
   function resolveNegativePrompt(nodeId){const source=sourceFor(getIncoming(nodeId,'negative')[0]);return source?resolveText(source.id):'';}
   function timelinePredecessor(nodeId){const timeline=state.nodes.find(item=>item.type==='timeline'),order=timeline?.data?.clipOrder||[],index=order.indexOf(nodeId);return index>0?nodeById(order[index-1]):null;}
