@@ -104,6 +104,26 @@ test('fal V13 edit passes a source-video clip, not the entire original timeline'
   });
 });
 
+test('fal A04 and A10 use identical audio-to-video payload with real source audio and image',async()=>{
+  await withMockQueue(async sent=>{
+    const prompt=tasks.buildPrompt('audioToVideo',{aspect:'16:9',duration:5},'khớp với nhịp trống');
+    const result=await providers.api('fal',{mediaType:'video',prompt,
+      aiTask:{id:'audioToVideo',settings:{aspect:'16:9',duration:5}},
+      referenceAudios:['data:audio/mpeg;base64,QUJDRA=='],
+      referenceImages:[image],referenceVideos:[]},'dummy-key');
+    assert.equal(result.ok,true);
+    assert.equal(sent.length,1);
+    assert.match(sent[0].url,/ltx-2\.3-22b\/audio-to-video$/);
+    assert.equal(sent[0].body.prompt,prompt);
+    assert.match(sent[0].body.audio_url,/^data:audio\/mpeg;base64,/);
+    assert.match(sent[0].body.image_url,/^data:image\/png;base64,/);
+    assert.equal(sent[0].body.match_audio_length,false);
+    assert.equal(sent[0].body.num_frames,121);
+    assert.equal(sent[0].body.video_size,'landscape_16_9');
+    assert.equal(sent[0].body.fps,24);
+  });
+});
+
 test('missing motion image or missing source video fails without any paid API call',async()=>{
   await withMockQueue(async sent=>{
     await assert.rejects(()=>providers.api('fal',{mediaType:'video',prompt:'x',
