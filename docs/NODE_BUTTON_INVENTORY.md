@@ -77,7 +77,7 @@
 | I15 | Tầm nhìn toàn cảnh 720 độ | **ẨN TOÀN ỨNG DỤNG THEO YÊU CẦU.** Không hiển thị nút/tác vụ 720° trên bất kỳ toolbar Node nào, kể cả đã có kết quả. Giữ nguyên dữ liệu. | ⛔ ẨN |
 | I16 | Hơn | **ẨN TOÀN ỨNG DỤNG THEO YÊU CẦU.** Không hiển thị menu Hơn/More trong các toolbar Node. Các chức năng được duyệt khác vẫn có nút riêng, không xóa dữ liệu. | ⛔ ẨN |
 | I17 | Nhân bản | Duplicate Node hoặc ảnh theo lựa chọn. | 🟡 |
-| I18 | Vẽ/đánh dấu | Ghi chú chỉnh sửa ngay trên ảnh. | 🔴 |
+| I18 | Vẽ/đánh dấu | **F03 đã có ảnh kết quả và đang chọn:** nút biểu tượng nét vẽ trên toolbar nổi mở chế độ đánh dấu trực tiếp lên ảnh, với thanh công cụ nổi có **× thoát, bút vẽ, chọn vùng hình chữ nhật nét đứt, thêm chữ T, chọn màu (ảnh: đỏ), chỉnh cỡ nét bằng slider, hoàn tác, làm lại, Lưu**. Người dùng có thể khoanh/vẽ nét lên ảnh gốc. **Bấm Lưu sẽ mở bảng ghi chú thích** cho phần đã đánh dấu, KHÔNG tự gọi AI hoặc sinh ảnh ngay. Ảnh và mask/nét vẽ là trạng thái thao tác riêng, tránh ghi đè ảnh gốc. | 🟡 Đã chốt UX, chưa code |
 | I19 | Tải ảnh | Lưu ảnh kết quả. | 🟡 |
 | I20 | Zoom xem ảnh | Mở/thu phóng preview ảnh. | 🟡 |
 | I21 | Nút gửi ↑ | Gửi Prompt, spinner, lỗi đỏ. | 🟡 |
@@ -343,3 +343,14 @@ Chủ dự án yêu cầu **ẩn nút I13 — Phân đoạn lưới**, thuộc F
 **Các mã bị ẩn:** F03 `I13`, `I14`, `I15`, `I16`; F04 `V15` (Hơn). Các nút F03 `I04` (Đánh dấu đối tượng) và F05 `D01` đã được yêu cầu ẩn trước đó, giữ nguyên quyết định. Nếu có tên khác nhưng cùng chức năng trong node upload/khác, cũng phải ẩn.
 
 **Trạng thái repo:** tìm trong `app.js`, `app.html`, `node-common-actions.js`, `compact-toolbar.js`: chưa có mã hiển thị các action này trong UI legacy hiện tại. Vì vậy đợt này lưu **đặc tả ẩn và bài kiểm thử chống thêm lại**, không nhận là đã hoàn thành toàn bộ giao diện V3 hay thử được thao tác xóa nút trên bản đang chạy. Các media và nút còn lại không bị đổi.
+
+
+### Quyết định giao diện — F03/I18 Vẽ/đánh dấu (2026-11-08)
+
+**Ảnh tham chiếu mới:** chủ dự án gửi màn hình ảnh nhân vật 3 góc, trên ảnh đã vẽ nét màu đỏ khoanh quanh nhân vật ở giữa. Ở phía trên ảnh là toolbar đen nền bo tròn: **× (thoát), bút (đang chọn), chọn vùng chữ nhật nét đứt, T (chữ), màu nét hiện tại đỏ, slider độ dày nét, hoàn tác, làm lại, nút Lưu trắng phía phải**.
+
+**Thao tác đã chốt:** chỉ hiển thị công cụ này khi Node F03 **đã có ảnh kết quả và đang được chọn**; click I18 mở chế độ vẽ nét/đánh dấu trực tiếp lên ảnh. Khi click **Lưu**, app **mở bảng nhập ghi chú/chú thích**, không tự gọi AI hay tạo ảnh mới. Không nhầm với I04 — Đánh dấu đối tượng đã bị ẩn, cũng không nhầm với I10 — Chỉnh sửa phần tử có chế độ chọn vùng cho AI. Ảnh gốc giữ nguyên cho tới khi có một thao tác lưu/kết xuất được xác nhận rõ.
+
+**Chưa đủ ảnh để chốt chi tiết:** *bảng ghi chú thích xuất hiện sau nút Lưu* chưa có ảnh. Cần hỏi ảnh đúng bước đó khi hoàn thiện I18, không suy đoán trường nhập/bố cục hoặc cách gắn chú thích vào đầu ra.
+
+**Trạng thái:** chốt phần hành vi và toolbar, chỉ lưu tài liệu; **chưa code I18**, không tạo preview giả.
