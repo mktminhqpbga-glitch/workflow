@@ -8,8 +8,11 @@ const create=(tag,cls,text)=>{const el=document.createElement(tag);if(cls)el.cla
 function button(text,title,handler){const el=create('button','',text);el.type='button';el.title=title;el.setAttribute('aria-label',title);if(handler)el.onclick=event=>{event.stopPropagation();handler(event);};return el;}
 function connectedOnly(groups){return (groups||[]).filter(g=>g?.connected&&Array.isArray(g.choices)).map(g=>({...g,choices:g.choices.filter(item=>item?.value)})).filter(g=>g.choices.length>0);}
 function stateLabel(status){return status==='running'||status==='queued'||status==='waiting'?'Đang xử lý':status==='error'?'Có lỗi':'Sẵn sàng';}
-let currentPopup=null;
-function dismissPopup(){if(!currentPopup)return;currentPopup.remove();currentPopup=null;}
+let currentPopup=null,currentPopupCleanup=null;
+function dismissPopup(){
+  if(currentPopup){currentPopup.remove();currentPopup=null;}
+  if(currentPopupCleanup){currentPopupCleanup();currentPopupCleanup=null;}
+}
 function menu(anchor,build){
   dismissPopup();
   const popup=create('div','node-common-popup');popup.setAttribute('role','menu');
@@ -19,8 +22,9 @@ function menu(anchor,build){
   popup.style.width=w+'px';popup.style.left=Math.max(8,Math.min(innerWidth-w-8,r.left))+'px';
   const h=popup.getBoundingClientRect().height;popup.style.top=Math.max(8,Math.min(innerHeight-h-8,r.bottom+7))+'px';
   popup.addEventListener('pointerdown',event=>event.stopPropagation());
-  const off=event=>{if(event.key==='Escape'||event.type==='pointerdown'&&!popup.contains(event.target)&&event.target!==anchor){dismissPopup();document.removeEventListener('pointerdown',off,true);document.removeEventListener('keydown',off,true);}};
+  const off=event=>{if(event.key==='Escape'||event.type==='pointerdown'&&!popup.contains(event.target)&&event.target!==anchor) dismissPopup();};
   document.addEventListener('pointerdown',off,true);document.addEventListener('keydown',off,true);
+  currentPopupCleanup=()=>{document.removeEventListener('pointerdown',off,true);document.removeEventListener('keydown',off,true);};
   return popup;
 }
 function modelMenu(buttonEl,groups,selected,onPick){
