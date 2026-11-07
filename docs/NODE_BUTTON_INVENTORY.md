@@ -191,7 +191,7 @@
 | U18 | Tải video | Download. | 🟡 |
 | U19 | Phóng to video | Fullscreen/zoom. | 🟡 |
 | U20 | Kết nối sang Node khác | Output video có kiểu. | 🟡 |
-| U21 | Công cụ video AI | Toolbar chỉ hiện khi chọn. | 🔴 |
+| U21 | Công cụ video AI (video tải lên) | **Ảnh người dùng 2026-11-08:** R02 khi **đã tải video thành công và được chọn** hiện thanh công cụ nổi phía trên, tương tự F04: **Chuyển động sâu (V10), HD (V11), Xóa phụ đề (V12), Làm lại đoạn video (V13)**, thêm **biểu tượng dạng camera/khung ngắm kèm mũi tên xổ xuống (chưa rõ, cần hỏi)**, **Tải video (U18), Xem lớn (U19)**. **Ẩn** Tách âm thanh/video (V14), Phân tích từng khung hình, Hơn (V15) theo yêu cầu trước; không đưa trở lại chỉ vì chúng xuất hiện trong ảnh tham chiếu. Các chức năng trùng F04 phải dùng chung UI, AI/model/tab, logic. | 🟡 Đã có ảnh toolbar, chưa code V3 |
 
 ## Các quy tắc chung (G01–G11)
 
@@ -422,3 +422,14 @@ Người dùng được hỏi **F07 — A10 (Cài đặt âm thanh nâng cao, bi
 Người dùng xác nhận riêng **A04 — Âm thanh → Video** là **giống A10 — Cài đặt nâng cao** khi bấm, cùng mở giao diện **Preset — Âm thanh thành Video** từ ảnh đã gửi: nguồn âm thanh waveform, ảnh tham chiếu, preview video, composer, bộ chọn AI/model/tab hỗ trợ video, thông số tỷ lệ/phân giải/thời lượng, nút ↑. **Hai lối vào cùng một giao diện và cùng một logic**, không copy hai bộ xử lý; không bật lại menu “Hơn” đã được yêu cầu ẩn. Chỉ hiển thị toolbar nổi khi Node có kết quả và đang được chọn.
 
 **Trạng thái:** đặc tả đã chốt, **chưa code** A04/A10. Câu hỏi tiếp theo cho người dùng khi sẵn sàng: **R02 — Node Video tải lên, U21 — Công cụ video AI**; cần xác nhận dùng thanh công cụ giống F04 hay có điểm khác. Trạng thái ảnh/video **đã được tải lên và Node đang được chọn**.
+
+
+### Quyết định giao diện — R02/U21 Công cụ video AI trên video tải lên (2026-11-08)
+
+**Ảnh từ người dùng:** video dọc đã tải lên (có player/timeline/âm lượng trong Node) và được chọn; một **thanh công cụ nổi** màu tối, bo tròn hiển thị phía trên. Đây là **R02 — Node Video tải lên**, mã **U21**, không phải video tạo bằng AI F04. Tệp đã tải lên thành công được coi là **đã có kết quả/media hợp lệ** cho quy tắc hiện toolbar; không cần AI tạo video mới trước khi hiển thị. Khi click nền Canvas/bỏ chọn thì ẩn.
+
+**Các nút giữ chung với F04** theo thứ tự trái sang phải trên ảnh: **Chuyển động sâu**, **HD/nâng cấp video**, **Xóa phụ đề**, **Làm lại đoạn**. Ở phía phải còn **biểu tượng camera/khung ngắm cùng mũi tên xổ xuống** (chưa rõ chức năng: cần hỏi người dùng riêng), **Tải xuống**, **Xem lớn**. Các tác vụ AI tương đồng phải dùng chung component và luồng xử lý F04, chỉ AI/model/tab đã kết nối và hỗ trợ tác vụ, không mock kết quả. Giữ video tải lên nguyên bản.
+
+**Ba mục PHẢI ẨN mặc dù hiện trong ảnh gốc:** **Tách âm thanh/video (V14)**, **Phân tích từng khung hình**, **Hơn (V15)**. Các lệnh ẩn đã chốt có ưu tiên hơn việc sao chép nguyên thanh toolbar screenshot. Không xoá dữ liệu/media.
+
+**Trạng thái:** đã nhận ảnh U21 và đã hiểu các nút có chức năng chung, **chưa lập trình thanh toolbar V3 R02**. Câu hỏi duy nhất tiếp theo: **R02 — Video tải lên / U21 — biểu tượng camera/khung ngắm có mũi tên xổ xuống, ở sát bên trái nút Tải xuống**; khi bấm biểu tượng này xuất hiện gì? Người dùng có thể trả lời hoặc gửi ảnh.
