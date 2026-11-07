@@ -20,8 +20,8 @@ test('every specialist action has unique task, media type and explicit provider 
   assert.equal(tasks.supports('videoDepth','google'),false);
   assert.equal(tasks.supports('videoHD','fal'),true);
   assert.equal(tasks.supports('videoSubtitles','fal'),true);
-  assert.equal(tasks.supports('videoSegment','fal'),false);
-  assert.throws(()=>tasks.requireProvider('videoSegment','fal'),/chưa có adapter phù hợp/);
+  assert.equal(tasks.supports('videoSegment','fal'),true);
+  assert.throws(()=>tasks.requireProvider('videoSegment','muse'),/chưa có adapter phù hợp/);
   assert.throws(()=>tasks.requireProvider('videoHD','muse'),/chưa có adapter phù hợp/);
 });
 
@@ -69,7 +69,7 @@ test('fal adapters refuse missing video sources and unsupported task inputs',()=
   assert.throws(()=>providers.validate('fal',{...valid,aiTask:{id:'videoDepth'}}),/ảnh nhân vật/);
   assert.throws(()=>providers.validate('fal',{mediaType:'video',aiTask:{id:'videoHD'}}),/video nguồn/);
   assert.throws(()=>providers.validate('fal',{...valid,referenceImages:['image'],aiTask:{id:'videoHD'}}),/không nhận ảnh/);
-  assert.throws(()=>providers.validate('fal',{...valid,aiTask:{id:'videoSegment'}}),/chưa có adapter/);
+  assert.doesNotThrow(()=>providers.validate('fal',{...valid,aiTask:{id:'videoSegment',settings:{start:0,end:5}}}));
   assert.throws(()=>providers.validate('fal',{...valid,aiTask:{id:'videoHD',settings:{slowdown:0.5}}}),/tốc độ 1×/);
   assert.throws(()=>providers.validate('openai',{...valid,aiTask:{id:'videoHD'}}),/không hỗ trợ/);
 });
@@ -96,6 +96,8 @@ test('Canvas uses executable shared toolbar callbacks, not only mock text',()=>{
   assert.match(src,/WorkflowAITasks\.buildPrompt/);
   assert.match(src,/aiTask:n\.data\.aiTask/);
   assert.match(src,/videoFrame: \{title:/);
+  assert.match(src,/WorkflowStudio\.process\('clipTrim'/);
+  assert.match(src,/WorkflowStudio\.process\('clipReplace'/);
   const html=fs.readFileSync(path.join(__dirname,'../app.html'),'utf8');
   assert.match(html,/src="ai-action-presets\.js"/);
   assert.match(html,/src="video-frame-capture\.js"/);
