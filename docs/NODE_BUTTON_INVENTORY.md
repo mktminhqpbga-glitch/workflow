@@ -96,7 +96,7 @@
 | V07 | Tỷ lệ khung hình | Thiết lập tỷ lệ đầu ra. | 🟡 |
 | V08 | Thời lượng | Độ dài clip theo model. | 🟡 |
 | V09 | Chất lượng video | Cấu hình phân giải/quality. | 🔴 |
-| V10 | Chuyển động sâu | Công cụ chuyển động/depth. | 🔴 |
+| V10 | Ghi hình chuyển động chiều sâu | **F04 đã có video kết quả và đang chọn:** bấm V10 mở một **Node xử lý video mới**, có đường nối từ video nguồn sang khung preview video đầu ra (rỗng trước khi chạy). Bảng nhỏ bên dưới: tiêu đề **Ghi hình chuyển động chiều sâu**, mục **Sự rõ ràng** chọn **480P / 720P**, nút trắng **Xác nhận quá trình chiết xuất**. Dùng video nguồn để tạo **video preview độ phân giải thấp, ưu tiên chủ thể chính và cảm giác chiều sâu/chuyển động**, không ghi đè video nguồn; chờ dịch vụ thật. Theo yêu cầu chung, phần tạo video sẽ cho chọn **AI đã kết nối → model/tab khả dụng** khi tích hợp. | 🟡 Đã chốt UX, chưa code |
 | V11 | HD | Nâng chất lượng video. | 🔴 |
 | V12 | Xóa phụ đề | Chỉ hoạt động khi có bộ xử lý thật. | 🔴 |
 | V13 | Làm lại đoạn video | Chỉnh và tái tạo một phân đoạn. | 🔴 |
@@ -354,3 +354,16 @@ Chủ dự án yêu cầu **ẩn nút I13 — Phân đoạn lưới**, thuộc F
 **Đã chốt thêm:** Sau khi bấm **Lưu**, mở **một cửa sổ nhỏ có nền vàng để người dùng nhập văn bản ghi chú/chú thích**. Không phải editor chiếm toàn màn hình, không tự gọi AI, không tự sinh ảnh. Chưa có yêu cầu chi tiết về nút phụ hay nơi lưu ghi chú nên không tự ý thiết kế thêm.
 
 **Trạng thái:** chốt phần hành vi và toolbar, chỉ lưu tài liệu; **chưa code I18**, không tạo preview giả.
+
+
+### Quyết định giao diện — F04/V10 Ghi hình chuyển động chiều sâu (2026-11-08)
+
+**Ảnh mới do chủ dự án cung cấp:** video nguồn đã có kết quả bên trái nối sang một **Node đầu ra chưa có kết quả** ở bên phải. Node bên phải có thẻ preview video tối với biểu tượng Play (chưa có video được chiết xuất). Bảng cài đặt nổi dưới Node bên phải với tiêu đề **Ghi hình chuyển động chiều sâu**, dòng **Sự rõ ràng**, lựa chọn **480P** hoặc **720P**, nút trắng **Xác nhận quá trình chiết xuất**. Chú ý **không có toolbar nổi kết quả ở Node bên phải khi chưa xử lý xong**.
+
+**Ý nghĩa tính năng người dùng đã chốt:** Từ video nguồn hiện có, yêu cầu AI xử lý để tạo **video mới chất lượng preview thấp** nhằm làm rõ chuyển động có chiều sâu, giữ trọng tâm vào nhân vật/chủ thể chính. Đây là một tác vụ tạo/xử lý thật, không phải chỉ thay đổi CSS, báo hoàn thành giả hoặc phát lại video gốc. Sau khi xác nhận, phải chạy AI/provider đã kết nối (hoặc thông báo khi không có engine); lưu output riêng và giữ video nguồn. Những kỹ thuật kiểu parallax/depth chỉ là khả năng triển khai, **không được coi là lựa chọn trong giao diện** nếu ảnh không có.
+
+**Chọn AI/model/tab:** người dùng đã yêu cầu mọi công cụ tạo video có **bộ chọn AI đã kết nối → model/tab phù hợp để làm video**. Bảng V10 trong ảnh chưa thể hiện dropdown đó; khi triển khai, áp dụng bộ chọn dùng chung C01 mà không tự suy đoán vị trí/nội dung thêm vào phần hình mẫu. Không hardcode danh sách nhà cung cấp/chỉ số dịch vụ giả.
+
+**Độ phân giải:** 480P và 720P là hai mức lựa chọn trong ảnh; mặc định ảnh thể hiện 480P đang được chọn. Không tự thêm 1080P/4K vào bảng V10 nếu chưa được duyệt.
+
+**Trạng thái:** **đã nhận và hiểu ảnh + chức năng**, **chưa code V10**. Nút tiếp theo cần giải thích **F04 — Sinh video AI / V11 — HD**, trạng thái **đã có video kết quả và đang chọn**, cần ảnh sau khi nhấn.
