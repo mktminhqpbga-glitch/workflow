@@ -48,7 +48,7 @@ jobs:
 
   browser-ui-smoke:
     name: Real Chromium and Electron UI regression
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - name: Check out source
@@ -64,7 +64,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg xvfb
-          npm exec playwright install --with-deps chromium
+          ./node_modules/.bin/playwright install --with-deps chromium
       - name: Browser Canvas and media smoke test
         run: npm run test:browser
       - name: Browser reliability regression
