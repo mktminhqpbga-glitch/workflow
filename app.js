@@ -1095,14 +1095,21 @@
   // Reuse the existing, selected AI connection: translation is an explicit action,
   // not a workflow run or a replacement for the Prompt's original data.
   async function translateNodeDraft(node, source, targetLanguage) {
-    const provider=node.data.provider||'gemini';
-    const config=WorkflowAI.providers[provider];
-    if(!config?.types?.includes('text'))throw new Error('AI hiện tại không hỗ trợ dịch văn bản. Hãy chọn AI văn bản đã kết nối.');
-    if(runForNode(node.id))throw new Error('Node đang chạy. Hãy đợi hoàn thành trước khi dịch.');
+    const selected=node.data.translateProvider||node.data.provider||'gemini';
+    const available=commonConnectedModels({...node,type:'generateText'}).filter(g=>g.connected);
+    const candidate=available.find(g=>g.id===selected)||available[0];
+    if(!candidate)throw new Error('Chưa có AI văn bản đã kết nối để dịch Prompt. Mở Cài đặt → Kết nối AI.');
+    const provider=candidate.id;
+    if(runForNode(node.id)||commonTextRuns.has(node.id))throw new Error('Node đang chạy. Hãy đợi hoàn thành trước khi dịch.');
     const target=targetLanguage==='en'?'tiếng Anh':'tiếng Việt';
     const payload={requestId:uid('translate'),mediaType:'text',
       prompt:'Dịch chính xác đoạn văn sau sang '+target+'. Chỉ xuất bản dịch, không giải thích, không thêm lời dẫn. Giữ các dòng và dấu câu khi có thể.\n\n'+source};
-    const caller={type:'generateText',data:{provider,chatTarget:node.data.chatTarget||aiChatTargets[provider]}};
+    const tab=candidate.choices.find(c=>String(c.value)===String(node.data.chatTarget?.tabId))||candidate.choices[0];
+    if(WorkflowAI.providers[provider]?.urls&&tab){
+      const found=(aiChatTabs[provider]||[]).find(t=>String(t.id)===tab.value);
+      if(found)payload.chatTarget={tabId:found.id,url:chatKey(found.url)};
+    }
+    const caller={type:'generateText',data:{provider,chatTarget:payload.chatTarget||node.data.chatTarget||aiChatTargets[provider]}};
     const result=await generateWithProvider(caller,payload);
     if(!result?.ok||!result.text?.trim())throw new Error(result?.error||'Không nhận được bản dịch từ AI đã kết nối.');
     return result.text.trim();
@@ -1193,6 +1200,15 @@
     const filename=WorkflowTools.safeName(media.name||n.data.customName||n.type)+'.'+suffix;
     const link=document.createElement('a');link.href=media.url;link.download=filename;
     document.body.append(link);link.click();link.remove();
+  }
+  function commonDownloadText(n){
+    const value=String(n.data.script||n.data.sharedGeneratedText||'').trim();
+    if(!value)throw Error('Chưa có văn bản để tải.');
+    const url=URL.createObjectURL(new Blob([value],{type:'text/plain;charset=utf-8'}));
+    const a=document.createElement('a');a.href=url;
+    a.download=WorkflowTools.safeName(n.data.customName||nodeDefs[n.type].title)+'.txt';
+    document.body.append(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),30000);
   }
   function commonDuplicate(n){
     if(state.isRunning||commonTextRuns.has(n.id)){setRunStatus('Đợi các tác vụ hoàn tất rồi nhân bản Node.','warn');return;}
