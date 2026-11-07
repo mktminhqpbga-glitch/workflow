@@ -29,3 +29,14 @@
 .node-common-lightbox-frame>img,.node-common-lightbox-frame>video{flex:1;object-fit:contain;min-height:0;width:100%}
 .node-common-lightbox-frame>audio{width:100%;margin:auto 0}
 @media(max-width:480px){.node-common-popup{width:calc(100vw - 16px)!important}.node .node-common-composer button.node-common-reference{font-size:11px;padding:5px}}
+
+/* Expanded editor reuses the exact same live controls moved out of the Node card. */
+.shared-prompt-expanded .node-common-composer{flex:1;min-width:0}
+.shared-prompt-expanded .node-common-composer-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
+.shared-prompt-expanded .node-common-composer button{min-height:34px;width:auto;border:1px solid #454545;background:#292929;color:#f3f3f3;border-radius:11px;cursor:pointer;padding:6px 10px;font:inherit;font-size:12px}
+.shared-prompt-expanded .node-common-composer button.node-common-send{background:#fff;color:#222;border-radius:13px;font-size:21px;min-width:42px;min-height:42px}
+.shared-prompt-expanded .node-common-composer button.node-common-send.is-error{background:#dc2626;color:white}
+.shared-prompt-expanded .node-common-composer button.node-common-send.is-running{animation:node-shared-spin 1.2s linear infinite;cursor:wait}
+.shared-prompt-expanded .node-common-composer button.node-common-model-picker{margin-right:auto}
+.node .node-local-prompt{min-height:120px;resize:vertical;border:1px solid #393939;background:#1d1d1d;color:#eee;border-radius:13px;line-height:1.5}
+.node .shared-generated-text{white-space:pre-wrap;overflow-wrap:anywhere;max-height:260px;overflow:auto;background:#151515;color:#f4f4f4;padding:12px;border-radius:11px;border:1px solid #3a3a3a}
