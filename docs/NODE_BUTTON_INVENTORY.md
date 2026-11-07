@@ -100,7 +100,7 @@
 | V11 | HD / Nâng chất lượng video | **F04 có video kết quả và đang được chọn:** bấm HD tạo Node **Video HD** mới kết nối từ video nguồn; preview rỗng trước khi xử lý. Bảng dưới Node như ảnh user: **Chọn AI đã kết nối → model/tab thực tế hỗ trợ xử lý video**, độ phân giải **1080P / 2K / 4K**, **chế độ bù khung hình** (mẫu: Không bù khung), **hệ số làm chậm** (mẫu: 1×), chi phí nếu có và nút ↑. AI tạo **video chất lượng cao mới**, không thay hoặc tự động gửi video gốc. Chỉ hiện toolbar kết quả khi đã có video mới và Node được chọn. | 🟡 Đã chốt UX, chưa code |
 | V12 | Xóa phụ đề | **F04 đã có video kết quả và được chọn:** bấm Xóa phụ đề → dùng **AI xử lý video nguồn để xóa chữ/phụ đề hiển thị trong khung hình**, sau đó **sinh video kết quả mới** đã xóa phụ đề, giữ nguyên video gốc. Tác vụ chỉ gửi khi người dùng yêu cầu; dùng bộ chọn AI/model/tab C01 và **chỉ AI đã kết nối có khả năng xử lý/xóa phụ đề video** (theo quy tắc chung chọn AI cho tác vụ video), không tạo kết quả giả nếu không có backend phù hợp. **Chưa có ảnh giao diện riêng**, không tự thiết kế thêm menu. | 🟡 Đã chốt chức năng, chưa code |
 | V13 | Làm lại đoạn video | **F04 đã có video kết quả và được chọn:** click V13 mở **Node Quay lại cảnh phim / Làm lại đoạn** nhận video nguồn qua dây nối. Có **video player** và **timeline dạng thumbnail chia đoạn**, chọn đoạn cần sửa (ảnh mẫu: video 15 giây, đoạn 00:00–00:05, nhãn 5.0 s, 1/5 phân đoạn). Bên dưới là khung Prompt để yêu cầu AI **chỉnh/tạo lại chỉ phân đoạn đã chọn**, có tham chiếu upload/Canvas/thư viện nhân vật, AI/model/tab video đã kết nối, tùy chọn video và nút ↑. Giữ video gốc và các đoạn không được chọn, không tự làm lại toàn bộ video. | 🟡 Đã chốt UX, chưa code |
-| V14 | Tách âm thanh | Trích audio từ video. | 🟡 |
+| V14 | Tách âm thanh / Tách âm thanh và video | **ẨN THEO YÊU CẦU** (ảnh thanh công cụ video 2026-11-08): không hiển thị mục **Tách âm thanh/video** hoặc menu xổ xuống trong bất kỳ Node nào; không tự kích hoạt tách track, không xóa dữ liệu video/audio cũ. | ⛔ ẨN |
 | V15 | Hơn | **ẨN TOÀN ỨNG DỤNG THEO YÊU CẦU.** Không hiển thị menu Hơn/More trong các toolbar Node Video hoặc bất kỳ Node nào. | ⛔ ẨN |
 | V16 | Phát/tạm dừng | Player nội bộ. | 🟡 |
 | V17 | Tải video | Lưu output hợp lệ. | 🟡 |
@@ -275,7 +275,7 @@
 
 - **F01/T04 (Ảnh → suy ngược Prompt):** Khi nhận nhiều ảnh, tạo **một Prompt riêng cho từng ảnh**; không tự gộp tất cả ảnh vào một Prompt. Cần giữ liên kết Prompt ↔ ảnh nguồn; nếu UI kết quả chưa rõ thì xin duyệt trước khi triển khai.
 - **C05 (Kho tài sản):** Chỉ sử dụng **một kho tài sản chung cho toàn ứng dụng**, chia thành các **khu nhỏ theo loại tài nguyên** (ví dụ ảnh, video, âm thanh, nhân vật, bối cảnh, sản phẩm, hiệu ứng, mẫu). Mọi Node dùng chung một bộ chọn tài nguyên, tự lọc loại hợp lệ theo cổng đầu vào; không tự tạo 9 kho riêng biệt.
-- Các công cụ riêng còn chờ giải thích: F02 S01/S03; F03 I05/I10–I12/I18 (I04, I13–I16 đã được yêu cầu ẩn); F04 V05/V10–V14; F05 D01/D05–D08; F06 E03–E07/E11/E14; F07 A04/A10; R01 U10; R02 U21. **Các hình minh họa trợ giúp là đề xuất ý nghĩa thao tác, không phải chức năng đã được xác nhận hoặc đã triển khai.** Chủ dự án sẽ xem từng hình rồi chốt lại.
+- Các công cụ riêng còn chờ giải thích: F02 S01/S03; F03 I05/I10–I12/I18 (I04, I13–I16 đã được yêu cầu ẩn); F04 V05/V10–V13 (V14/V15 đã ẩn); F05 D01/D05–D08; F06 E03–E07/E11/E14; F07 A04/A10; R01 U10; R02 U21. **Các hình minh họa trợ giúp là đề xuất ý nghĩa thao tác, không phải chức năng đã được xác nhận hoặc đã triển khai.** Chủ dự án sẽ xem từng hình rồi chốt lại.
 
 
 ### Quyết định giao diện — I04 (2026-11-08)
@@ -393,4 +393,15 @@ Chủ dự án yêu cầu **ẩn nút I13 — Phân đoạn lưới**, thuộc F
 
 **Chức năng người dùng xác nhận:** chọn **một đoạn cụ thể** trên timeline, nhập yêu cầu thay đổi đoạn đó rồi gửi AI **làm lại riêng phân đoạn được chọn**. Trước khi gửi phải có video nguồn, time range được chọn và Prompt; không tự sửa tất cả đoạn. Không tự chạy khi bấm chọn đoạn; chỉ gửi khi bấm ↑. Dùng bộ chọn AI → model/tab đã kết nối, hỗ trợ tác vụ video; giữ video nguồn và các đoạn chưa được chỉnh. Kết quả nên được giữ để xem/ghép lại, nhưng chưa có ảnh bước ghép cuối nên không tự thiết kế workflow xuất video hoàn chỉnh.
 
-**Trạng thái:** đặc tả được chốt theo ảnh; **chưa lập trình V13 và chưa kiểm thử AI xử lý đoạn**. Nút tiếp theo cần hỏi riêng: **F04 — Sinh video AI / V14 — Tách âm thanh**, ở trạng thái Node đã có video kết quả và đang được chọn.
+**Trạng thái:** đặc tả được chốt theo ảnh; **chưa lập trình V13 và chưa kiểm thử AI xử lý đoạn**. **Cập nhật:** V14 — Tách âm thanh/video đã được chủ dự án yêu cầu ẩn, không cần hỏi thêm. Nút tiếp theo cần giải thích: **F06 — Chỉnh sửa thông minh / E03 — Video giải thích**, ở trạng thái Node chưa có kết quả hoặc chưa có video đầu vào.
+
+
+### Quyết định giao diện — Ẩn nhóm nút video: Tách âm/video · Phân tích từng khung hình · Hơn (2026-11-08)
+
+**Ảnh mẫu mới:** ảnh chụp một phần thanh công cụ của Node đã có video; ba nhóm hiển thị liền nhau bằng tiếng Trung: **分离音视频** (Tách âm thanh và video, có menu xổ xuống), **逐帧拉片** (Phân tích/tách cảnh từng khung hình, biểu tượng cuộn phim và dấu màu vàng), **更多** (Hơn, có menu xổ xuống). Chủ dự án yêu cầu: **“ẩn nhóm nút này đi nhé”**.
+
+**Quy tắc:** không render 3 mục trên trong thanh công cụ Node Video hay bất kỳ Node khác có action trùng tên/chức năng. Không chỉ disable hoặc đổi màu; phải **không hiện** ở cả chế độ có kết quả + Node đang chọn. Không hỏi tiếp user cách dùng những mục đã bị ẩn. Không xóa file video, audio, kết quả hay đồ thị cũ. **Hơn** trước đó đã ẩn toàn ứng dụng (V15 và I16).
+
+**Mapping kiểm kê:** V14 = Tách âm/video → ⛔ ẨN; V15 = Hơn → giữ ⛔ ẨN. “Phân tích/tách cảnh từng khung hình” **chưa được gán mã riêng trong danh sách 122 nút**, nhưng cũng ⛔ ẨN theo lệnh người dùng; không tự thêm mã mới hoặc bật lại. Giữ nguyên các nút AI video đã duyệt: V10 Chuyển động sâu, V11 HD, V12 Xóa phụ đề, V13 Làm lại đoạn.
+
+**Kiểm tra source lúc ghi yêu cầu:** hiện chưa có các nút này trong `app.js`, `app.html`, `node-common-actions.js`, `compact-toolbar.js` ở nhánh `main`; yêu cầu được ghi thành quy tắc thiết kế và bảo vệ bằng test cho các lần sửa UI V3. Không báo đã xóa công cụ trên một bản ứng dụng chưa được commit lên GitHub.
