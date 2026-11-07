@@ -269,3 +269,10 @@
 **Chọn model:** danh sách hiển thị **chỉ AI đã kết nối**, chọn provider rồi chọn model hoặc tab tương ứng trong cùng picker tối màu như ảnh đã gửi. Model chưa khả dụng không được thể hiện là chọn được.
 
 **Được duyệt khác không có nghĩa đã code:** 8 nhóm có **đặc tả được xác nhận**, nhưng trạng thái thực tế trên `main` còn vàng/đỏ như bảng trên. Việc triển khai giao diện và xử lý nút phải có PR/commit mã và kiểm thử thật trước khi chuyển xanh. Không có thay đổi runtime trong commit tài liệu này.
+
+
+## Bổ sung đã xác nhận trực tiếp từ chủ dự án — 2026-11-08
+
+- **F01/T04 (Ảnh → suy ngược Prompt):** Khi nhận nhiều ảnh, tạo **một Prompt riêng cho từng ảnh**; không tự gộp tất cả ảnh vào một Prompt. Cần giữ liên kết Prompt ↔ ảnh nguồn; nếu UI kết quả chưa rõ thì xin duyệt trước khi triển khai.
+- **C05 (Kho tài sản):** Chỉ sử dụng **một kho tài sản chung cho toàn ứng dụng**, chia thành các **khu nhỏ theo loại tài nguyên** (ví dụ ảnh, video, âm thanh, nhân vật, bối cảnh, sản phẩm, hiệu ứng, mẫu). Mọi Node dùng chung một bộ chọn tài nguyên, tự lọc loại hợp lệ theo cổng đầu vào; không tự tạo 9 kho riêng biệt.
+- Các công cụ riêng còn chờ giải thích: F02 S01/S03; F03 I04/I05/I10–I15/I18; F04 V05/V10–V14; F05 D01/D05–D08; F06 E03–E07/E11/E14; F07 A04/A10; R01 U10; R02 U21. **Các hình minh họa trợ giúp là đề xuất ý nghĩa thao tác, không phải chức năng đã được xác nhận hoặc đã triển khai.** Chủ dự án sẽ xem từng hình rồi chốt lại.
