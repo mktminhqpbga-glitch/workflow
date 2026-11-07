@@ -69,7 +69,7 @@
 | I07 | Tỷ lệ khung hình | Ví dụ 1:1, 9:16, 16:9. | 🟡 |
 | I08 | Độ phân giải 1K/2K/4K | Thiết lập chất lượng khi model hỗ trợ. | 🔴 |
 | I09 | Số lượng ảnh | Chọn số ảnh đầu ra. | 🔴 |
-| I10 | Chỉnh sửa phần tử | Công cụ sửa phần tử khi chọn ảnh. | 🔴 |
+| I10 | Chỉnh sửa phần tử | **Chỉ khi F03 đã có ảnh kết quả và ảnh đang được chọn:** toolbar nằm phía trên ảnh (ảnh 1, 2026-11-08), bấm **Chỉnh sửa phần tử** → chuyển sang chế độ chọn/chỉnh trực tiếp trên ảnh (ảnh 2), ảnh phủ lớp tối, có thanh riêng với nút Đóng (×), chọn theo điểm/ghim, chọn vùng nét đứt, bút vẽ và Hoàn tác. Không mở Node tạo ảnh mới, không đưa ảnh thủ công vào Prompt. **Khi Node chưa có ảnh:** không hiển thị/không bật I10. Phân biệt các điều khiển chọn vùng *bên trong I10* với nút I04 đã bị ẩn. | 🟡 Đã chốt UX, chưa code |
 | I11 | HD | Nâng cấp HD khi model hỗ trợ. | 🔴 |
 | I12 | Nhiều góc độ | Tạo các góc nhìn. | 🔴 |
 | I13 | Phân đoạn lưới | Cắt/chia ảnh theo lưới. | 🔴 |
@@ -281,3 +281,16 @@
 ### Quyết định giao diện — I04 (2026-11-08)
 
 Chủ dự án yêu cầu **ẩn nút I04 — Đánh dấu đối tượng** khỏi **F03 — Sinh ảnh AI**. Không hiển thị I04 trong toolbar hay menu F03, không thêm chức năng giả cho nút này, không xóa dữ liệu Node/ảnh đã lưu. Mã `app.js`, `app.html` và `node-common-actions.js` ở trạng thái hiện tại chưa có nút I04 được render; vì thế thay đổi này là **quyết định UI đã chốt và tránh tái thêm trong V3**, không phải bằng chứng đã hoàn thành toàn bộ F03.
+
+
+### Quyết định giao diện — I10 Chỉnh sửa phần tử (2026-11-08)
+
+Người dùng gửi **hai ảnh chụp giao diện thật** và xác nhận trạng thái:
+
+1. **F03 chưa có ảnh kết quả:** I10 không xuất hiện, nên không yêu cầu người dùng tìm nút trong Node rỗng. Bảng thông tin/nút của Node trống thuộc trạng thái khác, không đồng nhất với giao diện công cụ ảnh thành phẩm.
+2. **F03 đã có ảnh và ảnh đang được chọn:** thanh công cụ nổi ngang phía trên ảnh có **Chỉnh sửa phần tử** ở đầu trái, kế đó HD, Nhiều góc độ, Phân đoạn lưới, Phân tách lớp, Toàn cảnh 720°, Hơn, v.v. Ảnh nguồn vẫn được giữ.
+3. Bấm **Chỉnh sửa phần tử** thì toolbar được thay thành toolbar edit nhỏ: **× Chỉnh sửa phần tử | ghim/điểm chọn | chọn vùng nét đứt | bút tự do | hoàn tác**. Ảnh bên dưới bị phủ lớp tối, có hướng dẫn chọn đối tượng cần sửa. **Không mở Node mới** và **không tự chuyển sang giao diện composer chưa có ảnh**.
+4. Quy tắc UI: toolbar chỉ khi Node/ảnh **được chọn**, không chỉ hover. I04 vẫn bị ẩn như một nút độc lập; các biểu tượng chọn/đánh dấu *nằm trong chế độ I10* vẫn phải giữ đúng ảnh.
+5. **Chưa xác nhận** cách áp dụng AI sau khi đánh dấu/chọn vùng và kết quả sau khi sửa. Không tự suy ra là lập tức gửi prompt hoặc tạo ảnh mới; sẽ hỏi riêng khi tới bước xử lý. **Chưa có mã tính năng I10 trong ứng dụng**, tài liệu không được hiểu nhầm là hoàn thành code.
+
+**Hướng dẫn hỏi user từ nay:** luôn nêu **Node + mã nút + tên nút + trạng thái “chưa có kết quả / đã có kết quả” + ảnh khi click cần xem**; chỉ hỏi một nút tại một thời điểm.
