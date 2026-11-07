@@ -119,7 +119,7 @@
 | D04 | Gửi tạo cảnh ↑ | Gửi Prompt tạo bối cảnh. | 🔴 |
 | D05 | Xem không gian 3D | **ẨN TOÀN ỨNG DỤNG theo yêu cầu 2026-11-08.** Không render hành động xem không gian 3D ở F05 hoặc Node bất kỳ có cùng chức năng. Giữ nguyên cảnh/video/tài nguyên đã lưu. | ⛔ ẨN |
 | D06 | Điều khiển camera | **ẨN TOÀN ỨNG DỤNG THEO YÊU CẦU 2026-11-08.** Không hiển thị điều khiển camera của bàn đạo diễn 3D trên F05 hoặc Node khác có cùng chức năng. Không xóa dữ liệu/cảnh/project đã lưu. Phân biệt với thiết lập góc máy trong F03/I12 và F04/V05 đã được duyệt (không ẩn các chức năng khác này). | ⛔ ẨN |
-| D07 | Chọn góc máy | **GIỮ LẠI theo yêu cầu 2026-11-08.** Nút Chọn góc máy trong F05 — Đạo diễn không bị ẩn dù D01/D05/D06 đã ẩn. Cần ảnh/giải thích khi bấm D07 để chốt giao diện và chức năng thực tế; không tự đồng nhất với D06 hoặc với nút chọn góc máy của F03/F04. | 🟡 Đã chốt giữ, chờ chi tiết |
+| D07 | Chọn góc máy | **GIỮ LẠI — CHỐT DÙNG CHUNG F03/I12 (2026-11-08).** Khi bấm D07 trên F05, mở **đúng giao diện Trình chỉnh sửa nhiều góc độ của F03/I12**: preset góc camera, mô hình quả cầu/orbit, góc ngang/dọc, zoom, reset, nút gửi AI tạo ảnh mới từ góc đã chọn, giữ nguyên ảnh nguồn. Cùng biểu tượng trên Node khác = cùng chức năng, cùng UI, dùng chung component/handler, chỉ AI/model/tab đã kết nối. Đừng tạo phiên bản D07 riêng. D01/D05/D06 vẫn ẩn toàn ứng dụng. | 🟡 Đã chốt dùng chung I12, chưa code V3 |
 | D08 | Xuất ảnh từ camera | Render/snapshot. | 🔴 |
 | D09 | Thu gọn Prompt | Theo chuẩn Node. | 🔴 |
 
@@ -482,7 +482,7 @@ Chủ dự án trả lời **“ẩn cái này đi nhé”** khi được hỏi 
 - **D01 — Mở bàn làm việc 3D; D05 — Xem không gian 3D** ở **F05** và các Node khác nếu xuất hiện cùng chức năng.
 - **E14 — Timeline chuyên dụng** (không xóa trình phát/tua video, timeline chọn đoạn của V13, hoặc dữ liệu timeline legacy đã lưu).
 
-**Không được suy rộng:** D06 — Điều khiển camera, D07 — Chọn góc máy, D08 — Xuất ảnh từ camera vẫn **chưa được yêu cầu ẩn riêng**; tạm để cần giải thích, không tự xóa. E07 — Chế độ chỉnh sửa đã được chủ dự án yêu cầu **bỏ qua việc hỏi**, không đồng nghĩa với ẩn. Dữ liệu các workflow/video/ảnh cũ giữ nguyên.
+**Không được suy rộng:** D06 — Điều khiển camera, D07 — Chọn góc máy **đã được giữ và dùng chung F03/I12**; D08 — Xuất ảnh từ camera vẫn **chưa được yêu cầu ẩn riêng**, cần chốt, không tự xóa. E07 — Chế độ chỉnh sửa đã được chủ dự án yêu cầu **bỏ qua việc hỏi**, không đồng nghĩa với ẩn. Dữ liệu các workflow/video/ảnh cũ giữ nguyên.
 
 **Hiện trạng code khi ghi:** các chức năng D01/D05 thuộc giao diện V3 chưa có action được render trong app.js, node-common-actions.js, app.html; chỉ cập nhật đặc tả và test chống đưa trở lại, không nhận đã hoàn thiện UI V3. Nút giống nhau ở các Node phải dùng chung thành phần và hành vi, bao gồm quy tắc ẩn.
 
@@ -491,9 +491,16 @@ Chủ dự án trả lời **“ẩn cái này đi nhé”** khi được hỏi 
 
 Chủ dự án trả lời **“ẩn”** khi được hỏi về **D06 — Điều khiển camera** thuộc **F05 — Node Đạo diễn (Director's Desk)**. Không hiển thị D06 tại F05 hoặc bất kỳ Node nào có cùng công cụ điều khiển camera không gian 3D này. Tiếp tục áp dụng quy tắc toàn ứng dụng: nút nào được yêu cầu ẩn thì mọi bản sao cùng chức năng đều ẩn. Không xóa dữ liệu/asset/đường nối cũ. Các nút chỉnh góc máy sinh ảnh hoặc sinh video (F03/I12, F04/V05) có mục đích khác nên **không bị suy rộng thành ẩn**.
 
-**Trạng thái:** quyết định ẩn đã chốt; giao diện V3 chưa có nút D06 trên GitHub main, chưa cần sửa một nút runtime không tồn tại. **Cập nhật câu trả lời:** F05/D07 — Chọn góc máy **GIỮ**, cần hỏi tiếp giao diện xuất hiện khi bấm để chốt UX.
+**Trạng thái:** quyết định ẩn đã chốt; giao diện V3 chưa có nút D06 trên GitHub main, chưa cần sửa một nút runtime không tồn tại. **Cập nhật mới:** F05/D07 — Chọn góc máy **GIỮ**, đồng thời có giao diện và chức năng **GIỐNG F03/I12 — Nhiều góc độ**. Không cần hỏi lại.
 
 
 ### Quyết định — F05/D07 Chọn góc máy (2026-11-08)
 
-Chủ dự án trả lời **“giữ lại”** khi được hỏi về **D07 — Chọn góc máy**, thuộc **F05 — Node Đạo diễn (Director's Desk)**. Phải giữ nút D07 khi dựng UI; không tự áp dụng việc ẩn D01/D05/D06 để xóa D07. **Chưa có ảnh hoặc mô tả thao tác D07**, chỉ xác nhận việc GIỮ, không được ghi đã hiểu toàn bộ chức năng hoặc đã code. Câu hỏi tiếp theo: bấm nút D07 trên F05 sẽ mở giao diện nào và dùng để làm gì?
+Chủ dự án trả lời **“giữ lại”** khi được hỏi về **D07 — Chọn góc máy**, thuộc **F05 — Node Đạo diễn (Director's Desk)**. Phải giữ nút D07 khi dựng UI; không tự áp dụng việc ẩn D01/D05/D06 để xóa D07. **Đã xác nhận ở lượt sau:** D07 giống **F03/I12 — Nhiều góc độ** về giao diện và chức năng, không cần xin ảnh riêng; chưa code.
+
+
+### Xác nhận F05/D07 dùng chung F03/I12 và tiến độ hỏi nút (2026-11-08)
+
+Người dùng trả lời **“giống F3, các nút có biểu tượng giống nhau thì nó giống nhau”**. D07 là nút **Chọn góc máy** của F05, phải dùng nguyên giao diện/trình xử lý **F03/I12 — Nhiều góc độ** đã được người dùng chốt, không hỏi lại hoặc tạo phiên bản khác. Mọi nút có biểu tượng và ý nghĩa tương đương qua các Node dùng cùng UX và handler; nút đã ẩn thì ẩn khắp ứng dụng theo quyết định mới nhất.
+
+**Kiểm kê 122 nút:** ở thời điểm này, nhóm **cần tiếp tục hỏi quyết định/chức năng đặc thù** còn 5 mã chính: **F05/D08 — Xuất ảnh từ camera** và **F06/E03, E04, E05, E06** (bốn preset Smart Edit; người dùng từng muốn chỉ giữ hai và ẩn hai, nhưng chưa chỉ rõ chính xác). **F06/E07** được yêu cầu **bỏ qua hỏi hiện tại**, chưa quyết định giữ hay ẩn: nếu tính cả mục tạm hoãn thì tổng cộng **6 đầu mục chưa chốt**. Các nút chia sẻ giống biểu tượng hoặc quy tắc chung không cần hỏi lại từng cái; con số này chỉ là số nút cần *chốt yêu cầu*, **không phải số nút đã lập trình**. D08 cần hỏi tiếp sau khi trả lời con số. Một số chi tiết kỹ thuật còn tùy AI/model kết nối và kiểm thử ứng dụng V3; không coi đặc tả là hoàn thiện sản phẩm.
