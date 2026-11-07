@@ -290,7 +290,20 @@ Người dùng gửi **hai ảnh chụp giao diện thật** và xác nhận tr�
 1. **F03 chưa có ảnh kết quả:** I10 không xuất hiện, nên không yêu cầu người dùng tìm nút trong Node rỗng. Bảng thông tin/nút của Node trống thuộc trạng thái khác, không đồng nhất với giao diện công cụ ảnh thành phẩm.
 2. **F03 đã có ảnh và ảnh đang được chọn:** thanh công cụ nổi ngang phía trên ảnh có **Chỉnh sửa phần tử** ở đầu trái, kế đó HD, Nhiều góc độ, Phân đoạn lưới, Phân tách lớp, Toàn cảnh 720°, Hơn, v.v. Ảnh nguồn vẫn được giữ.
 3. Bấm **Chỉnh sửa phần tử** thì toolbar được thay thành toolbar edit nhỏ: **× Chỉnh sửa phần tử | ghim/điểm chọn | chọn vùng nét đứt | bút tự do | hoàn tác**. Ảnh bên dưới bị phủ lớp tối, có hướng dẫn chọn đối tượng cần sửa. **Không mở Node mới** và **không tự chuyển sang giao diện composer chưa có ảnh**.
-4. Quy tắc UI: toolbar chỉ khi Node/ảnh **được chọn**, không chỉ hover. I04 vẫn bị ẩn như một nút độc lập; các biểu tượng chọn/đánh dấu *nằm trong chế độ I10* vẫn phải giữ đúng ảnh.
+4. Quy tắc UI toàn ứng dụng: **chỉ khi Node đã có kết quả VÀ đang được chọn** mới hiện toolbar nổi ở trên. Node chưa có kết quả: **không hiện toolbar**, kể cả khi click chọn; không tự nổi khi hover. I04 vẫn bị ẩn như một nút độc lập; các công cụ chọn/đánh dấu *bên trong chế độ I10* vẫn giữ nguyên.
 5. **Chưa xác nhận** cách áp dụng AI sau khi đánh dấu/chọn vùng và kết quả sau khi sửa. Không tự suy ra là lập tức gửi prompt hoặc tạo ảnh mới; sẽ hỏi riêng khi tới bước xử lý. **Chưa có mã tính năng I10 trong ứng dụng**, tài liệu không được hiểu nhầm là hoàn thành code.
 
 **Hướng dẫn hỏi user từ nay:** luôn nêu **Node + mã nút + tên nút + trạng thái “chưa có kết quả / đã có kết quả” + ảnh khi click cần xem**; chỉ hỏi một nút tại một thời điểm.
+
+
+### 2026-11-08 — I10 ảnh bổ sung + quy tắc toolbar toàn Node
+
+**Ảnh mới do chủ dự án cung cấp:** Sau khi mở F03/I10 **Chỉnh sửa phần tử** trên ảnh đã có kết quả, người dùng chọn/đánh dấu vùng cần sửa và sử dụng **ô Prompt để mô tả thay đổi**. Đây là quy trình **ảnh kết quả → chọn vùng → nhập yêu cầu chỉnh sửa**, không phải chuyển sang một Node tạo ảnh trống. Không suy diễn vị trí xuất ảnh sau khi gửi; chưa có bằng chứng kiểm thử thật AI. Chưa triển khai UI đánh dấu I10.
+
+**Quy tắc chung bắt buộc trên F01–F07 và R01–R02:**
+- **Chưa có kết quả:** tuyệt đối **không có thanh công cụ nổi phía trên**, dù Node được click/chọn. Node vẫn có thể có nút nhập, Prompt hoặc nút tạo riêng bên dưới.
+- **Đã có kết quả nhưng chưa chọn Node:** không hiện thanh công cụ nổi.
+- **Đã có kết quả và đang được chọn Node:** mới hiện thanh công cụ nổi tương ứng loại nội dung của Node.
+- Click nền Canvas/bỏ chọn phải tắt toolbar ngay, không hiển thị trên hover. Không nhầm nút thường trong Prompt với toolbar nổi.
+
+**Thay đổi mã ngày 2026-11-08:** `node-common-actions.js` thêm điều kiện `hasResult` để chỉ tạo toolbar nổi khi có kết quả, `app.js` truyền kết quả dựa trên media/tài liệu script/kết quả AI. Có bài kiểm thử mới trong `tests/desktop-node-common-controls.test.cjs`. Đây là quy tắc được áp dụng trên bộ công cụ chung hiện có; 9 Node V3 chưa triển khai đủ nên chưa xem là xong toàn bộ.
