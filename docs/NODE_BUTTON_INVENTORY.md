@@ -98,7 +98,7 @@
 | V09 | Chất lượng video | Cấu hình phân giải/quality. | 🔴 |
 | V10 | Ghi hình chuyển động chiều sâu | **F04 đã có video kết quả và đang chọn:** bấm V10 mở một **Node xử lý video mới**, có đường nối từ video nguồn sang khung preview video đầu ra (rỗng trước khi chạy). Bảng nhỏ bên dưới: tiêu đề **Ghi hình chuyển động chiều sâu**, mục **Sự rõ ràng** chọn **480P / 720P**, nút trắng **Xác nhận quá trình chiết xuất**. Dùng video nguồn để tạo **video preview độ phân giải thấp, ưu tiên chủ thể chính và cảm giác chiều sâu/chuyển động**, không ghi đè video nguồn; chờ dịch vụ thật. Theo yêu cầu chung, phần tạo video sẽ cho chọn **AI đã kết nối → model/tab khả dụng** khi tích hợp. | 🟡 Đã chốt UX, chưa code |
 | V11 | HD / Nâng chất lượng video | **F04 có video kết quả và đang được chọn:** bấm HD tạo Node **Video HD** mới kết nối từ video nguồn; preview rỗng trước khi xử lý. Bảng dưới Node như ảnh user: **Chọn AI đã kết nối → model/tab thực tế hỗ trợ xử lý video**, độ phân giải **1080P / 2K / 4K**, **chế độ bù khung hình** (mẫu: Không bù khung), **hệ số làm chậm** (mẫu: 1×), chi phí nếu có và nút ↑. AI tạo **video chất lượng cao mới**, không thay hoặc tự động gửi video gốc. Chỉ hiện toolbar kết quả khi đã có video mới và Node được chọn. | 🟡 Đã chốt UX, chưa code |
-| V12 | Xóa phụ đề | Chỉ hoạt động khi có bộ xử lý thật. | 🔴 |
+| V12 | Xóa phụ đề | **F04 đã có video kết quả và được chọn:** bấm Xóa phụ đề → dùng **AI xử lý video nguồn để xóa chữ/phụ đề hiển thị trong khung hình**, sau đó **sinh video kết quả mới** đã xóa phụ đề, giữ nguyên video gốc. Tác vụ chỉ gửi khi người dùng yêu cầu; dùng bộ chọn AI/model/tab C01 và **chỉ AI đã kết nối có khả năng xử lý/xóa phụ đề video** (theo quy tắc chung chọn AI cho tác vụ video), không tạo kết quả giả nếu không có backend phù hợp. **Chưa có ảnh giao diện riêng**, không tự thiết kế thêm menu. | 🟡 Đã chốt chức năng, chưa code |
 | V13 | Làm lại đoạn video | Chỉnh và tái tạo một phân đoạn. | 🔴 |
 | V14 | Tách âm thanh | Trích audio từ video. | 🟡 |
 | V15 | Hơn | **ẨN TOÀN ỨNG DỤNG THEO YÊU CẦU.** Không hiển thị menu Hơn/More trong các toolbar Node Video hoặc bất kỳ Node nào. | ⛔ ẨN |
@@ -378,3 +378,10 @@ Chủ dự án yêu cầu **ẩn nút I13 — Phân đoạn lưới**, thuộc F
 **Yêu cầu bổ sung mới nhất:** người dùng muốn **được chọn AI rồi chọn model/tab trong chính V11**. Sử dụng **cùng bộ chọn C01**, chỉ hiển thị provider **đã kết nối** và model/tab phù hợp với tác vụ **nâng cấp video**. Chọn xong giữ nguyên toàn bộ cấu hình và video nguồn, bấm ↑ gửi tới lựa chọn thực tế. Tên Topazlabs ở ảnh chỉ là ví dụ của màn hình nguồn, **không mặc định là đã tích hợp Topazlabs**. UI phải bám ảnh gốc, thêm chọn AI/tab trong vùng chọn model mà không thay toàn bộ bố cục.
 
 **Trạng thái:** đã chốt đặc tả, **chưa triển khai runtime V11**. Nút tiếp theo cần hỏi từng cái: **F04 — Sinh video AI / V12 — Xóa phụ đề**, trạng thái **đã có video kết quả và đang được chọn**.
+
+
+### Quyết định giao diện — F04/V12 Xóa phụ đề (2026-11-08)
+
+**Người dùng giải thích:** “là nút gửi cho AI và yêu cầu AI xoá phụ đề thôi, sinh ra video kết quả thôi”. Vì vậy V12 là **tác vụ AI xử lý video đã có**, không phải nút bật/tắt hiển thị chữ trong trình phát hay sửa metadata phụ đề. Đầu ra là **video kết quả mới**, giữ nguyên bản gốc. Chưa cần đề xuất giao diện phụ phức tạp khi user chưa gửi ảnh. Việc chọn AI/model/tab phù hợp lấy từ quy tắc chung của các nút tạo/xử lý video đã được người dùng chốt; chỉ liệt kê AI thật đã kết nối và có khả năng làm tác vụ này, không tự nhận mọi model video đều có tính năng xóa phụ đề.
+
+**Trạng thái:** mới chốt chức năng, **chưa triển khai AI processing hoặc chụp screenshot app thật**. Nút tiếp theo hỏi từng cái: **F04 — Sinh video AI / V13 — Làm lại đoạn video**, ở trạng thái **video đã có kết quả và Node đang được chọn**.
