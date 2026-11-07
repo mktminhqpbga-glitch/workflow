@@ -1615,6 +1615,7 @@
     for(const node of state.nodes){const data=node.data||(node.data={});if(!data.componentId||used.has(data.componentId)){const prefix=['imageInput','generateImage','imageResize'].includes(node.type)?'IMG':node.type==='videoInput'||node.type==='generateVideo'?'VID':'NODE';do{data.componentId=prefix+'-'+crypto.randomUUID().slice(0,8).toUpperCase();}while(used.has(data.componentId));}used.add(data.componentId);}
   }
   function render() {
+    globalThis.WorkflowSharedNodeControls?.closeAll?.();
     ensureComponentIds();
     syncPreviewOutputs();canvas.innerHTML='';state.groups.forEach(group=>canvas.appendChild(renderCanvasGroup(group)));state.notes.forEach(note=>canvas.appendChild(renderCanvasNote(note)));state.nodes.filter(n=>!n.data?.dockOnly).forEach(n => canvas.appendChild(renderNode(n)));applyCanvasTransform();requestAnimationFrame(drawEdges);syncTimelineDock();updateChatUsageLabels();scheduleAutoSave();
   }
