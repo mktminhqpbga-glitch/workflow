@@ -4,9 +4,10 @@
 
 1. **docs/AI_HANDOFF_REPORT.md** — nhiệm vụ, lỗi, log commit, yêu cầu tổng thể và luồng Canvas.
 2. **docs/NODE_BUTTON_INVENTORY.md** — danh sách hiện hành 122 nút con của 9 Node, gồm mapping ảnh F01/F02 và yêu cầu T09 mới. Đọc trước khi sửa từng nút.
-3. **README.md** — cách chạy/cài đặt và trạng thái bản phát hành hiện tại.
-4. **docs/APP-ARCHITECTURE.md** — kiến trúc extension / Electron / graph / persistence / relay.
-5. **docs/PROGRESS.md** — những chức năng đã được repo trước đây kiểm tra và những giới hạn test.
+3. **docs/SHARED_NODE_CONTROLS_PROGRESS.md** — tình trạng 8 nhóm nút chung đã thêm vào code, những phần chưa chạy và các nút riêng còn cần hỏi chủ dự án.
+4. **README.md** — cách chạy/cài đặt và trạng thái bản phát hành hiện tại.
+5. **docs/APP-ARCHITECTURE.md** — kiến trúc extension / Electron / graph / persistence / relay.
+6. **docs/PROGRESS.md** — những chức năng đã được repo trước đây kiểm tra và những giới hạn test.
 
 ## Quy tắc thực hiện nhiệm vụ
 
