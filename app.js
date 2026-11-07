@@ -1284,7 +1284,7 @@
     const make=(id,label)=>({label,title:label+' · '+(globalThis.WorkflowAITasks?.task(id)?.name||label),
       run:()=>void startSpecialAIAction(source,id).catch(error=>setRunStatus(error.message,'error'))});
     if(media.kind==='image'&&['generateImage','imageInput','videoFrame','imageSnapshot'].includes(source.type))
-      return [make('imageHD','HD'),make('imageAngles','Nhiều góc độ'),
+      return [make('imageToPrompt','Ảnh → Prompt'),make('imageHD','HD'),make('imageAngles','Nhiều góc độ'),
         ...(source.data.nodeRole==='director'?[{label:'Xuất ảnh góc máy',title:'Lấy ảnh từ camera hiện tại',
           run:()=>void saveDirectorSnapshot(source).catch(error=>setRunStatus(error.message,'error'))}]:[])];
     if(media.kind==='audio'&&['audioInput','voiceover'].includes(source.type))
@@ -1341,7 +1341,7 @@
     const spec=globalThis.WorkflowAITasks?.task(id),media=commonAsset(source);
     if(!spec||!media||media.kind!==spec.source)throw Error('Công cụ không có nguồn ảnh/video đúng kiểu.');
     if(runForNode(source.id))throw Error('Node nguồn đang xử lý. Hãy đợi hoàn thành.');
-    const kind=spec.kind,targetType=kind==='image'?'generateImage':'generateVideo';
+    const kind=spec.kind,targetType=kind==='image'?'generateImage':kind==='text'?'generateText':'generateVideo';
     const candidates=commonConnectedModels({type:targetType,data:{}}).filter(g=>
       g.connected&&globalThis.WorkflowAITasks.supports(id,g.id));
     if(!candidates.length){
@@ -1353,7 +1353,7 @@
     const config=globalThis.WorkflowAITasks.settings(id,{});
     // Always detect actual source dimensions, including user-uploaded assets
     // that have no stored width/height metadata.
-    const dimensions=spec.source==='audio'?null:await mediaDimensions(media.url,kind);
+    const dimensions=spec.source==='audio'?null:await mediaDimensions(media.url,spec.source);
     if(kind==='video'&&spec.source==='video'){
       if(id==='videoDepth'&&(dimensions.duration<3||dimensions.duration>30))
         throw Error('Motion Control yêu cầu video nguồn từ 3 đến 30 giây.');
@@ -1375,7 +1375,7 @@
     globalThis.WorkflowAITasks.buildPrompt(id,config,'');
     if(nodeById(source.id)!==source||commonAsset(source)?.url!==media.url)
       throw Error('Node nguồn đã thay đổi, không gửi tác vụ cũ.');
-    const data={provider:provider.id,model:kind==='image'?'muse-image':'muse-video',
+    const data={provider:provider.id,model:kind==='image'?'muse-image':kind==='text'?'':'muse-video',
       localPrompt:'',size:resultTaskAspect(source,dimensions,kind),
       status:'idle',aiTask:{id,settings:config,sourceNodeId:source.id}};
     if(id==='audioToVideo'){data.duration=config.duration;data.size=config.aspect;}
