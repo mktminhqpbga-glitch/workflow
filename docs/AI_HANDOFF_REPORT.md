@@ -277,6 +277,15 @@ Test browser/desktop có thể yêu cầu môi trường, dependency hoặc disp
 3. **F01-C: Composer** — provider/model, dịch, mở rộng/thu gọn, nút ↑ ba trạng thái; gắn action vào tác vụ thật, xử lý lỗi, dừng. Commit riêng và test.
 4. **F01-D: Node + dây + lưu/khôi phục** — input/output có kiểu, truyền nội dung và JSON, kiểm thử tương thích import legacy; commit và ghi log.
 
-**Hành vi đang cần chủ dự án xác nhận đầu tiên:** Khi click **“Tự viết nội dung”** trong Node Văn bản, có phải mở/focus khung bên dưới để **nhập tay** (không gửi AI), hoặc là điền một lệnh mẫu cho AI? Chưa sửa runtime cho tới khi được xác nhận.
+**ĐÃ CHỐT bởi ảnh người dùng:** T02 là chế độ nhập tay, có toolbar định dạng trên khi chọn; T03 là nối text→video, T04 là ảnh→prompt (có chọn nguồn ảnh), T05 là text→nhạc; T06 chọn AI/model/tab; T07 dịch hai chiều Việt↔Anh; T08 chỉ gửi Prompt. T09 đã có ảnh mẫu bổ sung. Xem docs/NODE_BUTTON_INVENTORY.md. Chưa sửa runtime.
 
 **Kiểm thử trong mục này:** Mới đọc nguồn `app.js` (`renderNode`, `providerControls`, `createNodeRunActions`, `addPorts`) trên GitHub; chưa chạy ứng dụng, chưa tạo ảnh UI mới, chưa kiểm thử AI thật.
+
+
+## 13. DANH SÁCH NÚT CHUẨN MỚI NHẤT (2026-11-08)
+
+Chủ dự án yêu cầu **cập nhật lại danh sách nút trước khi code** và vừa cung cấp các ảnh F02 S01 (ảnh 1+2+3), S02 (ảnh 4+5+6+7), S03 (ảnh 8), đồng thời ảnh bổ sung F01 T09. Đã đối chiếu mô tả và tổng hợp **122 nút con của 9 Node** vào tài liệu riêng: **[docs/NODE_BUTTON_INVENTORY.md](NODE_BUTTON_INVENTORY.md)**.
+
+- Danh sách này phân biệt **mẫu đã chốt** và **mức độ triển khai thật trên GitHub**. Một phần legacy có thể tồn tại dưới tên khác; màu vàng/đỏ vẫn cần code/test xác nhận.
+- F01 T02 viết tay, không gửi AI; T06 chọn provider/model/tab; T07 dịch Việt↔Anh; T08 chỉ là nút gửi; T09 theo ảnh mới. F02 S01 là toolbar các tác vụ kịch bản/đồ họa, không phải toolbar HD ảnh; S02 có ảnh nhân vật, S03 là bảng phân cảnh nhiều cột.
+- **Chưa sửa runtime, chưa có screenshot app sau sửa**, chỉ cập nhật tài liệu. Phần tiếp theo phải được chủ dự án duyệt riêng, sửa xong gửi ảnh app thật, test và commit.
