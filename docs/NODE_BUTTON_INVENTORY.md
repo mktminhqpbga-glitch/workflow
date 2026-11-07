@@ -175,7 +175,7 @@
 | U07 | Phóng to | Full/zoom preview. | 🟡 |
 | U08 | Kết nối sang Node khác | Output image có kiểu. | 🟡 |
 | U09 | Thay ảnh | Chọn ảnh khác mà không hỏng dây. | 🟡 |
-| U10 | Công cụ ảnh AI | Chỉ mở toolbar khi chọn Node. | 🔴 |
+| U10 | Công cụ ảnh AI (ảnh tải lên) | **ĐÃ XÁC NHẬN:** Khi R01 có ảnh tải lên hợp lệ và Node được chọn, thanh công cụ nổi có **cùng các biểu tượng, giao diện, cách hoạt động như F03 — Sinh ảnh AI đã có ảnh kết quả**. Mọi biểu tượng/chức năng giống nhau phải dùng chung đúng logic (I10 Chỉnh sửa phần tử, I11 HD, I12 Nhiều góc độ, I17 Nhân bản, I18 Vẽ/đánh dấu, I19 Tải ảnh, I20 Zoom và các mục hợp lệ). Các nút I04, I13–I16 đã yêu cầu **ẨN** cũng phải ẩn trong R01 và mọi Node khác. Không xóa ảnh gốc; AI/model/tab chỉ khi tác vụ cần và có kết nối. | 🟡 Đã chốt UX dùng chung, chưa code toàn V3 |
 
 ## R02 — Video tải lên
 
@@ -444,3 +444,12 @@ Người dùng xác nhận riêng **A04 — Âm thanh → Video** là **giống 
 3. **Trích xuất khung hình cuối cùng** — lấy frame cuối của video.
 
 **Xác nhận hành vi:** khi chọn một mục thì **ứng dụng xuất/sinh một ảnh từ khung hình video ngay lập tức**, **cùng khung hình (tỷ lệ, bố cục) và chất lượng/độ phân giải của video nguồn**. Không phát lệnh tạo ảnh AI, không mở Prompt, không cần model/tab và không tự nâng cấp hình. Giữ nguyên video gốc. Người dùng cung cấp thêm ảnh minh họa đầu ra sau khi làm rõ hành vi. Đích lưu/đặt Node của ảnh mới chỉ chốt khi ảnh minh họa thể hiện rõ; không phỏng đoán nếu chưa xác minh. Lúc hiện chỉ có **đặc tả**, chưa lập trình tính năng.
+
+
+### Quyết định dùng chung biểu tượng — R01/U10 ↔ F03 và mọi Node (2026-11-08)
+
+Chủ dự án xác nhận rõ: **“đúng rồi đó, biểu tượng giống thì chức năng giống nhau.”** R01 — **Node Ảnh tải lên / U10 — Công cụ ảnh AI** dùng **chính toolbar và cách hoạt động** đã chốt cho F03 — **Node Sinh ảnh AI sau khi có kết quả**. Khi có ảnh tải lên thành công **và** Node được chọn mới hiện toolbar; khi bỏ chọn thì ẩn. Nút giống về biểu tượng/tên trên các Node phải dùng lại một component và một handler thực tế, không có hai cách hiểu/luồng chạy khác nhau. Khi F03 có thao tác AI cần model/tab, R01 sử dụng cùng bộ chọn AI đã kết nối; các hành động không cần AI như tải ảnh/zoom không yêu cầu model.
+
+**Loại trừ trên mọi toolbar:** F03/I04 — Đánh dấu đối tượng độc lập; I13 — Phân đoạn lưới; I14 — Phân tách lớp; I15 — Toàn cảnh 720°; I16/V15 — Hơn; cùng các nút đã yêu cầu ẩn khác. Không đưa lại chỉ vì ảnh tham chiếu cũ có biểu tượng đó. Không xóa ảnh tài nguyên gốc hoặc thay thế Node đã lưu.
+
+**Trạng thái:** chốt đặc tả dùng chung; **chưa triển khai đầy đủ UI R01/U10 bản V3**. Nút tiếp theo có thể hỏi riêng: **F06 — Smart Edit / E11 — Cắt khung**, trạng thái có video đầu vào và đã chọn Node; cần ảnh khi bấm.
