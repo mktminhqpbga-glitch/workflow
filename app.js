@@ -1422,7 +1422,12 @@
       const select=document.createElement('select');
       for(const [value,name] of choices)select.append(new Option(name,String(value)));
       select.value=String(config[key]??choices[0][0]);
-      select.onchange=()=>{config[key]=select.value;scheduleAutoSave();};
+      select.onchange=()=>{config[key]=key==='duration'||key==='scale'?Number(select.value):select.value;
+        if(node.data.aiTask?.id==='audioToVideo'){
+          if(key==='aspect')node.data.size=select.value;
+          if(key==='duration')node.data.duration=Number(select.value);
+        }
+        scheduleAutoSave();};
       field.append(select);box.append(field);
     };
     const range=(caption,key,min,max,fallback,step=1)=>{
