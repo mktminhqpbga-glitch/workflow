@@ -65,6 +65,7 @@
   const nodeDefs = {
     videoInput: {title:'Video đầu vào',outputs:[{id:'video',label:'video gốc',type:'video'}]},
     videoFrame: {title:'Ảnh từ khung video',inputs:[{id:'video',label:'Video nguồn',type:'video'}],outputs:[{id:'image',label:'Ảnh khung hình',type:'image'}]},
+    imageSnapshot: {title:'Ảnh từ góc camera',inputs:[{id:'image',label:'Ảnh gốc',type:'image'}],outputs:[{id:'image',label:'Ảnh góc camera',type:'image'}]},
     generateText: {title:'Tạo văn bản',inputs:[{id:'prompt',label:'Yêu cầu',type:'text'},{id:'rules',label:'Quy tắc',type:'text'},{id:'reference',label:'Ảnh',type:'image'},{id:'video',label:'Video gốc',type:'video'}],outputs:[{id:'text',label:'Văn bản',type:'text'}]},
     prompt: { title: 'Prompt', outputs: [{ id: 'text', label: 'text', type: 'text' }] },
     negativePrompt: { title: 'Negative Prompt', outputs: [{ id: 'text', label: 'negative', type: 'negative' }] },
@@ -804,6 +805,7 @@
   }
 
   function addNode(type, x=250 + Math.random()*220, y=160 + Math.random()*180) {
+    const isDirector=type==='director';if(isDirector)type='generateImage';
     const toolKind=WorkflowTools.aliases[type]?type:null;if(toolKind)type='generateText';
     const dockTimeline=type==='timeline'&&state.nodes.find(node=>node.type==='timeline'&&node.data?.dockOnly);
     if(dockTimeline){createUndoSnapshot('Add Timeline node');dockTimeline.data.dockOnly=false;dockTimeline.x=x;dockTimeline.y=y;render();if($('#timelineDock').classList.contains('collapsed'))toggleTimeline();return;}
@@ -817,6 +819,7 @@
       type === 'generateVideo' ? { model: 'muse-video', size: '16:9', duration: 5, continuity: false, status: 'idle' } :
       type === 'timeline' ? { clipOrder: [], durations: {} } : {};
     if(toolKind){data.toolKind=toolKind;data.customName=WorkflowTools.aliases[toolKind];data.variantCount=3;}
+    if(isDirector){data.customName='Đạo diễn';data.nodeRole='director';data.localPrompt='';data.size='16:9';}
     createUndoSnapshot(`Add ${nodeDefs[type]?.title||'node'}`);const node={ id: uid(type), type, x, y, data };state.nodes.push(node);
     if(type==='references')syncReferenceFanOut(node);else if(['generateImage','generateVideo','generateText'].includes(type)){const references=state.nodes.find(item=>item.type==='references');if(references)connectReferenceNode(references,node);}
     render();if(type==='timeline'){syncTimelineDock();if($('#timelineDock').classList.contains('collapsed'))toggleTimeline();}
@@ -1272,12 +1275,35 @@
     if(!media?.url)return [];
     const make=(id,label)=>({label,title:label+' · '+(globalThis.WorkflowAITasks?.task(id)?.name||label),
       run:()=>void startSpecialAIAction(source,id).catch(error=>setRunStatus(error.message,'error'))});
-    if(media.kind==='image'&&['generateImage','imageInput','videoFrame'].includes(source.type))
-      return [make('imageHD','HD'),make('imageAngles','Nhiều góc độ')];
+    if(media.kind==='image'&&['generateImage','imageInput','videoFrame','imageSnapshot'].includes(source.type))
+      return [make('imageHD','HD'),make('imageAngles','Nhiều góc độ'),
+        ...(source.data.nodeRole==='director'?[{label:'Xuất ảnh góc máy',title:'Lấy ảnh từ camera hiện tại',
+          run:()=>void saveDirectorSnapshot(source).catch(error=>setRunStatus(error.message,'error'))}]:[])];
     if(media.kind==='video'&&['generateVideo','videoInput'].includes(source.type))
       return [make('videoDepth','Chuyển động sâu'),make('videoHD','HD'),
         make('videoSubtitles','Xóa phụ đề'),make('videoSegment','Làm lại đoạn')];
     return [];
+  }
+  async function saveDirectorSnapshot(source){
+    const media=commonAsset(source);
+    if(source.data.nodeRole!=='director'||media?.kind!=='image')
+      throw Error('Chọn ảnh đã tạo ở Node Đạo diễn trước.');
+    if(runForNode(source.id))throw Error('Cảnh đang xử lý.');
+    const url=await blobAsDataUrlFromUrl(media.url);
+    const dims=await mediaDimensions(url,'image');
+    if(nodeById(source.id)!==source||commonAsset(source)?.url!==media.url)
+      throw Error('Cảnh đã thay đổi khi xuất ảnh.');
+    const id=uid('imageSnapshot');
+    createUndoSnapshot('Xuất ảnh góc máy hiện tại');
+    const node={id,type:'imageSnapshot',x:source.x+385,y:source.y+45,
+      data:{asset:{id:uid('asset'),kind:'image',url,
+        name:'Góc camera.png',width:dims.width,height:dims.height,sourceNodeId:id}}};
+    state.nodes.push(node);
+    state.edges.push({id:uid('edge'),source:source.id,sourcePort:'image',
+      target:id,targetPort:'image'});
+    render();selectNode(id);scheduleAutoSave();
+    setRunStatus('Đã xuất ảnh góc máy '+dims.width+'×'+dims.height+
+      ', không gọi AI và không ghi đè cảnh.','ok');
   }
   async function saveVideoFrame(source,mode){
     const media=commonAsset(source);
@@ -1561,9 +1587,9 @@
       const download=document.createElement('button');download.type='button';download.className='small-btn';download.textContent='Download resized image';download.disabled=!imageUrl;download.onclick=()=>{out.toBlob(blob=>{if(!blob)return;const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`museflow-${n.data.width}x${n.data.height}.png`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);});};body.appendChild(download);
     }
 
-    if(n.type==='videoFrame'){
+    if(n.type==='videoFrame'||n.type==='imageSnapshot'){
       if(n.data.asset?.url){const img=document.createElement('img');img.src=n.data.asset.url;img.alt='Khung hình được trích chính xác từ video';body.append(img);}
-      const note=document.createElement('small');note.className='hint';note.textContent='Ảnh PNG '+(n.data.asset?.width||'?')+'×'+(n.data.asset?.height||'?')+' · '+(n.data.captureMode==='first'?'Khung đầu':n.data.captureMode==='last'?'Khung cuối':'Khung tại vị trí tua')+' · Không dùng AI';body.append(note);
+      const note=document.createElement('small');note.className='hint';note.textContent=n.type==='imageSnapshot'?'Ảnh chụp từ góc camera hiện tại · Không dùng AI':'Ảnh PNG '+(n.data.asset?.width||'?')+'×'+(n.data.asset?.height||'?')+' · '+(n.data.captureMode==='first'?'Khung đầu':n.data.captureMode==='last'?'Khung cuối':'Khung tại vị trí tua')+' · Không dùng AI';body.append(note);
     }
 
     if (n.type === 'preview') {
@@ -1590,7 +1616,7 @@
     if(globalThis.WorkflowNodeCommonActions){
       const media=commonAsset(n);
       const usesAI=['prompt','masterScript','storyPrompt','generateText','generateImage','generateVideo','voiceover'].includes(n.type);
-      const contextTypes=['masterScript','imageInput','videoInput','videoFrame','audioInput','generateImage','generateVideo',
+      const contextTypes=['masterScript','imageInput','videoInput','videoFrame','imageSnapshot','audioInput','generateImage','generateVideo',
         'imageResize','preview','voiceover','finalOutput','audioMix','subtitles'].includes(n.type);
       const scripted=n.type==='masterScript'&&String(n.data.script||'').trim();
       const hasResult=Boolean(media?.url||scripted||String(n.data.sharedGeneratedText||'').trim());
