@@ -10,7 +10,7 @@ const tasks=Object.freeze({
   videoDepth:Object.freeze({code:'V10',name:'Chuyển động chiều sâu',kind:'video',source:'video',providers:['fal']}),
   videoHD:Object.freeze({code:'V11',name:'HD · Nâng cấp video',kind:'video',source:'video',providers:['fal']}),
   videoSubtitles:Object.freeze({code:'V12',name:'Xóa phụ đề khỏi video',kind:'video',source:'video',providers:['fal']}),
-  videoSegment:Object.freeze({code:'V13',name:'Làm lại đoạn video',kind:'video',source:'video',providers:[]})
+  videoSegment:Object.freeze({code:'V13',name:'Làm lại đoạn video',kind:'video',source:'video',providers:['fal']})
 });
 function task(id){return tasks[id]||null;}
 function assertTask(id){const spec=task(id);if(!spec)throw new Error('Tác vụ AI không hợp lệ: '+String(id));return spec;}
@@ -39,10 +39,10 @@ function buildPrompt(id,raw={},userPrompt=''){
   }
   if(id==='videoDepth')body='TASK: DEPTH MOTION VIDEO. Use attached original video as the actual movement source, and the attached image as a visual identity reference. Re-create its main subject with coherent foreground/midground/background parallax and natural depth movement. Preserve recognizability, motion timing, framing and sound when supported. Preview target '+s.preview+'. Do not pretend to enhance the original pixels; this is a new AI-generated video guided by the motion reference.';
   if(id==='videoHD')body='TASK: VIDEO ENHANCEMENT. Edit attached ORIGINAL VIDEO, retain each shot, timing, subject identity, movement, audio, and aspect ratio; remove compression/noise and produce genuine '+s.resolution+' output, not a stretched viewport. Frame interpolation: '+(s.interpolate?'on':'off')+'. Playback factor: '+s.slowdown+'×. Do not invent new scenes or subtitles. Only a provider supporting video-to-video enhancement may perform this.';
-  if(id==='videoSubtitles')body='TASK: VIDEO INPAINTING. Remove ONLY hard-burned subtitle glyphs from the attached ORIGINAL VIDEO, reconstruct background under letters across frames with temporal consistency. Preserve scene, faces, framing, audio, duration and all other details. Do not blur the whole lower third or merely hide caption tracks. Only a video-editing capable provider may perform this.';
+  if(id==='videoSubtitles')body='TASK: VIDEO INPAINTING of @Video1. Remove ONLY hard-burned subtitle glyphs from the attached ORIGINAL VIDEO, reconstruct background under letters across frames with temporal consistency. Preserve scene, faces, framing, audio, duration and all other details. Do not blur the whole lower third or merely hide caption tracks. Only a video-editing capable provider may perform this.';
   if(id==='videoSegment'){
     if(s.end<=s.start)throw new Error('Điểm kết thúc đoạn phải lớn hơn điểm bắt đầu.');
-    body='TASK: RERENDER SELECTED VIDEO SEGMENT. Replace only video time '+s.start.toFixed(2)+'s to '+s.end.toFixed(2)+'s in the attached ORIGINAL VIDEO, following the change request. All material before/after this segment must remain unchanged, keeping scene continuity and audio. Do not regenerate the whole timeline. Requires a video-editing and segment-splicing capable provider.';
+    body='TASK: RERENDER SELECTED VIDEO SEGMENT of @Video1. Replace only video time '+s.start.toFixed(2)+'s to '+s.end.toFixed(2)+'s in the attached ORIGINAL VIDEO, following the change request. All material before/after this segment must remain unchanged, keeping scene continuity and audio. Do not regenerate the whole timeline. Requires a video-editing and segment-splicing capable provider.';
   }
   const user=String(userPrompt||'').trim();
   return [intro,body,user?'USER ADDITIONAL DIRECTION (never overrides the task or source preservation):\n'+user:''].filter(Boolean).join('\n\n');
