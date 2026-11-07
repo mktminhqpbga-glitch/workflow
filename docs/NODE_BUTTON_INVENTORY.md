@@ -351,6 +351,6 @@ Chủ dự án yêu cầu **ẩn nút I13 — Phân đoạn lưới**, thuộc F
 
 **Thao tác đã chốt:** chỉ hiển thị công cụ này khi Node F03 **đã có ảnh kết quả và đang được chọn**; click I18 mở chế độ vẽ nét/đánh dấu trực tiếp lên ảnh. Khi click **Lưu**, app **mở bảng nhập ghi chú/chú thích**, không tự gọi AI hay tạo ảnh mới. Không nhầm với I04 — Đánh dấu đối tượng đã bị ẩn, cũng không nhầm với I10 — Chỉnh sửa phần tử có chế độ chọn vùng cho AI. Ảnh gốc giữ nguyên cho tới khi có một thao tác lưu/kết xuất được xác nhận rõ.
 
-**Chưa đủ ảnh để chốt chi tiết:** *bảng ghi chú thích xuất hiện sau nút Lưu* chưa có ảnh. Cần hỏi ảnh đúng bước đó khi hoàn thiện I18, không suy đoán trường nhập/bố cục hoặc cách gắn chú thích vào đầu ra.
+**Đã chốt thêm:** Sau khi bấm **Lưu**, mở **một cửa sổ nhỏ có nền vàng để người dùng nhập văn bản ghi chú/chú thích**. Không phải editor chiếm toàn màn hình, không tự gọi AI, không tự sinh ảnh. Chưa có yêu cầu chi tiết về nút phụ hay nơi lưu ghi chú nên không tự ý thiết kế thêm.
 
 **Trạng thái:** chốt phần hành vi và toolbar, chỉ lưu tài liệu; **chưa code I18**, không tạo preview giả.
