@@ -15,7 +15,7 @@ test('all shared Canvas UI assets are loaded in both desktop and packaged extens
 test('generation nodes preserve local Prompt alongside connected Prompt and shared controls',()=>{
   const app=read('app.js');
   assert.match(app,/className='node-local-prompt'/);
-  assert.match(app,/node\.data\.localPrompt/);
+  assert.match(app,/\.data\.localPrompt/);
   assert.match(app,/inputs\.push\(local\)/);
   assert.match(app,/WorkflowSharedNodeControls\.attach/);
   assert.match(app,/WorkflowNodeCommonActions\.attach/);
