@@ -130,7 +130,7 @@
 | E01 | Nhận video tham chiếu | Kết nối hoặc tải tệp video. | 🟡 |
 | E02 | Nhập lệnh chỉnh sửa | Prompt yêu cầu edit. | 🟡 |
 | E03 | Video thuyết minh | **TẠM HOÃN theo lựa chọn số 3 của chủ dự án (2026-11-08).** Không hỏi tiếp, không tự ẩn, chưa chốt giữ hay ẩn; để xác định chức năng sau. | ⏸️ Để làm sau |
-| E04 | Quảng cáo hàng loạt | Preset xử lý nhiều quảng cáo. | 🔴 |
+| E04 | Quảng cáo hàng loạt | **ẨN TOÀN ỨNG DỤNG theo yêu cầu 2026-11-08.** Không hiển thị nút/preset Quảng cáo hàng loạt trong F06 — Smart Edit hoặc Node khác có cùng chức năng. Không chỉ làm mờ; giữ nguyên workflow/video/dữ liệu cũ. E03 vẫn tạm hoãn (không tự ẩn), E05/E06 chưa chốt. | ⛔ ẨN |
 | E05 | Video podcast | Preset edit podcast. | 🔴 |
 | E06 | Biên tập tư liệu | Preset cắt clip. | 🔴 |
 | E07 | Chế độ chỉnh sửa | Chọn mode phù hợp. | 🔴 |
@@ -481,6 +481,7 @@ Chủ dự án trả lời **“ẩn cái này đi nhé”** khi được hỏi 
 - **V14 — Tách âm thanh/video; Phân tích/tách cảnh từng khung hình** trên thanh công cụ (không xóa chức năng chụp khung hình hiện tại/đầu/cuối của R02/U21 đã duyệt).
 - **D01 — Mở bàn làm việc 3D; D05 — Xem không gian 3D** ở **F05** và các Node khác nếu xuất hiện cùng chức năng.
 - **E14 — Timeline chuyên dụng** (không xóa trình phát/tua video, timeline chọn đoạn của V13, hoặc dữ liệu timeline legacy đã lưu).
+- **E04 — Quảng cáo hàng loạt** trong Smart Edit và mọi Node có cùng chức năng.
 
 **Không được suy rộng:** D06 — Điều khiển camera, D07 — Chọn góc máy **đã được giữ và dùng chung F03/I12**; D08 — Xuất ảnh từ camera vẫn **chưa được yêu cầu ẩn riêng**, cần chốt, không tự xóa. E07 — Chế độ chỉnh sửa đã được chủ dự án yêu cầu **bỏ qua việc hỏi**, không đồng nghĩa với ẩn. Dữ liệu các workflow/video/ảnh cũ giữ nguyên.
 
@@ -510,4 +511,11 @@ Người dùng trả lời **“giống F3, các nút có biểu tượng giốn
 
 - **F05/D08 — Xuất ảnh từ camera:** người dùng xác nhận “ok” với đặc tả: trích góc nhìn camera hiện tại trên F05 thành **một ảnh mới**, tương tự chụp khung hình nhưng nguồn camera/scene. Giữ nguyên cảnh nguồn; chưa code.
 - **F06/E03 — Video thuyết minh:** người dùng chọn phương án **3 — để làm sau**. Không yêu cầu ảnh hay đặt câu hỏi E03 nữa ở vòng hiện tại. **Không đồng nghĩa với ẩn nút** và chưa chốt chức năng E03.
-- **Cần hỏi tiếp:** F06/E04 — Quảng cáo hàng loạt; rồi E05 và E06. E07 cũng đang bỏ qua. Nhóm Smart Edit trước đó có ý định giữ hai/ẩn hai trong bốn preset, nhưng E03 hoãn nên cần tránh suy luận số lượng giữ/ẩn khi chưa có quyết định.
+- **Cập nhật:** F06/E04 — Quảng cáo hàng loạt **ĐÃ YÊU CẦU ẨN**. Hỏi tiếp E05 rồi E06. E07 cũng đang bỏ qua. Nhóm Smart Edit trước đó có ý định giữ hai/ẩn hai trong bốn preset, nhưng E03 hoãn nên cần tránh suy luận số lượng giữ/ẩn khi chưa có quyết định.
+
+
+### Quyết định — F06/E04 Quảng cáo hàng loạt (2026-11-08)
+
+Chủ dự án trả lời **“ẩn”** cho **E04 — Quảng cáo hàng loạt**, thuộc F06 — Smart Edit. Đánh dấu **⛔ ẨN trên toàn ứng dụng**: không render nút E04 ở F06, cũng không hiện nút/preset trùng chức năng ở bất kỳ Node nào, bất kể Node đang trống hay có kết quả. Không xóa nội dung/video/workflow trước đây. **E03 — Video thuyết minh vẫn để làm sau**, không tự chuyển thành ẩn; **E05/E06** chưa chốt.
+
+**Tình trạng:** quyết định giao diện, **chưa triển khai đầy đủ UI F06 V3**. Nút tiếp theo: **F06/E05 — Video podcast**, hỏi giữ, ẩn hay làm sau.
