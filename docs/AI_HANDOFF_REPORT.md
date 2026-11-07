@@ -247,3 +247,36 @@ Test browser/desktop có thể yêu cầu môi trường, dependency hoặc disp
 6. Đề nghị chủ dự án duyệt bước sửa nhỏ **BUG-007 và bổ sung test round-trip cho node+dây nối** trong phần tiếp theo, rồi mới sửa UX. Mỗi sửa đổi cần commit riêng, có log chạy test và ảnh nếu có thay đổi hiển thị.
 
 **Nhật ký:** Phần 01 — đã hoàn thành đợt kiểm tra mã + log CI và lưu báo cáo, tình trạng tổng thể **🟡 còn hạng mục chưa xác minh**, không sửa runtime. Tham khảo GitHub commit đã chứa lần cập nhật mục 11 này.
+
+
+## 12. TIỂU PHẦN NODE — F01 Văn bản: kiểm kê nút và chờ duyệt hành vi
+
+**Ghi nhận 2026-11-08:** Chủ dự án muốn chuyển trọng tâm từ BUG-007 sang **các nút bên trong Node**, mỗi phần nhỏ hỏi trước khi triển khai, sau đó gửi ảnh app chạy thật + báo cáo commit. BUG-007 vẫn mở, không tự sửa.
+
+### Kiểm kê F01 dựa trên repo GitHub `main` (không kế thừa nhãn 'hoàn thành' của mock V3)
+
+| Mã | Nút/điều khiển F01 theo ảnh mẫu | Trạng thái có căn cứ trên `main` | Ghi chú |
+|---|---|---|---|
+| T01 | Nhập/sửa nội dung văn bản | 🟡 Một phần | Có `prompt` textarea và output read-only của `generateText`, nhưng chưa phải composer F01 chuẩn. |
+| T02 | “Tự viết nội dung” | 🔴 Chưa thấy điều khiển riêng | Cần xác nhận click sẽ mở chế độ nhập tay hay chèn mẫu prompt. |
+| T03 | “Văn bản thành video” | 🔴 Chưa thấy điều khiển riêng | Có node `generateVideo` legacy; chưa có chuyển tác vụ từ F01 qua F04 như ảnh mẫu. |
+| T04 | “Ảnh suy ngược Prompt” | 🔴 Chưa thấy điều khiển riêng | `generateText` có đầu vào ảnh, nhưng cần xác nhận luồng UI/chọn ảnh/model. |
+| T05 | “Văn bản thành nhạc” | 🔴 Chưa thấy điều khiển riêng | Có các node audio legacy; chưa chứng minh được F01 → audio AI tạo nhạc. |
+| T06 | Chọn model AI trong composer | 🟡 Một phần | `providerControls()` có sẵn trong `generateText`; khác ảnh mẫu. |
+| T07 | Nút dịch/ngôn ngữ | 🔴 Chưa xác minh điều khiển riêng | Không tự gán dịch AI hay dịch UI khi chưa có mô tả. |
+| T08 | Nút chạy ↑ ba trạng thái | 🟡 Một phần | `createNodeRunActions()` hiện là `▶ Run Văn bản`, khi chạy là `■ Stop`; chưa đúng nút ↑ trắng/spinner/đỏ được yêu cầu. |
+| T09 | Mở rộng/thu gọn Prompt | 🔴 Chưa đúng theo ảnh mẫu | Không thể coi `details` legacy là hoàn tất yêu cầu composer neo node, zoom bất biến. |
+| T10 | Cổng + nhận/gửi Node | 🟡 Một phần | `nodeDefs.generateText` và `addPorts()` có kiểu text/image/video nhưng giao diện cổng chưa theo mẫu và chưa test V3. |
+
+**Quy tắc thiết kế F01 đã chốt:** Không có toolbar chỉnh sửa ảnh/video phía trên; phần card node zoom cùng Canvas; composer phía dưới giữ kích thước màn hình; click chọn/bỏ chọn đúng quy tắc; không xóa luồng `generateText` cũ hay hỏng graph legacy.
+
+### Chia F01 thành các bước nhỏ
+
+1. **F01-A: Nhập nội dung + nút “Tự viết nội dung”** — hỏi và chốt hành vi click; triển khai giao diện + lưu nội dung, test giữ data và selection. Chụp ảnh chưa/chọn node, trước/sau zoom. Commit riêng.
+2. **F01-B: Bốn lối tắt ở card** — Văn bản→video, Ảnh→prompt, Văn bản→nhạc; hỏi về kết quả và cổng tương ứng; không tự tạo AI result giả. Commit riêng.
+3. **F01-C: Composer** — provider/model, dịch, mở rộng/thu gọn, nút ↑ ba trạng thái; gắn action vào tác vụ thật, xử lý lỗi, dừng. Commit riêng và test.
+4. **F01-D: Node + dây + lưu/khôi phục** — input/output có kiểu, truyền nội dung và JSON, kiểm thử tương thích import legacy; commit và ghi log.
+
+**Hành vi đang cần chủ dự án xác nhận đầu tiên:** Khi click **“Tự viết nội dung”** trong Node Văn bản, có phải mở/focus khung bên dưới để **nhập tay** (không gửi AI), hoặc là điền một lệnh mẫu cho AI? Chưa sửa runtime cho tới khi được xác nhận.
+
+**Kiểm thử trong mục này:** Mới đọc nguồn `app.js` (`renderNode`, `providerControls`, `createNodeRunActions`, `addPorts`) trên GitHub; chưa chạy ứng dụng, chưa tạo ảnh UI mới, chưa kiểm thử AI thật.
