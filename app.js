@@ -1092,6 +1092,22 @@
     state.edges=unique.reverse();
     state.groups=Array.isArray(state.groups)?state.groups.filter(group=>group&&Number.isFinite(group.x)&&Number.isFinite(group.y)&&Number.isFinite(group.width)&&Number.isFinite(group.height)&&group.width>0&&group.height>0).map(group=>({...group,id:typeof group.id==='string'?group.id:uid('group'),name:String(group.name||'Group'),nodeIds:Array.isArray(group.nodeIds)?group.nodeIds.filter(id=>seenNodeIds.has(id)):[]})):[];
   }
+  // Reuse the existing, selected AI connection: translation is an explicit action,
+  // not a workflow run or a replacement for the Prompt's original data.
+  async function translateNodeDraft(node, source, targetLanguage) {
+    const provider=node.data.provider||'gemini';
+    const config=WorkflowAI.providers[provider];
+    if(!config?.types?.includes('text'))throw new Error('AI hiện tại không hỗ trợ dịch văn bản. Hãy chọn AI văn bản đã kết nối.');
+    if(runForNode(node.id))throw new Error('Node đang chạy. Hãy đợi hoàn thành trước khi dịch.');
+    const target=targetLanguage==='en'?'tiếng Anh':'tiếng Việt';
+    const payload={requestId:uid('translate'),mediaType:'text',
+      prompt:'Dịch chính xác đoạn văn sau sang '+target+'. Chỉ xuất bản dịch, không giải thích, không thêm lời dẫn. Giữ các dòng và dấu câu khi có thể.\n\n'+source};
+    const caller={type:'generateText',data:{provider,chatTarget:node.data.chatTarget||aiChatTargets[provider]}};
+    const result=await generateWithProvider(caller,payload);
+    if(!result?.ok||!result.text?.trim())throw new Error(result?.error||'Không nhận được bản dịch từ AI đã kết nối.');
+    return result.text.trim();
+  }
+
   function renderNode(n) {
     const el = document.createElement('section');
     el.className = `node ${['generateImage','generateVideo','generateText'].includes(n.type) ? 'generate' : ''} ${n.type==='timeline'?'timeline-node':''} ${state.selectedNodeIds.includes(n.id)||state.selectedNodeId===n.id ? 'selected' : ''}`;
@@ -1213,6 +1229,17 @@
     addPorts(el, n);
     if(['generateImage','generateVideo','generateText'].includes(n.type))studioButton(body,'Xóa kết quả cũ',()=>clearNodeOutput(n),{disabled:!!runForNode(n.id)});
     compactGenerator(n,body);
+    // Shared prompt controls: same translation and full-screen editing behavior across
+    // text/script/audio draft fields; media generators will join when V3 composer lands.
+    if(globalThis.WorkflowSharedNodeControls){
+      const allowTranslate=['prompt','textAppend','storyPrompt','storyMaster','storyScript','speech'].includes(n.type);
+      globalThis.WorkflowSharedNodeControls.attach({
+        node:n,body,canTranslate:allowTranslate,
+        translate:(value,lang)=>translateNodeDraft(n,value,lang),
+        onChange:()=>scheduleAutoSave(),
+        onError:error=>setRunStatus(error.message||'Không thể dịch Prompt.','error')
+      });
+    }
     el.onmousedown = event => {if(event.target.closest('button,input,textarea,select,summary,details,.port,.node-header'))return;if(event.shiftKey||event.ctrlKey||event.metaKey)selectNode(n.id,{toggle:true});else if(!state.selectedNodeIds.includes(n.id))selectNode(n.id);};
     return el;
   }
