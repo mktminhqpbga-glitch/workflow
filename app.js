@@ -806,6 +806,11 @@
   }
 
   function addNode(type, x=250 + Math.random()*220, y=160 + Math.random()*180) {
+    // One implementation per real Node type. Unique V3 menu aliases prevent
+    // duplicate CSS targets without duplicating the Node runtime.
+    type=({v3Text:'generateText',v3Script:'masterScript',v3Image:'generateImage',
+      v3Video:'generateVideo',v3Audio:'voiceover',v3UploadImage:'imageInput',
+      v3UploadVideo:'videoInput'})[type]||type;
     const isDirector=type==='director';if(isDirector)type='generateImage';
     const toolKind=WorkflowTools.aliases[type]?type:null;if(toolKind)type='generateText';
     const dockTimeline=type==='timeline'&&state.nodes.find(node=>node.type==='timeline'&&node.data?.dockOnly);
