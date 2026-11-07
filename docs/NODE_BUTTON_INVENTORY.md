@@ -73,9 +73,9 @@
 | I11 | HD / Nâng cấp độ phân giải | **F03 đã có ảnh kết quả và ảnh được chọn** → bấm HD trên toolbar nổi → xuất hiện Node **HD** mới, nối từ ảnh gốc; có bảng thiết lập nâng cấp độ phân giải với **Chọn model/dịch vụ** (ảnh mẫu: Topazlabs), **chế độ/model** (ảnh mẫu: Thông dụng), **hệ số phóng** 2× / 4× / 6× và nút **↑ tạo**. AI xử lý ảnh gốc thành **một ảnh kết quả mới có chất lượng theo thiết lập**; không chỉ kéo giãn ảnh hiển thị. Node HD rỗng có placeholder, không có toolbar kết quả nổi phía trên. Chỉ cho chọn dịch vụ/model có kết nối, nếu thiếu phải thông báo. Chưa code. | 🟡 Đã chốt UX, chưa code |
 | I12 | Nhiều góc độ | **F03 có ảnh kết quả và đang chọn:** bấm nút Nhiều góc độ mở bảng **Trình chỉnh sửa nhiều góc độ** ở dưới ảnh (ảnh user 2026-11-08); có preset góc nhìn (Tùy chỉnh, mắt cá, nghiêng, trước nhìn từ trên, trước từ dưới, toàn cảnh từ trên, phía sau), mô hình quả cầu xoay xem hướng camera, thanh trượt xoay ngang/dọc và zoom cảnh, bật/tắt hiển thị Prompt, Đặt lại, nút ↑. Sau khi cài đặt, AI **sinh một ảnh MỚI cùng nhân vật/đối tượng từ ảnh gốc theo góc camera mới**; không chỉ xoay/zoom ảnh sẵn có và không ghi đè ảnh nguồn. | 🟡 Đã chốt UX, chưa code |
 | I13 | Phân đoạn lưới | **ẨN THEO YÊU CẦU.** Không hiển thị trong thanh công cụ/menu của F03 kể cả khi đã có kết quả; không kích hoạt công cụ hay tạo kết quả; không xóa dữ liệu ảnh hoặc Node cũ. Không thêm lại khi dựng UI V3 nếu chưa được duyệt. | ⛔ ẨN |
-| I14 | Phân tách lớp | Tách lớp ảnh. | 🔴 |
-| I15 | Toàn cảnh 720° | Công cụ pano 720°. | 🔴 |
-| I16 | Hơn | Menu công cụ ngữ cảnh mở khi chọn. | 🟡 |
+| I14 | Phân tách lớp | **ẨN TOÀN ỨNG DỤNG THEO YÊU CẦU.** Không hiển thị nút/tác vụ Phân tách lớp trên bất kỳ toolbar Node nào, kể cả đã có kết quả. Giữ nguyên dữ liệu. | ⛔ ẨN |
+| I15 | Tầm nhìn toàn cảnh 720 độ | **ẨN TOÀN ỨNG DỤNG THEO YÊU CẦU.** Không hiển thị nút/tác vụ 720° trên bất kỳ toolbar Node nào, kể cả đã có kết quả. Giữ nguyên dữ liệu. | ⛔ ẨN |
+| I16 | Hơn | **ẨN TOÀN ỨNG DỤNG THEO YÊU CẦU.** Không hiển thị menu Hơn/More trong các toolbar Node. Các chức năng được duyệt khác vẫn có nút riêng, không xóa dữ liệu. | ⛔ ẨN |
 | I17 | Nhân bản | Duplicate Node hoặc ảnh theo lựa chọn. | 🟡 |
 | I18 | Vẽ/đánh dấu | Ghi chú chỉnh sửa ngay trên ảnh. | 🔴 |
 | I19 | Tải ảnh | Lưu ảnh kết quả. | 🟡 |
@@ -101,7 +101,7 @@
 | V12 | Xóa phụ đề | Chỉ hoạt động khi có bộ xử lý thật. | 🔴 |
 | V13 | Làm lại đoạn video | Chỉnh và tái tạo một phân đoạn. | 🔴 |
 | V14 | Tách âm thanh | Trích audio từ video. | 🟡 |
-| V15 | Hơn | Menu công cụ bổ sung. | 🟡 |
+| V15 | Hơn | **ẨN TOÀN ỨNG DỤNG THEO YÊU CẦU.** Không hiển thị menu Hơn/More trong các toolbar Node Video hoặc bất kỳ Node nào. | ⛔ ẨN |
 | V16 | Phát/tạm dừng | Player nội bộ. | 🟡 |
 | V17 | Tải video | Lưu output hợp lệ. | 🟡 |
 | V18 | Zoom xem video | Xem video lớn. | 🟡 |
@@ -275,7 +275,7 @@
 
 - **F01/T04 (Ảnh → suy ngược Prompt):** Khi nhận nhiều ảnh, tạo **một Prompt riêng cho từng ảnh**; không tự gộp tất cả ảnh vào một Prompt. Cần giữ liên kết Prompt ↔ ảnh nguồn; nếu UI kết quả chưa rõ thì xin duyệt trước khi triển khai.
 - **C05 (Kho tài sản):** Chỉ sử dụng **một kho tài sản chung cho toàn ứng dụng**, chia thành các **khu nhỏ theo loại tài nguyên** (ví dụ ảnh, video, âm thanh, nhân vật, bối cảnh, sản phẩm, hiệu ứng, mẫu). Mọi Node dùng chung một bộ chọn tài nguyên, tự lọc loại hợp lệ theo cổng đầu vào; không tự tạo 9 kho riêng biệt.
-- Các công cụ riêng còn chờ giải thích: F02 S01/S03; F03 I05/I10–I15/I18 (I04 đã được yêu cầu ẩn); F04 V05/V10–V14; F05 D01/D05–D08; F06 E03–E07/E11/E14; F07 A04/A10; R01 U10; R02 U21. **Các hình minh họa trợ giúp là đề xuất ý nghĩa thao tác, không phải chức năng đã được xác nhận hoặc đã triển khai.** Chủ dự án sẽ xem từng hình rồi chốt lại.
+- Các công cụ riêng còn chờ giải thích: F02 S01/S03; F03 I05/I10–I12/I18 (I04, I13–I16 đã được yêu cầu ẩn); F04 V05/V10–V14; F05 D01/D05–D08; F06 E03–E07/E11/E14; F07 A04/A10; R01 U10; R02 U21. **Các hình minh họa trợ giúp là đề xuất ý nghĩa thao tác, không phải chức năng đã được xác nhận hoặc đã triển khai.** Chủ dự án sẽ xem từng hình rồi chốt lại.
 
 
 ### Quyết định giao diện — I04 (2026-11-08)
@@ -288,7 +288,7 @@ Chủ dự án yêu cầu **ẩn nút I04 — Đánh dấu đối tượng** kh�
 Người dùng gửi **hai ảnh chụp giao diện thật** và xác nhận trạng thái:
 
 1. **F03 chưa có ảnh kết quả:** I10 không xuất hiện, nên không yêu cầu người dùng tìm nút trong Node rỗng. Bảng thông tin/nút của Node trống thuộc trạng thái khác, không đồng nhất với giao diện công cụ ảnh thành phẩm.
-2. **F03 đã có ảnh và ảnh đang được chọn:** thanh công cụ nổi ngang phía trên ảnh có **Chỉnh sửa phần tử** ở đầu trái, kế đó HD, Nhiều góc độ, Phân đoạn lưới, Phân tách lớp, Toàn cảnh 720°, Hơn, v.v. Ảnh nguồn vẫn được giữ.
+2. **F03 đã có ảnh và ảnh đang được chọn:** thanh công cụ nổi ngang phía trên ảnh có **Chỉnh sửa phần tử** ở đầu trái, kế đó HD và Nhiều góc độ; các nút Phân đoạn lưới, Phân tách lớp, Toàn cảnh 720° và Hơn đã bị yêu cầu ẩn. Ảnh nguồn vẫn được giữ.
 3. Bấm **Chỉnh sửa phần tử** thì toolbar được thay thành toolbar edit nhỏ: **× Chỉnh sửa phần tử | ghim/điểm chọn | chọn vùng nét đứt | bút tự do | hoàn tác**. Ảnh bên dưới bị phủ lớp tối, có hướng dẫn chọn đối tượng cần sửa. **Không mở Node mới** và **không tự chuyển sang giao diện composer chưa có ảnh**.
 4. Quy tắc UI toàn ứng dụng: **chỉ khi Node đã có kết quả VÀ đang được chọn** mới hiện toolbar nổi ở trên. Node chưa có kết quả: **không hiện toolbar**, kể cả khi click chọn; không tự nổi khi hover. I04 vẫn bị ẩn như một nút độc lập; các công cụ chọn/đánh dấu *bên trong chế độ I10* vẫn giữ nguyên.
 5. **Chưa xác nhận** cách áp dụng AI sau khi đánh dấu/chọn vùng và kết quả sau khi sửa. Không tự suy ra là lập tức gửi prompt hoặc tạo ảnh mới; sẽ hỏi riêng khi tới bước xử lý. **Chưa có mã tính năng I10 trong ứng dụng**, tài liệu không được hiểu nhầm là hoàn thành code.
@@ -326,9 +326,20 @@ Người dùng gửi **hai ảnh chụp giao diện thật** và xác nhận tr�
 
 **Chức năng đã được người dùng xác nhận:** sau khi lựa chọn camera và thiết lập, AI **tạo ra ảnh kết quả khác với cùng nhân vật/đối tượng của ảnh gốc** nhưng góc máy theo tham số mới. Không chỉ thao tác CSS xoay ảnh cũ; ảnh gốc vẫn được giữ nguyên. Khi triển khai, chỉ dùng AI/provider thực tế hỗ trợ image-to-image / đổi góc nhìn, không mô phỏng kết quả nếu không có model đã kết nối. Kết quả mới phải có nguồn gốc từ ảnh tham chiếu và có trạng thái chạy/lỗi/hoàn tất.
 
-**Trạng thái:** mới ghi đặc tả, **chưa triển khai mã**. **Cập nhật:** I13 — Phân đoạn lưới đã được chủ dự án yêu cầu **ẩn**, không cần hỏi ảnh hay triển khai. Nút tiếp theo cần giải thích: **F03 — Sinh ảnh AI / I14 — Phân tách lớp**, trạng thái **đã có ảnh kết quả và đang chọn**.
+**Trạng thái:** mới ghi đặc tả, **chưa triển khai mã**. **Cập nhật:** I13–I16 — Phân đoạn lưới, Phân tách lớp, Toàn cảnh 720° và Hơn đã được chủ dự án yêu cầu **ẩn trên tất cả Node**; không cần hỏi ảnh hay triển khai. Nút tiếp theo cần giải thích: **F03 — Sinh ảnh AI / I18 — Vẽ/đánh dấu**, trạng thái **đã có ảnh kết quả và đang chọn**.
 
 
 ### Quyết định — F03/I13 Phân đoạn lưới (2026-11-08)
 
 Chủ dự án yêu cầu **ẩn nút I13 — Phân đoạn lưới**, thuộc F03 — Sinh ảnh AI. Không hiện ở toolbar trên ảnh đã có kết quả, không có menu con và không hỏi thêm đặc tả. Quyết định này tương tự I04 đã ẩn, nhưng áp dụng riêng I13. Giữ nguyên dữ liệu, kết quả và đồ thị Node hiện có. Nếu sau này UI V3 thêm thanh công cụ ảnh, phải loại I13 khỏi danh sách nút hiển thị. Không đánh dấu là đã hoàn thành tính năng I13.
+
+
+### Quyết định toàn cục — Ẩn 4 mục trên MỌI thanh công cụ Node (2026-11-08)
+
+**Chủ dự án gửi ảnh chụp 4 mục liền nhau trong thanh công cụ ảnh và ra lệnh “ẩn hết những nút này đi nhé (ở tất cả các nút)”.** Ảnh có tên: **Phân đoạn lưới (#), Phân tách lớp (layers), Tầm nhìn toàn cảnh 720 độ, Hơn (▼/▲)**.
+
+**Phạm vi bắt buộc:** áp dụng cho toolbar, menu mở rộng và danh sách action trên **mọi loại Node F01–F07 và R01–R02** nơi những action này xuất hiện; **không chỉ F03**. Không được hiển thị các mục trên trong trạng thái đã chọn/có kết quả. Không thêm lại các nút đó khi xây lại toolbar dùng chung V3. Giữ nguyên các nút đã duyệt còn lại (**Chỉnh sửa phần tử, HD, Nhiều góc độ, Tải kết quả, Xem lớn/Zoom...**); không xoá kết quả, asset, cấu trúc graph hay thao tác của một menu khác không cùng ý nghĩa.
+
+**Các mã bị ẩn:** F03 `I13`, `I14`, `I15`, `I16`; F04 `V15` (Hơn). Các nút F03 `I04` (Đánh dấu đối tượng) và F05 `D01` đã được yêu cầu ẩn trước đó, giữ nguyên quyết định. Nếu có tên khác nhưng cùng chức năng trong node upload/khác, cũng phải ẩn.
+
+**Trạng thái repo:** tìm trong `app.js`, `app.html`, `node-common-actions.js`, `compact-toolbar.js`: chưa có mã hiển thị các action này trong UI legacy hiện tại. Vì vậy đợt này lưu **đặc tả ẩn và bài kiểm thử chống thêm lại**, không nhận là đã hoàn thành toàn bộ giao diện V3 hay thử được thao tác xóa nút trên bản đang chạy. Các media và nút còn lại không bị đổi.
