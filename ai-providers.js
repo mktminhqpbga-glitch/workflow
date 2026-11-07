@@ -18,7 +18,7 @@
   }
   async function media(url,signal) {
     const r=await fetch(url,{signal});if(!r.ok)throw new Error('Không đọc được tệp tham chiếu.');const blob=await r.blob();
-    if(!/^(image|video)\//.test(blob.type))throw new Error('Tệp API phải là ảnh hoặc video có MIME hợp lệ.');
+    if(!/^(image|video|audio)\//.test(blob.type))throw new Error('Tệp API phải là ảnh, video hoặc âm thanh có MIME hợp lệ.');
     if(!blob.size||blob.size>20*1024*1024)throw new Error('Tệp API phải có dung lượng từ 1 byte đến 20 MB.');
     const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(blob);});
     return {mimeType:blob.type,data:String(data).split(',')[1],dataUrl:data};
@@ -29,15 +29,19 @@
     if(r.mediaType==='video'&&provider==='google'&&![4,6,8].includes(Number(r.duration)))throw new Error('Veo adapter hỗ trợ clip 4, 6 hoặc 8 giây; không thể bảo đảm một clip 15–60 giây.');
     if(provider==='fal'){
       const action=r.aiTask?.id||'videoDepth';
-      const images=r.referenceImages||[],videos=r.referenceVideos||[];
-      if(videos.length!==1)throw new Error('Tác vụ fal.ai cần đúng một video nguồn, không được thay bằng văn bản.');
+      const images=r.referenceImages||[],videos=r.referenceVideos||[],audios=r.referenceAudios||[];
+      if(action==='audioToVideo'){
+        if(audios.length!==1||videos.length||images.length>1)
+          throw new Error('Âm thanh thành Video cần đúng một audio nguồn, tối đa một ảnh, không nhận video nguồn.');
+      }else if(videos.length!==1)
+        throw new Error('Tác vụ fal.ai cần đúng một video nguồn, không được thay bằng văn bản.');
       if(action==='videoDepth'&&images.length!==1)throw new Error('Motion Control cần đúng một ảnh nhân vật và một video chuyển động nguồn.');
       if(action==='videoHD'){
         if(images.length)throw new Error('Nâng video HD không nhận ảnh thay cho video nguồn.');
         if(Number(r.aiTask?.settings?.slowdown||1)!==1)throw new Error('Model nâng cấp video chưa hỗ trợ giảm tốc. Chọn tốc độ 1×.');
       }
       if(action==='videoSubtitles'&&images.length>4)throw new Error('Model edit video chỉ hỗ trợ tối đa 4 ảnh tham chiếu.');
-      if(!['videoDepth','videoHD','videoSubtitles','videoSegment'].includes(action))
+      if(!['videoDepth','videoHD','videoSubtitles','videoSegment','audioToVideo'].includes(action))
         throw new Error('Tác vụ fal.ai này chưa có adapter xử lý video nguồn phù hợp.');
     }
   }
@@ -83,17 +87,28 @@
     }
     if(provider==='fal') {
       const action=r.aiTask?.id||'videoDepth';
-      const id=action==='videoHD'?'fal-ai/bytedance-upscaler/upscale/video':
+      const id=action==='audioToVideo'?'fal-ai/ltx-2.3-22b/audio-to-video':
+        action==='videoHD'?'fal-ai/bytedance-upscaler/upscale/video':
         ['videoSubtitles','videoSegment'].includes(action)?'fal-ai/kling-video/o1/standard/video-to-video/edit':
         'fal-ai/kling-video/v2.6/standard/motion-control';
       // The AI task selects a verified schema; never use a model from another task.
       const requestedModel=r.aiTask?.id?id:model;
       if(requestedModel!==id||!/^fal-ai\/[a-zA-Z0-9/_.-]+$/.test(id))
         throw new Error('Adapter fal.ai không nhận model không phù hợp tác vụ.');
-      const url=(await media(r.referenceVideos[0],signal)).dataUrl;
+      const url=action==='audioToVideo'?null:(await media(r.referenceVideos[0],signal)).dataUrl;
       const headers={'Content-Type':'application/json',Authorization:'Key '+key};
       let input;
-      if(action==='videoDepth'){
+      if(action==='audioToVideo'){
+        const audio=(await media(r.referenceAudios[0],signal)).dataUrl;
+        const imgs=r.referenceImages||[];
+        const config=r.aiTask?.settings||{};
+        const ratio=config.aspect==='9:16'?'portrait_16_9':'landscape_16_9';
+        const duration=[5,10].includes(Number(config.duration))?Number(config.duration):5;
+        input={prompt:r.prompt,audio_url:audio,match_audio_length:false,
+          num_frames:duration*24+1,video_size:ratio,fps:24,
+          audio_strength:1};
+        if(imgs.length)input.image_url=(await media(imgs[0],signal)).dataUrl;
+      }else if(action==='videoDepth'){
         const img=(await media(r.referenceImages[0],signal)).dataUrl;
         input={prompt:r.prompt,image_url:img,video_url:url,
           character_orientation:'video',keep_original_sound:true};
