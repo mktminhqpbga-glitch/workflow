@@ -22,6 +22,7 @@ test('hidden Node toolbar tools must not return in any Canvas UI module',()=>{
     /Xem không gian 3D/i,
     /Điều khiển camera 3D/i,
     /Timeline chuyên dụng/i,
+    /Quảng cáo hàng loạt/i,
     /['"`]Đánh dấu đối tượng['"`]/i
   ];
   for(const filename of files){
@@ -34,7 +35,7 @@ test('hidden Node toolbar tools must not return in any Canvas UI module',()=>{
 });
 test('F03 and F04 tool inventory explicitly tracks globally hidden actions',()=>{
   const inventory=fs.readFileSync(path.join(root,'docs/NODE_BUTTON_INVENTORY.md'),'utf8');
-  for(const id of ['I04','I13','I14','I15','I16','V14','V15','D01','D05','D06','E14']){
+  for(const id of ['I04','I13','I14','I15','I16','V14','V15','D01','D05','D06','E04','E14']){
     assert.match(inventory,new RegExp('\\| '+id+' \\|[^\\n]*⛔ ẨN \\|'));
   }
 });
