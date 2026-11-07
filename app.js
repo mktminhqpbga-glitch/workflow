@@ -1393,8 +1393,9 @@
       const contextTypes=['masterScript','imageInput','videoInput','audioInput','generateImage','generateVideo',
         'imageResize','preview','voiceover','finalOutput','audioMix','subtitles'].includes(n.type);
       const scripted=n.type==='masterScript'&&String(n.data.script||'').trim();
+      const hasResult=Boolean(media?.url||scripted||String(n.data.sharedGeneratedText||'').trim());
       globalThis.WorkflowNodeCommonActions.attach({
-        node:n,root:el,body,media,
+        node:n,root:el,body,media,hasResult,
         modelGroups:usesAI?()=>commonConnectedModels(n):null,
         onModelPick:(g,item)=>commonChooseModel(n,g,item),
         onReference:commonReferenceActions(n,el),
