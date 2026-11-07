@@ -21,7 +21,7 @@
 | F03 | Sinh ảnh AI | 22 | 10 | 12 |
 | F04 | Sinh video AI | 21 | 13 | 8 |
 | F05 | Bàn làm việc của giám đốc | 9 | 2 | 7 |
-| F06 | Chỉnh sửa thông minh | 16 | 8 | 8 |
+| F06 | Chỉnh sửa thông minh — **⛔ ẨN CẢ NODE** | 16 (không hiển thị) | — | — |
 | F07 | Sinh âm thanh AI | 13 | 8 | 5 |
 | R01 | Ảnh tải lên | 10 | 9 | 1 |
 | R02 | Video tải lên | 11 | 10 | 1 |
@@ -123,7 +123,9 @@
 | D08 | Xuất ảnh từ camera | **Đã xác nhận:** chọn góc máy hiện tại trong F05 — Đạo diễn và **xuất một ảnh mới** tương tự thao tác chụp khung hình, nhưng nguồn là camera/góc nhìn của F05 (không phải video timeline). Không mặc định gọi AI; không thay đổi cảnh gốc. | 🟡 Đã chốt chức năng, chưa code |
 | D09 | Thu gọn Prompt | Theo chuẩn Node. | 🔴 |
 
-## F06 — Chỉnh sửa thông minh
+## F06 — Chỉnh sửa thông minh (Smart Edit) — ⛔ ẨN TOÀN BỘ NODE
+
+**QUYẾT ĐỊNH MỚI NHẤT — ưu tiên cao nhất (2026-11-08):** Chủ dự án yêu cầu **ẨN CẢ NODE F06**, không chỉ E05 hay một preset. **Không hiển thị F06 trong menu Add Node, thanh chọn nhanh, các preset/template tạo mới hoặc toolbar chuyên biệt.** E01–E16 không phải triển khai trong UI F06 hiện hành; quyết định cũ về E03/E07 'để làm sau' được giữ làm lịch sử nhưng không còn là câu hỏi cần giải quyết. **Không xóa F06 nào đã lưu trong project**, không vô hiệu chức năng khác ở F03/F04/R01/R02 chỉ vì có biểu tượng giống. Đặc tả chi tiết các E nút bên dưới chỉ là tư liệu lưu lại; **không được dùng làm lý do hiện lại F06**.
 
 | Mã | Nút/điều khiển | Mẫu & hành vi theo yêu cầu | Trên GitHub main |
 |---|---|---|---|
@@ -504,7 +506,7 @@ Chủ dự án trả lời **“giữ lại”** khi được hỏi về **D07 �
 
 Người dùng trả lời **“giống F3, các nút có biểu tượng giống nhau thì nó giống nhau”**. D07 là nút **Chọn góc máy** của F05, phải dùng nguyên giao diện/trình xử lý **F03/I12 — Nhiều góc độ** đã được người dùng chốt, không hỏi lại hoặc tạo phiên bản khác. Mọi nút có biểu tượng và ý nghĩa tương đương qua các Node dùng cùng UX và handler; nút đã ẩn thì ẩn khắp ứng dụng theo quyết định mới nhất.
 
-**Kiểm kê 122 nút:** ở thời điểm này, nhóm **cần tiếp tục hỏi quyết định/chức năng đặc thù** còn 5 mã chính: **F05/D08 — Xuất ảnh từ camera** và **F06/E03, E04, E05, E06** (bốn preset Smart Edit; người dùng từng muốn chỉ giữ hai và ẩn hai, nhưng chưa chỉ rõ chính xác). **F06/E07** được yêu cầu **bỏ qua hỏi hiện tại**, chưa quyết định giữ hay ẩn: nếu tính cả mục tạm hoãn thì tổng cộng **6 đầu mục chưa chốt**. Các nút chia sẻ giống biểu tượng hoặc quy tắc chung không cần hỏi lại từng cái; con số này chỉ là số nút cần *chốt yêu cầu*, **không phải số nút đã lập trình**. D08 cần hỏi tiếp sau khi trả lời con số. Một số chi tiết kỹ thuật còn tùy AI/model kết nối và kiểm thử ứng dụng V3; không coi đặc tả là hoàn thiện sản phẩm.
+**Ghi chú lịch sử đã bị quyết định ẩn toàn bộ F06 thay thế:** ở thời điểm này, nhóm **cần tiếp tục hỏi quyết định/chức năng đặc thù** còn 5 mã chính: **F05/D08 — Xuất ảnh từ camera** và **F06/E03, E04, E05, E06** (bốn preset Smart Edit; người dùng từng muốn chỉ giữ hai và ẩn hai, nhưng chưa chỉ rõ chính xác). **F06/E07** được yêu cầu **bỏ qua hỏi hiện tại**, chưa quyết định giữ hay ẩn: nếu tính cả mục tạm hoãn thì tổng cộng **6 đầu mục chưa chốt**. Các nút chia sẻ giống biểu tượng hoặc quy tắc chung không cần hỏi lại từng cái; con số này chỉ là số nút cần *chốt yêu cầu*, **không phải số nút đã lập trình**. D08 cần hỏi tiếp sau khi trả lời con số. Một số chi tiết kỹ thuật còn tùy AI/model kết nối và kiểm thử ứng dụng V3; không coi đặc tả là hoàn thiện sản phẩm.
 
 
 ### 2026-11-08 — D08 đã chốt và E03 tạm hoãn
@@ -519,3 +521,17 @@ Người dùng trả lời **“giống F3, các nút có biểu tượng giốn
 Chủ dự án trả lời **“ẩn”** cho **E04 — Quảng cáo hàng loạt**, thuộc F06 — Smart Edit. Đánh dấu **⛔ ẨN trên toàn ứng dụng**: không render nút E04 ở F06, cũng không hiện nút/preset trùng chức năng ở bất kỳ Node nào, bất kể Node đang trống hay có kết quả. Không xóa nội dung/video/workflow trước đây. **E03 — Video thuyết minh vẫn để làm sau**, không tự chuyển thành ẩn; **E05/E06** chưa chốt.
 
 **Tình trạng:** quyết định giao diện, **chưa triển khai đầy đủ UI F06 V3**. Nút tiếp theo: **F06/E05 — Video podcast**, hỏi giữ, ẩn hay làm sau.
+
+
+### Quyết định ưu tiên cao nhất — ẨN TOÀN BỘ F06 Smart Edit (2026-11-08)
+
+Người dùng nói **“ẩn luôn chỉnh sửa thông minh đi”**. Phạm vi là **cả Node F06 — Chỉnh sửa thông minh / Smart Edit**, không phải chỉ E05 — Video podcast. Quyết định này thay thế toàn bộ vòng hỏi E03–E07; **không hỏi E05/E06 nữa**.
+
+**Yêu cầu UI áp dụng ngay và cho mọi phiên bản mới:**
+
+- Không hiển thị mục **F06 / Chỉnh sửa thông minh / Smart Edit** ở menu thêm Node, palette, quick-add, preset, nút tạo nhanh hoặc danh sách Node cho người dùng tạo mới. Không cho các lối vào phụ hiển thị một Node F06 mới.
+- Các nút bên trong F06 (E01–E16) không được render vì **Node F06 đã ẩn**. Không nhầm với yêu cầu ẩn *chức năng dùng chung trên toàn ứng dụng*: các thao tác độc lập như xem lớn, tải xuống, trích frame hoặc chọn AI của **Node khác vẫn giữ nguyên** nếu người dùng chưa yêu cầu ẩn chúng. E04 và E14 vốn đã được yêu cầu ẩn toàn ứng dụng, tiếp tục áp dụng.
+- Giữ nguyên ảnh/video/workflow và Node cũ đã lưu, không xóa hoặc phá dây nối của dự án cũ. Nếu file cũ chứa F06, phải hỗ trợ mở dữ liệu không mất mát; không cần đưa lại F06 vào menu tạo mới để làm điều đó.
+- **Đã kiểm tra GitHub main 2026-11-08:** app.html (menu Add Node) và app.js (nodeDefs) **chưa có F06/Smart Edit được render**, nên không có nút F06 ở runtime hiện tại để xóa; bổ sung test chống tái xuất hiện. Việc ẩn UI V3 đã được chốt, **không khẳng định V3 đã được lập trình hoặc build mới**.
+
+**Tiến độ câu hỏi:** 122 mã nút đã được kiểm kê. Các mã đặc thù còn chưa chốt trước đây đều nằm trong F06 nhưng **không phải hỏi tiếp vì cả F06 đã ẩn**. Nút E07 trước đó bỏ qua, E03 từng hoãn; hai lịch sử này không làm F06 xuất hiện lại.
