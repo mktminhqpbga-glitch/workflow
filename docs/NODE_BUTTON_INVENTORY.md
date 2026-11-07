@@ -140,7 +140,7 @@
 | E11 | Cắt khung / Lấy ảnh khung hình | **F06 — Smart Edit có video đầu vào và được chọn:** bấm Cắt khung để **lấy khung hình đang chọn từ video và sinh ra một ảnh riêng**. Đây là thao tác trích xuất khung hình, không mặc định gọi AI tạo lại hình ảnh; giữ nguyên video nguồn. Khi có biểu tượng/chức năng giống U21 (R02 video tải lên), dùng chung logic phù hợp. Chưa có ảnh chi tiết phần chọn khung hoặc khu vực cắt, không suy đoán thêm. | 🟡 Đã chốt chức năng, chưa code |
 | E12 | Tải video | Lưu output. | 🟡 |
 | E13 | Zoom xem video | Preview lớn. | 🟡 |
-| E14 | Timeline chuyên dụng | Mở editor timeline thật. | 🟡 |
+| E14 | Timeline chuyên dụng | **ẨN THEO YÊU CẦU NGÀY 2026-11-08.** Không hiển thị nút mở editor Timeline chuyên dụng trong **F06 — Smart Edit**, kể cả khi có video kết quả. Không xóa dữ liệu video/Node, không xóa trình phát/tua video thông thường hoặc timeline chọn phân đoạn của F04/V13 vì đây là chức năng khác. | ⛔ ẨN |
 | E15 | Nút gửi ↑ | Gửi lệnh edit. | 🔴 |
 | E16 | Thu gọn Prompt | Theo mẫu Node. | 🔴 |
 
@@ -275,7 +275,7 @@
 
 - **F01/T04 (Ảnh → suy ngược Prompt):** Khi nhận nhiều ảnh, tạo **một Prompt riêng cho từng ảnh**; không tự gộp tất cả ảnh vào một Prompt. Cần giữ liên kết Prompt ↔ ảnh nguồn; nếu UI kết quả chưa rõ thì xin duyệt trước khi triển khai.
 - **C05 (Kho tài sản):** Chỉ sử dụng **một kho tài sản chung cho toàn ứng dụng**, chia thành các **khu nhỏ theo loại tài nguyên** (ví dụ ảnh, video, âm thanh, nhân vật, bối cảnh, sản phẩm, hiệu ứng, mẫu). Mọi Node dùng chung một bộ chọn tài nguyên, tự lọc loại hợp lệ theo cổng đầu vào; không tự tạo 9 kho riêng biệt.
-- Các công cụ riêng còn chờ giải thích: F02 S01/S03; F03 I05/I10–I12/I18 (I04, I13–I16 đã được yêu cầu ẩn); F04 V05/V10–V13 (V14/V15 đã ẩn); F05 D01/D05–D08; F06 E03–E07/E11/E14; F07 A04/A10; R01 U10; R02 U21. **Các hình minh họa trợ giúp là đề xuất ý nghĩa thao tác, không phải chức năng đã được xác nhận hoặc đã triển khai.** Chủ dự án sẽ xem từng hình rồi chốt lại.
+- Các công cụ riêng còn chờ giải thích: F02 S01/S03; F03 I05/I10–I12/I18 (I04, I13–I16 đã được yêu cầu ẩn); F04 V05/V10–V13 (V14/V15 đã ẩn); F05 D01/D05–D08; F06 E03–E07/E11 (E14 đã ẩn); F07 A04/A10; R01 U10; R02 U21. **Các hình minh họa trợ giúp là đề xuất ý nghĩa thao tác, không phải chức năng đã được xác nhận hoặc đã triển khai.** Chủ dự án sẽ xem từng hình rồi chốt lại.
 
 
 ### Quyết định giao diện — I04 (2026-11-08)
@@ -459,4 +459,11 @@ Chủ dự án xác nhận rõ: **“đúng rồi đó, biểu tượng giống 
 
 Chủ dự án trả lời: **“nó chỉ cắt khung hình đó thôi, và sinh ra ảnh.”** Đây là công cụ chuyển **khung hình được chọn của video** thành **một ảnh kết quả riêng**, không phải preset edit dài hay yêu cầu AI sửa toàn bộ video. Giữ nguyên video gốc. Mặc định đây là thao tác trích hình ảnh; không gọi AI nếu chỉ cần lấy frame. Chỉ hiển thị công cụ ngữ cảnh khi đã có video và Node được chọn, theo quy tắc chung. Nếu cùng biểu tượng/hành vi với R02/U21, tái sử dụng handler thay vì copy code.
 
-**Chưa có ảnh xác nhận:** giao diện chọn frame/tọa độ crop hoặc Node chứa ảnh mới sau thao tác; không thêm UI phụ ngoài yêu cầu. **Trạng thái:** đã hiểu chức năng, chưa code E11. Nút tiếp theo hỏi lần lượt: **F06 — Smart Edit / E14 — Timeline chuyên dụng**, trạng thái Node có video đầu vào/đang được chọn.
+**Chưa có ảnh xác nhận:** giao diện chọn frame/tọa độ crop hoặc Node chứa ảnh mới sau thao tác; không thêm UI phụ ngoài yêu cầu. **Trạng thái:** đã hiểu chức năng, chưa code E11. **Cập nhật:** E14 — Timeline chuyên dụng đã được chủ dự án yêu cầu **ẩn**, không hỏi tiếp.
+
+
+### Quyết định giao diện — F06/E14 Timeline chuyên dụng (2026-11-08)
+
+Chủ dự án trả lời **“ẩn cái này đi nhé”** khi được hỏi về **E14 — Timeline chuyên dụng**, thuộc **F06 — Chỉnh sửa thông minh (Smart Edit)**. **Ẩn nút E14 hoàn toàn** khỏi Node F06 trong cả trạng thái trống và có video, không mở giao diện Timeline chuyên dụng và không yêu cầu ảnh mô tả nữa.
+
+**Phạm vi chính xác:** chỉ nút **E14** trong F06, **không ẩn/chặn thanh tua video** (U14), **không xóa Node timeline legacy** có sẵn ở repo, **không xóa timeline chọn đoạn** dùng cho F04/V13 vì đây là các chức năng khác đã được xác nhận. Giữ dữ liệu/project cũ. Kiểm tra hiện trạng `app.js`: có Node `timeline` legacy độc lập nhưng **chưa có action F06/E14 riêng**; đợt này lưu quy tắc ẩn để không đưa nút E14 vào giao diện V3 sau này. **Chưa lập trình F06 V3 đầy đủ.**
