@@ -330,3 +330,10 @@ Chủ dự án yêu cầu **cập nhật lại danh sách nút trước khi code
 - Lỗi BUG-007 vẫn chưa được sửa theo yêu cầu hoãn trước đó.
 
 **Quy tắc báo cáo:** chỉ tăng trạng thái lên 🟢 sau khi code đúng Node, chức năng thật hoạt động và có bằng chứng kiểm thử; cập nhật bản chụp màn hình chạy thực của toàn ứng dụng và commit mới ở giai đoạn đó.
+
+
+### 2026-11-08 — Quy tắc floating toolbar cho mọi Node
+
+**Chủ dự án chốt:** Chưa có kết quả → **không hiển thị thanh công cụ nổi phía trên** ở bất kỳ Node nào. Có kết quả nhưng chưa chọn → vẫn ẩn. Chỉ **đã có kết quả + Node được chọn** → mới hiện toolbar phù hợp. Không tự nổi chỉ do hover. Prompt/bộ điều khiển ở dưới vẫn có thể hiển thị trên Node rỗng; phân biệt với thanh công cụ nổi.
+
+Đã cập nhật adapter dùng chung trong `node-common-actions.js`, `app.js` và test. I10 F03 chỉ xuất hiện trên ảnh kết quả đang chọn; vào chế độ đánh dấu/chọn vùng rồi hiển thị Prompt để mô tả thay đổi theo ảnh bổ sung của user. **Chức năng xử lý ảnh theo vùng chưa triển khai**; không dùng ảnh mẫu làm bằng chứng UI đã code.
