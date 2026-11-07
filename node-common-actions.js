@@ -110,8 +110,9 @@ function attach({node,root:el,body,modelGroups,onModelPick,onTranslate,onReferen
   }
   // Context toolbar is visible ONLY when the node is selected.
   const showMedia=!!media?.url;
+  const hasText=typeof readText==='function'&&Boolean(String(readText()||'').trim());
   const top=create('div','node-common-context-tools');
-  if(showMedia&&onDownload)top.append(button('↓','Tải kết quả',onDownload));
+  if((showMedia||hasText)&&onDownload)top.append(button('↓','Tải kết quả',onDownload));
   if(showMedia)top.append(button('⤢','Xem lớn / Zoom',()=>viewMedia(media.url,media.kind,media.name)));
   if(onDuplicate)top.append(button('⧉','Nhân bản Node',onDuplicate));
   if(top.childElementCount){el.append(top);el.classList.add('has-common-context-tools');}
