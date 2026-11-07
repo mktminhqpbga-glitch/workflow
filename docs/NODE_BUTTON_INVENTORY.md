@@ -120,7 +120,7 @@
 | D05 | Xem không gian 3D | **ẨN TOÀN ỨNG DỤNG theo yêu cầu 2026-11-08.** Không render hành động xem không gian 3D ở F05 hoặc Node bất kỳ có cùng chức năng. Giữ nguyên cảnh/video/tài nguyên đã lưu. | ⛔ ẨN |
 | D06 | Điều khiển camera | **ẨN TOÀN ỨNG DỤNG THEO YÊU CẦU 2026-11-08.** Không hiển thị điều khiển camera của bàn đạo diễn 3D trên F05 hoặc Node khác có cùng chức năng. Không xóa dữ liệu/cảnh/project đã lưu. Phân biệt với thiết lập góc máy trong F03/I12 và F04/V05 đã được duyệt (không ẩn các chức năng khác này). | ⛔ ẨN |
 | D07 | Chọn góc máy | **GIỮ LẠI — CHỐT DÙNG CHUNG F03/I12 (2026-11-08).** Khi bấm D07 trên F05, mở **đúng giao diện Trình chỉnh sửa nhiều góc độ của F03/I12**: preset góc camera, mô hình quả cầu/orbit, góc ngang/dọc, zoom, reset, nút gửi AI tạo ảnh mới từ góc đã chọn, giữ nguyên ảnh nguồn. Cùng biểu tượng trên Node khác = cùng chức năng, cùng UI, dùng chung component/handler, chỉ AI/model/tab đã kết nối. Đừng tạo phiên bản D07 riêng. D01/D05/D06 vẫn ẩn toàn ứng dụng. | 🟡 Đã chốt dùng chung I12, chưa code V3 |
-| D08 | Xuất ảnh từ camera | Render/snapshot. | 🔴 |
+| D08 | Xuất ảnh từ camera | **Đã xác nhận:** chọn góc máy hiện tại trong F05 — Đạo diễn và **xuất một ảnh mới** tương tự thao tác chụp khung hình, nhưng nguồn là camera/góc nhìn của F05 (không phải video timeline). Không mặc định gọi AI; không thay đổi cảnh gốc. | 🟡 Đã chốt chức năng, chưa code |
 | D09 | Thu gọn Prompt | Theo chuẩn Node. | 🔴 |
 
 ## F06 — Chỉnh sửa thông minh
@@ -129,7 +129,7 @@
 |---|---|---|---|
 | E01 | Nhận video tham chiếu | Kết nối hoặc tải tệp video. | 🟡 |
 | E02 | Nhập lệnh chỉnh sửa | Prompt yêu cầu edit. | 🟡 |
-| E03 | Video thuyết minh | Preset chỉnh sửa. | 🔴 |
+| E03 | Video thuyết minh | **TẠM HOÃN theo lựa chọn số 3 của chủ dự án (2026-11-08).** Không hỏi tiếp, không tự ẩn, chưa chốt giữ hay ẩn; để xác định chức năng sau. | ⏸️ Để làm sau |
 | E04 | Quảng cáo hàng loạt | Preset xử lý nhiều quảng cáo. | 🔴 |
 | E05 | Video podcast | Preset edit podcast. | 🔴 |
 | E06 | Biên tập tư liệu | Preset cắt clip. | 🔴 |
@@ -504,3 +504,10 @@ Chủ dự án trả lời **“giữ lại”** khi được hỏi về **D07 �
 Người dùng trả lời **“giống F3, các nút có biểu tượng giống nhau thì nó giống nhau”**. D07 là nút **Chọn góc máy** của F05, phải dùng nguyên giao diện/trình xử lý **F03/I12 — Nhiều góc độ** đã được người dùng chốt, không hỏi lại hoặc tạo phiên bản khác. Mọi nút có biểu tượng và ý nghĩa tương đương qua các Node dùng cùng UX và handler; nút đã ẩn thì ẩn khắp ứng dụng theo quyết định mới nhất.
 
 **Kiểm kê 122 nút:** ở thời điểm này, nhóm **cần tiếp tục hỏi quyết định/chức năng đặc thù** còn 5 mã chính: **F05/D08 — Xuất ảnh từ camera** và **F06/E03, E04, E05, E06** (bốn preset Smart Edit; người dùng từng muốn chỉ giữ hai và ẩn hai, nhưng chưa chỉ rõ chính xác). **F06/E07** được yêu cầu **bỏ qua hỏi hiện tại**, chưa quyết định giữ hay ẩn: nếu tính cả mục tạm hoãn thì tổng cộng **6 đầu mục chưa chốt**. Các nút chia sẻ giống biểu tượng hoặc quy tắc chung không cần hỏi lại từng cái; con số này chỉ là số nút cần *chốt yêu cầu*, **không phải số nút đã lập trình**. D08 cần hỏi tiếp sau khi trả lời con số. Một số chi tiết kỹ thuật còn tùy AI/model kết nối và kiểm thử ứng dụng V3; không coi đặc tả là hoàn thiện sản phẩm.
+
+
+### 2026-11-08 — D08 đã chốt và E03 tạm hoãn
+
+- **F05/D08 — Xuất ảnh từ camera:** người dùng xác nhận “ok” với đặc tả: trích góc nhìn camera hiện tại trên F05 thành **một ảnh mới**, tương tự chụp khung hình nhưng nguồn camera/scene. Giữ nguyên cảnh nguồn; chưa code.
+- **F06/E03 — Video thuyết minh:** người dùng chọn phương án **3 — để làm sau**. Không yêu cầu ảnh hay đặt câu hỏi E03 nữa ở vòng hiện tại. **Không đồng nghĩa với ẩn nút** và chưa chốt chức năng E03.
+- **Cần hỏi tiếp:** F06/E04 — Quảng cáo hàng loạt; rồi E05 và E06. E07 cũng đang bỏ qua. Nhóm Smart Edit trước đó có ý định giữ hai/ẩn hai trong bốn preset, nhưng E03 hoãn nên cần tránh suy luận số lượng giữ/ẩn khi chưa có quyết định.
