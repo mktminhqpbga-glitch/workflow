@@ -6,7 +6,7 @@
 'use strict';
 const create=(tag,cls,text)=>{const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el;};
 function button(text,title,handler){const el=create('button','',text);el.type='button';el.title=title;el.setAttribute('aria-label',title);if(handler)el.onclick=event=>{event.stopPropagation();handler(event);};return el;}
-function connectedOnly(groups){return (groups||[]).filter(g=>g?.connected&&Array.isArray(g.choices)&&g.choices.length).map(g=>({...g,choices:g.choices.filter(item=>item?.value)}));}
+function connectedOnly(groups){return (groups||[]).filter(g=>g?.connected&&Array.isArray(g.choices)).map(g=>({...g,choices:g.choices.filter(item=>item?.value)})).filter(g=>g.choices.length>0);}
 function stateLabel(status){return status==='running'||status==='queued'||status==='waiting'?'Đang xử lý':status==='error'?'Có lỗi':'Sẵn sàng';}
 let currentPopup=null;
 function dismissPopup(){if(!currentPopup)return;currentPopup.remove();currentPopup=null;}
