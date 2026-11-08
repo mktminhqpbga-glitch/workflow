@@ -238,7 +238,7 @@
 | V05 — Góc máy video | Prompt và thông số camera | Gắn cách quay, ống kính, tiêu cự, khẩu độ đã chọn vào chỉ dẫn AI | Video khi được gửi |
 | A04/A10 — Âm thanh → Video | Audio và ảnh tham chiếu theo cấu hình | Tạo video dựa trên nhịp/âm thanh và hình ảnh, có đối chiếu thời lượng và khả năng model | Video **mới** |
 
-**Hạn chế thực tế đã nhận diện khi kiểm tra mã:** `ai-action-presets.js` mới có các câu lệnh nội bộ cho I11/I12/V10/V11/V12/V13. **Nó chưa đảm bảo các nút chuyên biệt đã được gắn đầy đủ vào giao diện**. `ai-providers.js` hiện có hạn chế: OpenAI image API chưa nhận ảnh tham chiếu; Veo adapter không nhận video nguồn để edit; fal Motion Control cần đúng 1 ảnh + 1 video. Các tác vụ video HD/xóa phụ đề/làm lại đoạn **chưa có adapter edit video được xác minh** và phải báo chưa hỗ trợ thay vì trả giả. Không tự gắn nhãn `ĐÃ HOÀN THÀNH` cho các tính năng này.
+**Cập nhật triển khai 2026-11-08 (ưu tiên thông tin mới):** `ai-action-presets.js` hiện định nghĩa tám tác vụ: T04/I11/I12/V10/V11/V12/V13/A04-A10. `app.js` đã nối các nút AI chuyên biệt lên thanh công cụ có kết quả và chỉ gửi tới model được kết nối có khả năng xử lý nguồn. `ai-providers.js` đã có adapter fal Motion Control, Bytedance Video Upscaler, Kling O1 video edit và LTX audio→video. **V11 dùng tham số có cấu trúc của upscaler** (`target_resolution`, `target_fps`, ...), vì endpoint không có ô `prompt`; không được tuyên bố đã gửi prompt văn bản cho V11. Các adapter này **chưa được xác minh bằng tài khoản/API key thật**, và tùy chọn/cấu hình model có thể thay đổi; OpenAI image vẫn chưa hỗ trợ ảnh tham chiếu trong adapter hiện có, Veo chưa nhận video nguồn để chỉnh sửa. Không đánh dấu toàn bộ 122 nút là PASS khi chưa chạy thử chức năng thực tế.
 
 ## 6. Checklist để AI khác kiểm tra trên mã nguồn
 
@@ -259,8 +259,9 @@
 
 - **122 mã đã được mô tả để kiểm tra**, không phải 122 nút đã lập trình.
 - `main` hiện là nền tảng legacy MuseFlow 0.31.0, có các Node/adapter dùng chung; phần V3 hoàn chỉnh vẫn cần lập trình và thử thực tế.
-- Bộ prompt tác vụ vừa được ghi trong `ai-action-presets.js`; các chỗ gắn nút chuyên biệt và adapter chỉnh sửa video thực vẫn cần hoàn thiện. Các lời gọi UI tới hàm chưa tồn tại đã được gỡ để tránh lỗi render Node có kết quả.
-- CI macOS gần đây vẫn còn **một lỗi test path `/private/var` so với `/var`**, không được nói toàn bộ kiểm thử đã xanh. Muốn chốt phải chạy lại CI trên commit cuối và test tay dịch vụ AI đã kết nối.
+- Đã thêm các luồng tác vụ AI chuyên biệt có prompt ẩn và bảo toàn nguồn, chụp 3 vị trí video không cần AI, và công cụ I18 **vẽ/đánh dấu ảnh + ghi chú vàng** sử dụng chung cho ảnh sinh AI/ảnh tải lên (`image-annotation.js/.css`). Nút I10 sửa phần tử và nhiều chi tiết V3 vẫn phải kiểm tra riêng; không gộp với I18.
+- **Bằng chứng CI trước khi thêm các test mới:** GitHub Actions [#42444286398](https://github.com/mktminhqpbga-glitch/workflow/actions/runs/42444286398): macOS Intel **124/124** unit pass, build DMG + ZIP, Chromium + Electron + FFmpeg smoke **PASS**. Bản commit sau đã chạy [#42444727888](https://github.com/mktminhqpbga-glitch/workflow/actions/runs/42444727888) với **127/127 unit pass**, macOS Intel DMG/ZIP đã tạo; lúc viết tài liệu, CI cho test giao diện/adapter mới vẫn phải kiểm tra trên commit cuối. Lỗi `/private/var` đã được giải quyết trong kiểm thử, không còn dùng báo cáo thất bại cũ.
+- **Kiểm thử mới**: `tests/desktop-image-annotations.test.cjs`, `tests/desktop-hidden-ai-prompt-transport.test.cjs` và test click I18 trong `tests/browser-smoke.cjs`; đối chiếu kết quả CI tương ứng trước khi gọi hoàn tất.
 - **F06 đã ẩn theo yêu cầu mới nhất**. Bất cứ mô tả F06 cũ nào còn lại ở file lịch sử đều không làm Node đó được hiển thị lại.
 
 **Đích rà soát:** khi AI khác đánh dấu PASS cho một mã, bắt buộc phải có code thực thi, kết quả hiển thị thực tế và kiểm thử; chỉ có Prompt/ảnh mock hoặc tên nút thì chưa đủ.

@@ -924,7 +924,21 @@
     render();syncTimelineDock();scheduleAutoSave();
   }
 
-  function selectNode(id,{toggle=false,add=false}={}){let ids=[...state.selectedNodeIds];if(toggle){ids=ids.includes(id)?ids.filter(item=>item!==id):[...ids,id];}else if(add){if(!ids.includes(id))ids.push(id);}else ids=[id];state.selectedNodeIds=ids;state.selectedNodeId=ids.at(-1)||null;document.querySelectorAll('.node').forEach(el=>el.classList.toggle('selected',ids.includes(el.dataset.id)));}
+  function placeSelectedResultToolbars(){
+    for(const tools of document.querySelectorAll('.node.selected .node-common-context-tools')){
+      tools.classList.remove('position-below');
+      tools.style.marginLeft='0px';
+      const visible=$('#viewport').getBoundingClientRect();
+      let rect=tools.getBoundingClientRect();
+      // The Canvas clips content at its own top edge (which is BELOW the
+      // application toolbar), not at the browser window's y=0 coordinate.
+      if(rect.top<visible.top+10){tools.classList.add('position-below');rect=tools.getBoundingClientRect();}
+      const shift=rect.left<visible.left+10?visible.left+10-rect.left:
+        rect.right>visible.right-10?visible.right-10-rect.right:0;
+      tools.style.marginLeft=Math.round(shift)+'px';
+    }
+  }
+  function selectNode(id,{toggle=false,add=false}={}){let ids=[...state.selectedNodeIds];if(toggle){ids=ids.includes(id)?ids.filter(item=>item!==id):[...ids,id];}else if(add){if(!ids.includes(id))ids.push(id);}else ids=[id];state.selectedNodeIds=ids;state.selectedNodeId=ids.at(-1)||null;document.querySelectorAll('.node').forEach(el=>el.classList.toggle('selected',ids.includes(el.dataset.id)));requestAnimationFrame(placeSelectedResultToolbars);}
   function removeSelectedNodes(){const ids=new Set(state.selectedNodeIds);if(!ids.size&&state.selectedNodeId)ids.add(state.selectedNodeId);if(!ids.size)return;createUndoSnapshot(`Delete ${ids.size} node${ids.size===1?'':'s'}`);state.nodes=state.nodes.filter(node=>!ids.has(node.id));state.edges=state.edges.filter(edge=>!ids.has(edge.source)&&!ids.has(edge.target));state.selectedNodeIds=[];state.selectedNodeId=null;render();saveState();}
 
   function portCompatible(from, targetNodeId, targetPortId) {
@@ -1214,14 +1228,30 @@
       return {id,name:p.name,connected:available,choices,symbol:id==='chatgpt'?'✦':id==='muse'?'◈':'◎'};
     });
   }
-  function commonChooseModel(n,g,item){
-    if(runForNode(n.id)||commonTextRuns.has(n.id)){setRunStatus('Hãy đợi Node hoàn tất trước khi đổi AI.','warn');return;}
-    n.data.provider=g.id;
+  async function commonChooseModel(n,g,item){
+    if(runForNode(n.id)||commonTextRuns.has(n.id)){
+      setRunStatus('Hãy đợi Node hoàn tất trước khi đổi AI.','warn');return;
+    }
     if(WorkflowAI.providers[g.id]?.urls){
-      const tab=(aiChatTabs[g.id]||[]).find(tab=>String(tab.id)===item.value);
-      if(!tab){setRunStatus('Tab AI đã đóng. Làm mới kết nối AI trước khi chọn.','error');return;}
-      n.data.chatTarget={tabId:tab.id,url:chatKey(tab.url)};delete n.data.apiModel;
-    }else{n.data.apiModel=item.value;delete n.data.chatTarget;}
+      pendingChatSelections++;
+      try{
+        // Choosing a tab validates its CURRENT conversation address. A cached
+        // tab title/URL is not authorization to send to a different chat later.
+        const tabs=await chrome.tabs.query({url:WorkflowAI.providers[g.id].urls});
+        const tab=tabs.find(tab=>String(tab.id)===String(item.value));
+        if(!tab)throw Error('Tab AI đã đóng. Làm mới kết nối AI trước khi chọn.');
+        if(nodeById(n.id)!==n||runForNode(n.id))throw Error('Node đã thay đổi khi chọn tab AI.');
+        aiChatTabs[g.id]=tabs;
+        n.data.provider=g.id;
+        n.data.chatTarget={tabId:tab.id,url:chatKey(tab.url)};
+        delete n.data.apiModel;
+      }catch(error){
+        setRunStatus(error.message||'Không chọn được tab AI.','error');
+        return;
+      }finally{pendingChatSelections--;}
+    }else{
+      n.data.provider=g.id;n.data.apiModel=item.value;delete n.data.chatTarget;
+    }
     n.data.error='';if(n.data.status==='error')n.data.status='idle';
     scheduleAutoSave();render();
   }
@@ -1356,12 +1386,31 @@
     return source.data.size||source.data.asset?.requestedSize||
       (kind==='image'?'1:1':'16:9');
   }
+  function editImageAnnotations(source){
+    const media=commonAsset(source);
+    if(!media?.url||media.kind!=='image')throw Error('Node chưa có ảnh thật để đánh dấu.');
+    if(!globalThis.WorkflowImageAnnotations)throw Error('Không tải được công cụ đánh dấu ảnh.');
+    const originalUrl=media.url;
+    const nodeEl=document.querySelector('.node[data-id="'+CSS.escape(source.id)+'"]');
+    globalThis.WorkflowImageAnnotations.open({
+      url:originalUrl,initial:source.data.imageAnnotations,anchor:nodeEl,
+      onSave:payload=>{
+        if(nodeById(source.id)!==source||commonAsset(source)?.url!==originalUrl)
+          throw Error('Ảnh nguồn đã thay đổi. Mở lại công cụ để không ghi sai ghi chú.');
+        createUndoSnapshot('Lưu đánh dấu ảnh');
+        source.data.imageAnnotations=payload;
+        render();selectNode(source.id);scheduleAutoSave();
+        setRunStatus('Đã lưu dấu vẽ và ghi chú trên Node, không thay ảnh gốc và không gọi AI.','ok');
+      }
+    });
+  }
   function specialResultActions(source,media){
     if(!media?.url)return [];
     const make=(id,label)=>({label,title:label+' · '+(globalThis.WorkflowAITasks?.task(id)?.name||label),
       run:()=>void startSpecialAIAction(source,id).catch(error=>setRunStatus(error.message,'error'))});
     if(media.kind==='image'&&['generateImage','imageInput','videoFrame','imageSnapshot'].includes(source.type))
       return [make('imageToPrompt','Ảnh → Prompt'),make('imageHD','HD'),make('imageAngles','Nhiều góc độ'),
+        {label:'Đánh dấu',title:'Vẽ, khoanh vùng và lưu ghi chú cho ảnh',run:()=>editImageAnnotations(source)},
         ...(source.data.nodeRole==='director'?[{label:'Xuất ảnh góc máy',title:'Lấy ảnh từ camera hiện tại',
           run:()=>void saveDirectorSnapshot(source).catch(error=>setRunStatus(error.message,'error'))}]:[])];
     if(media.kind==='audio'&&['audioInput','voiceover'].includes(source.type))
@@ -1743,6 +1792,12 @@
         readText:scripted?()=>n.data.script:null
       });
     }
+    if(n.data.imageAnnotations?.note&&commonAsset(n)?.kind==='image'){
+      const note=document.createElement('div');note.className='node-saved-image-note';
+      note.textContent=String(n.data.imageAnnotations.note).slice(0,2000);
+      note.title='Ghi chú ảnh đã lưu. Bấm Đánh dấu để chỉnh sửa.';
+      body.append(note);
+    }
     if(n.data.outputAudit?.message&&n.data.asset?.url){
       const audit=document.createElement('div');
       audit.className='hint node-output-audit'+(n.data.outputAudit.status==='warning'?' error':'');
@@ -1905,7 +1960,7 @@
     for(const [index,{file,url}] of loaded.entries()){
       const kind=file.type.split('/')[0];let source=node;
       if(port||timeline){source=makeNode(kind==='video'?'videoInput':kind==='audio'?'audioInput':'imageInput',Math.max(20,(node?.x||350)-330),(node?.y||80)+index*250);state.nodes.push(source);}
-      storyDirtyAfter(source.id,true);if(port)storyTouch(node.id);source.data.fileName=file.name;source.data.localDataUrl=url;source.data.asset={id:uid('asset'),kind,url,name:file.name,sourceNodeId:source.id};
+      storyDirtyAfter(source.id,true);if(port)storyTouch(node.id);delete source.data.imageAnnotations;source.data.fileName=file.name;source.data.localDataUrl=url;source.data.asset={id:uid('asset'),kind,url,name:file.name,sourceNodeId:source.id};
       if(port){if(!isMultiInput(node.type,port.id))state.edges=state.edges.filter(e=>!(e.target===node.id&&e.targetPort===port.id));state.edges.push({id:uid('edge'),source:source.id,sourcePort:kind,target:node.id,targetPort:port.id});}
       if(timeline){const tl=ensureDockTimeline();tl.data.clipOrder.push(source.id);}
     }
@@ -2132,7 +2187,7 @@
   function render() {
     globalThis.WorkflowSharedNodeControls?.closeAll?.();
     ensureComponentIds();
-    syncPreviewOutputs();canvas.innerHTML='';state.groups.forEach(group=>canvas.appendChild(renderCanvasGroup(group)));state.notes.forEach(note=>canvas.appendChild(renderCanvasNote(note)));state.nodes.filter(n=>!n.data?.dockOnly).forEach(n => canvas.appendChild(renderNode(n)));applyCanvasTransform();requestAnimationFrame(drawEdges);syncTimelineDock();updateChatUsageLabels();scheduleAutoSave();
+    syncPreviewOutputs();canvas.innerHTML='';state.groups.forEach(group=>canvas.appendChild(renderCanvasGroup(group)));state.notes.forEach(note=>canvas.appendChild(renderCanvasNote(note)));state.nodes.filter(n=>!n.data?.dockOnly).forEach(n => canvas.appendChild(renderNode(n)));applyCanvasTransform();requestAnimationFrame(()=>{drawEdges();placeSelectedResultToolbars();});syncTimelineDock();updateChatUsageLabels();scheduleAutoSave();
   }
 
   function renderCanvasNote(note){
@@ -2547,7 +2602,7 @@
               const sourceWidth=intrinsic.width,sourceHeight=intrinsic.height;progressNode(n,`AI trả ${sourceWidth} × ${sourceHeight}; đang đặt vào khung ${n.data.size}, giữ nguyên hình…`);
               const framed=await WorkflowStudio.process('frameFit',{videos:[{url,kind:'video'}],settings:{size:n.data.size}},abortController.signal,text=>progressNode(n,text));url=await blobAsDataUrl(framed.blob);intrinsic=await mediaDimensions(url,'video');sizeMismatch=Math.abs(Math.log((intrinsic.width/intrinsic.height)/expectedRatio))>.09;if(sizeMismatch)throw Error('Chưa chuyển được video về tỷ lệ yêu cầu.');framingNote=`AI trả ${sourceWidth} × ${sourceHeight}; đã thêm viền đệm để xuất ${n.data.size}, giữ toàn bộ hình gốc.`;
             }
-            n.data.asset={id:uid('asset'),kind,url,name:`${isVideo?'Video':'Image'} ${n.id}`,sourceNodeId:n.id,width:intrinsic.width,height:intrinsic.height,requestedSize:n.data.size,sizeMismatch,actualDuration:intrinsic.duration||null}; n.data.status='success';
+            delete n.data.imageAnnotations;n.data.asset={id:uid('asset'),kind,url,name:`${isVideo?'Video':'Image'} ${n.id}`,sourceNodeId:n.id,width:intrinsic.width,height:intrinsic.height,requestedSize:n.data.size,sizeMismatch,actualDuration:intrinsic.duration||null}; n.data.status='success';
             if(framingNote)n.data.error=framingNote;
             if(isVideo&&intrinsic.duration&&Math.abs(intrinsic.duration-Number(n.data.duration))>1)n.data.error=[framingNote,`Yêu cầu ${n.data.duration}s, AI trả về ${intrinsic.duration.toFixed(1)}s. Thời lượng clip phụ thuộc dịch vụ.`].filter(Boolean).join(' ');
             if(isVideo){const frame=await extractVideoEndFrame(url);if(abortController.signal.aborted)throw new DOMException('Đã dừng.','AbortError');if(frame)frame.sourceAssetId=n.data.asset.id;n.data.endFrame=frame;}
