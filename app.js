@@ -857,7 +857,19 @@
     render();syncTimelineDock();scheduleAutoSave();
   }
 
-  function selectNode(id,{toggle=false,add=false}={}){let ids=[...state.selectedNodeIds];if(toggle){ids=ids.includes(id)?ids.filter(item=>item!==id):[...ids,id];}else if(add){if(!ids.includes(id))ids.push(id);}else ids=[id];state.selectedNodeIds=ids;state.selectedNodeId=ids.at(-1)||null;document.querySelectorAll('.node').forEach(el=>el.classList.toggle('selected',ids.includes(el.dataset.id)));}
+  function placeSelectedResultToolbars(){
+    for(const tools of document.querySelectorAll('.node.selected .node-common-context-tools')){
+      tools.classList.remove('position-below');
+      tools.style.marginLeft='0px';
+      let rect=tools.getBoundingClientRect();
+      // The previous "always above" style lost the entire toolbar for nodes
+      // close to the viewport top; use an on-screen placement instead.
+      if(rect.top<10){tools.classList.add('position-below');rect=tools.getBoundingClientRect();}
+      const shift=rect.left<10?10-rect.left:rect.right>innerWidth-10?innerWidth-10-rect.right:0;
+      tools.style.marginLeft=Math.round(shift)+'px';
+    }
+  }
+  function selectNode(id,{toggle=false,add=false}={}){let ids=[...state.selectedNodeIds];if(toggle){ids=ids.includes(id)?ids.filter(item=>item!==id):[...ids,id];}else if(add){if(!ids.includes(id))ids.push(id);}else ids=[id];state.selectedNodeIds=ids;state.selectedNodeId=ids.at(-1)||null;document.querySelectorAll('.node').forEach(el=>el.classList.toggle('selected',ids.includes(el.dataset.id)));requestAnimationFrame(placeSelectedResultToolbars);}
   function removeSelectedNodes(){const ids=new Set(state.selectedNodeIds);if(!ids.size&&state.selectedNodeId)ids.add(state.selectedNodeId);if(!ids.size)return;createUndoSnapshot(`Delete ${ids.size} node${ids.size===1?'':'s'}`);state.nodes=state.nodes.filter(node=>!ids.has(node.id));state.edges=state.edges.filter(edge=>!ids.has(edge.source)&&!ids.has(edge.target));state.selectedNodeIds=[];state.selectedNodeId=null;render();saveState();}
 
   function portCompatible(from, targetNodeId, targetPortId) {
@@ -2106,7 +2118,7 @@
   function render() {
     globalThis.WorkflowSharedNodeControls?.closeAll?.();
     ensureComponentIds();
-    syncPreviewOutputs();canvas.innerHTML='';state.groups.forEach(group=>canvas.appendChild(renderCanvasGroup(group)));state.notes.forEach(note=>canvas.appendChild(renderCanvasNote(note)));state.nodes.filter(n=>!n.data?.dockOnly).forEach(n => canvas.appendChild(renderNode(n)));applyCanvasTransform();requestAnimationFrame(drawEdges);syncTimelineDock();updateChatUsageLabels();scheduleAutoSave();
+    syncPreviewOutputs();canvas.innerHTML='';state.groups.forEach(group=>canvas.appendChild(renderCanvasGroup(group)));state.notes.forEach(note=>canvas.appendChild(renderCanvasNote(note)));state.nodes.filter(n=>!n.data?.dockOnly).forEach(n => canvas.appendChild(renderNode(n)));applyCanvasTransform();requestAnimationFrame(()=>{drawEdges();placeSelectedResultToolbars();});syncTimelineDock();updateChatUsageLabels();scheduleAutoSave();
   }
 
   function renderCanvasNote(note){
