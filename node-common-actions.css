@@ -10,6 +10,7 @@
 @keyframes node-shared-spin{to{transform:rotate(360deg)}}
 .node .node-common-context-tools{position:absolute;bottom:calc(100% + 12px);left:50%;transform:translateX(-50%);display:none;align-items:center;gap:4px;background:#212121;border:1px solid #393939;border-radius:16px;box-shadow:0 14px 30px #000a;padding:7px;z-index:10;white-space:nowrap}
 .node.selected .node-common-context-tools{display:flex}
+.node .node-common-context-tools.position-below{top:calc(100% + 12px);bottom:auto}
 .node:has(.node-common-send) .node-generation-actions>.node-run-button.primary{display:none}
 .node-common-popup{position:fixed;z-index:12050;border:1px solid #474747;background:#242424;color:#ededed;border-radius:18px;padding:9px;box-shadow:0 24px 60px #000c;max-height:min(70vh,520px);overflow:auto}
 .node-common-menu-title{color:#a8a8a8;font-size:12px;margin:6px 10px 10px}
