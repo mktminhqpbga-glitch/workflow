@@ -1305,12 +1305,31 @@
     return source.data.size||source.data.asset?.requestedSize||
       (kind==='image'?'1:1':'16:9');
   }
+  function editImageAnnotations(source){
+    const media=commonAsset(source);
+    if(!media?.url||media.kind!=='image')throw Error('Node chưa có ảnh thật để đánh dấu.');
+    if(!globalThis.WorkflowImageAnnotations)throw Error('Không tải được công cụ đánh dấu ảnh.');
+    const originalUrl=media.url;
+    const nodeEl=document.querySelector('.node[data-id="'+CSS.escape(source.id)+'"]');
+    globalThis.WorkflowImageAnnotations.open({
+      url:originalUrl,initial:source.data.imageAnnotations,anchor:nodeEl,
+      onSave:payload=>{
+        if(nodeById(source.id)!==source||commonAsset(source)?.url!==originalUrl)
+          throw Error('Ảnh nguồn đã thay đổi. Mở lại công cụ để không ghi sai ghi chú.');
+        createUndoSnapshot('Lưu đánh dấu ảnh');
+        source.data.imageAnnotations=payload;
+        render();selectNode(source.id);scheduleAutoSave();
+        setRunStatus('Đã lưu dấu vẽ và ghi chú trên Node, không thay ảnh gốc và không gọi AI.','ok');
+      }
+    });
+  }
   function specialResultActions(source,media){
     if(!media?.url)return [];
     const make=(id,label)=>({label,title:label+' · '+(globalThis.WorkflowAITasks?.task(id)?.name||label),
       run:()=>void startSpecialAIAction(source,id).catch(error=>setRunStatus(error.message,'error'))});
     if(media.kind==='image'&&['generateImage','imageInput','videoFrame','imageSnapshot'].includes(source.type))
       return [make('imageToPrompt','Ảnh → Prompt'),make('imageHD','HD'),make('imageAngles','Nhiều góc độ'),
+        {label:'Đánh dấu',title:'Vẽ, khoanh vùng và lưu ghi chú cho ảnh',run:()=>editImageAnnotations(source)},
         ...(source.data.nodeRole==='director'?[{label:'Xuất ảnh góc máy',title:'Lấy ảnh từ camera hiện tại',
           run:()=>void saveDirectorSnapshot(source).catch(error=>setRunStatus(error.message,'error'))}]:[])];
     if(media.kind==='audio'&&['audioInput','voiceover'].includes(source.type))
@@ -1691,6 +1710,12 @@
         onDownload:media?()=>commonDownload(n,media):scripted?()=>commonDownloadText(n):null,
         readText:scripted?()=>n.data.script:null
       });
+    }
+    if(n.data.imageAnnotations?.note&&commonAsset(n)?.kind==='image'){
+      const note=document.createElement('div');note.className='node-saved-image-note';
+      note.textContent=String(n.data.imageAnnotations.note).slice(0,2000);
+      note.title='Ghi chú ảnh đã lưu. Bấm Đánh dấu để chỉnh sửa.';
+      body.append(note);
     }
     if(n.data.outputAudit?.message&&n.data.asset?.url){
       const audit=document.createElement('div');
