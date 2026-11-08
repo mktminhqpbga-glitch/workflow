@@ -1377,7 +1377,8 @@
       throw Error('Node nguồn đã thay đổi, không gửi tác vụ cũ.');
     const data={provider:provider.id,model:kind==='image'?'muse-image':kind==='text'?'':'muse-video',
       localPrompt:'',size:resultTaskAspect(source,dimensions,kind),
-      status:'idle',aiTask:{id,settings:config,sourceNodeId:source.id}};
+      status:'idle',aiTask:{id,settings:config,sourceNodeId:source.id,
+         sourceDimensions:dimensions?{width:dimensions.width,height:dimensions.height,duration:dimensions.duration}:null}};
     if(id==='audioToVideo'){data.duration=config.duration;data.size=config.aspect;}
     else if(kind==='video')data.duration=Math.max(0.1,Number(dimensions?.duration)||5);
     if(WorkflowAI.providers[provider.id]?.urls){
@@ -1664,6 +1665,12 @@
         onDownload:media?()=>commonDownload(n,media):scripted?()=>commonDownloadText(n):null,
         readText:scripted?()=>n.data.script:null
       });
+    }
+    if(n.data.outputAudit?.message&&n.data.asset?.url){
+      const audit=document.createElement('div');
+      audit.className='hint node-output-audit'+(n.data.outputAudit.status==='warning'?' error':'');
+      audit.textContent=n.data.outputAudit.message;
+      body.append(audit);
     }
     if(n.data.sharedGeneratedText){
       const result=document.createElement('pre');result.className='shared-generated-text';
@@ -2469,6 +2476,14 @@
             if(isVideo){const frame=await extractVideoEndFrame(url);if(abortController.signal.aborted)throw new DOMException('Đã dừng.','AbortError');if(frame)frame.sourceAssetId=n.data.asset.id;n.data.endFrame=frame;}
             if(abortController.signal.aborted)throw new DOMException('Đã dừng.','AbortError');
             if(sizeMismatch)n.data.error=`Yêu cầu ${n.data.size}, AI trả ${intrinsic.width}×${intrinsic.height}. Kết quả được giữ lại với tỷ lệ thực tế.`;
+            if(n.data.aiTask?.id&&globalThis.WorkflowAIOutputAudit){
+              const audit=globalThis.WorkflowAIOutputAudit.inspect(n.data.aiTask,intrinsic);
+              n.data.outputAudit=audit;
+              if(audit.status==='warning'){
+                n.data.status='warning';
+                n.data.error=[n.data.error,audit.message].filter(Boolean).join(' ');
+              }
+            }
             n.data.storyDirty=false;storyDirtyAfter(n.id,true);state.edges.filter(e=>e.source===n.id).forEach(e=>{const target=nodeById(e.target);if(target?.type==='preview')target.data.asset=e.sourcePort==='endFrame'?n.data.endFrame:n.data.asset;});render();
           }catch(err){n.data.asset=null;n.data.endFrame=null;syncPreviewOutputs();if(err?.name==='AbortError'||abortController.signal.aborted){n.data.status='stopped';n.data.error='Generation stopped by user.';render();throw new DOMException('Generation stopped by user.','AbortError');}n.data.status='error';n.data.error=err?.message||String(err);render();throw err;}
         }
