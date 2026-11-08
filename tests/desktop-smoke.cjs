@@ -50,13 +50,13 @@ const path=require('node:path');
   await home.screenshot({path:path.join(os.tmpdir(),'workflow-desktop-home.png')});
   // Closing the canvas must flush a change that has not reached the debounce timer.
   const {toolbarAction}=require('./toolbar-actions.cjs');
-  await toolbarAction(canvas,'#addNodeMenuBtn');await canvas.click('[data-add="prompt"]');
-  await canvas.locator('.node textarea').first().fill('Edit immediately before native close');
+  await toolbarAction(canvas,'#addNodeMenuBtn');await canvas.click('[data-add="v3Text"]');
+  await canvas.locator('.node[data-v3-role="generateText"] .v3-text-editor').last().fill('Edit immediately before native close');
   const closing=canvas.waitForEvent('close');
   await application.evaluate(async({BrowserWindow})=>{const win=BrowserWindow.getAllWindows().find(w=>w.projectId);win.close();});
   await closing;
-  const reopened=application.waitForEvent('window');await home.evaluate(id=>window.workflowHome.openProject(id),project.id);const restored=await reopened;await restored.waitForSelector('.node textarea');
-  assert.equal(await restored.locator('.node textarea').first().inputValue(),'Edit immediately before native close');
+  const reopened=application.waitForEvent('window');await home.evaluate(id=>window.workflowHome.openProject(id),project.id);const restored=await reopened;await restored.waitForSelector('.v3-text-editor');
+  assert.equal(await restored.locator('.node[data-v3-role="generateText"] .v3-text-editor').last().innerText(),'Edit immediately before native close');
 
   // An update must never accept the normal close-without-saving fallback.
   await application.evaluate(async({dialog,BrowserWindow})=>{

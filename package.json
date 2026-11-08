@@ -16,7 +16,9 @@
     "package:desktop": "electron-builder --dir",
     "dist:mac": "electron-builder --mac",
     "dist:linux": "electron-builder --linux",
-    "setup:desktop": "install-electron"
+    "setup:desktop": "install-electron",
+    "test:v3": "node tests/v3-smoke.cjs",
+    "test:connections": "node tests/ai-connections-smoke.cjs"
   },
   "engines": {
     "node": ">=22.12.0"
