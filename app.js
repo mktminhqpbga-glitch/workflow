@@ -1147,14 +1147,30 @@
       return {id,name:p.name,connected:available,choices,symbol:id==='chatgpt'?'✦':id==='muse'?'◈':'◎'};
     });
   }
-  function commonChooseModel(n,g,item){
-    if(runForNode(n.id)||commonTextRuns.has(n.id)){setRunStatus('Hãy đợi Node hoàn tất trước khi đổi AI.','warn');return;}
-    n.data.provider=g.id;
+  async function commonChooseModel(n,g,item){
+    if(runForNode(n.id)||commonTextRuns.has(n.id)){
+      setRunStatus('Hãy đợi Node hoàn tất trước khi đổi AI.','warn');return;
+    }
     if(WorkflowAI.providers[g.id]?.urls){
-      const tab=(aiChatTabs[g.id]||[]).find(tab=>String(tab.id)===item.value);
-      if(!tab){setRunStatus('Tab AI đã đóng. Làm mới kết nối AI trước khi chọn.','error');return;}
-      n.data.chatTarget={tabId:tab.id,url:chatKey(tab.url)};delete n.data.apiModel;
-    }else{n.data.apiModel=item.value;delete n.data.chatTarget;}
+      pendingChatSelections++;
+      try{
+        // Choosing a tab validates its CURRENT conversation address. A cached
+        // tab title/URL is not authorization to send to a different chat later.
+        const tabs=await chrome.tabs.query({url:WorkflowAI.providers[g.id].urls});
+        const tab=tabs.find(tab=>String(tab.id)===String(item.value));
+        if(!tab)throw Error('Tab AI đã đóng. Làm mới kết nối AI trước khi chọn.');
+        if(nodeById(n.id)!==n||runForNode(n.id))throw Error('Node đã thay đổi khi chọn tab AI.');
+        aiChatTabs[g.id]=tabs;
+        n.data.provider=g.id;
+        n.data.chatTarget={tabId:tab.id,url:chatKey(tab.url)};
+        delete n.data.apiModel;
+      }catch(error){
+        setRunStatus(error.message||'Không chọn được tab AI.','error');
+        return;
+      }finally{pendingChatSelections--;}
+    }else{
+      n.data.provider=g.id;n.data.apiModel=item.value;delete n.data.chatTarget;
+    }
     n.data.error='';if(n.data.status==='error')n.data.status='idle';
     scheduleAutoSave();render();
   }
