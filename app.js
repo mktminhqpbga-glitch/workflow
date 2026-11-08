@@ -861,11 +861,13 @@
     for(const tools of document.querySelectorAll('.node.selected .node-common-context-tools')){
       tools.classList.remove('position-below');
       tools.style.marginLeft='0px';
+      const visible=$('#viewport').getBoundingClientRect();
       let rect=tools.getBoundingClientRect();
-      // The previous "always above" style lost the entire toolbar for nodes
-      // close to the viewport top; use an on-screen placement instead.
-      if(rect.top<10){tools.classList.add('position-below');rect=tools.getBoundingClientRect();}
-      const shift=rect.left<10?10-rect.left:rect.right>innerWidth-10?innerWidth-10-rect.right:0;
+      // The Canvas clips content at its own top edge (which is BELOW the
+      // application toolbar), not at the browser window's y=0 coordinate.
+      if(rect.top<visible.top+10){tools.classList.add('position-below');rect=tools.getBoundingClientRect();}
+      const shift=rect.left<visible.left+10?visible.left+10-rect.left:
+        rect.right>visible.right-10?visible.right-10-rect.right:0;
       tools.style.marginLeft=Math.round(shift)+'px';
     }
   }
