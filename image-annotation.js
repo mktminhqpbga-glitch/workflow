@@ -96,7 +96,19 @@ function open({url,initial,onSave,anchor}={}){
   canvas.onpointerup=finish;canvas.onpointercancel=e=>{draft=null;try{canvas.releasePointerCapture(e.pointerId);}catch{}draw();};
   undo.onclick=()=>{if(strokes.length){redo.push(strokes.pop());draw();}};
   redoButton.onclick=()=>{if(redo.length){strokes.push(redo.pop());draw();}};
-  image.addEventListener('load',resize);
+  image.addEventListener('load',()=>{
+    if(image.naturalWidth>0&&image.naturalHeight>0){
+      const aspect=image.naturalWidth/image.naturalHeight;
+      // Keep the drawing surface exactly aligned with displayed pixels, not
+      // with a letterboxed 4:3 wrapper (portrait uploads are common).
+      const maxWidth=Math.max(100,Math.min(456,panel.clientWidth-24));
+      const width=Math.min(maxWidth,330*aspect);
+      stage.style.width=Math.round(width)+'px';
+      stage.style.aspectRatio=String(aspect);
+      stage.style.maxHeight='330px';
+    }
+    resize();
+  });
   requestAnimationFrame(resize);
   panel.addEventListener('keydown',e=>{if(e.key==='Escape'){e.stopPropagation();close();}});
   dismiss.focus();
