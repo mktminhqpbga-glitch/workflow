@@ -1208,8 +1208,18 @@
   }
   function commonDownload(n,media){
     if(!media?.url)throw Error('Node chưa có kết quả để tải.');
-    const suffix=media.kind==='video'?'mp4':media.kind==='audio'?'mp3':'png';
-    const filename=WorkflowTools.safeName(media.name||n.data.customName||n.type)+'.'+suffix;
+    const extensions={image:new Set(['png','jpg','jpeg','webp','gif','avif','bmp']),
+      video:new Set(['mp4','mov','m4v','webm']),audio:new Set(['mp3','wav','ogg','m4a','aac','flac'])};
+    const defaults={image:'png',video:'mp4',audio:'mp3'};
+    let filename=WorkflowTools.safeName(media.name||n.data.customName||n.type);
+    const ext=/\.([a-z0-9]+)$/i.exec(filename)?.[1]?.toLowerCase();
+    if(!extensions[media.kind]?.has(ext))filename+='.'+(defaults[media.kind]||'bin');
+    const result=globalThis.chrome?.downloads?.download;
+    if(typeof result==='function'){
+      void Promise.resolve().then(()=>result({url:media.url,filename,saveAs:true}))
+        .catch(error=>setRunStatus('Không tải được tệp: '+(error.message||error),'error'));
+      return;
+    }
     const link=document.createElement('a');link.href=media.url;link.download=filename;
     document.body.append(link);link.click();link.remove();
   }
