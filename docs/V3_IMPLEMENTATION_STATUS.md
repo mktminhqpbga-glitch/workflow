@@ -175,4 +175,6 @@ Tổng: 3 🟢 Cục bộ, 87 🟡 Chưa đủ, 6 ⚪ Chưa triển khai, 26 Ẩ
 
 ## Phân phối
 
-Các commit được tạo để review; thao tác push/PR sẽ được ghi sau khi có kết quả từ GitHub. Không tuyên bố đã merge hay tạo release.
+Đã push thành công nhánh [`feat/museflow-v3-interface`](https://github.com/mktminhqpbga-glitch/workflow/tree/feat/museflow-v3-interface). Commit mã nguồn: [`719ea13`](https://github.com/mktminhqpbga-glitch/workflow/commit/719ea13); test: [`62a9413`](https://github.com/mktminhqpbga-glitch/workflow/commit/62a9413); báo cáo/ảnh: [`15f13f8`](https://github.com/mktminhqpbga-glitch/workflow/commit/15f13f8).
+
+Đã thử tạo Draft PR bằng `gh pr create`, nhưng GitHub GraphQL API trả `Forbidden` (HTTP 403). **Chưa tạo được PR, chưa merge, chưa phát hành.** Có thể mở [trang tạo PR cho nhánh đã push](https://github.com/mktminhqpbga-glitch/workflow/pull/new/feat/museflow-v3-interface). Đây là giới hạn truy cập API của môi trường; push Git đã thành công.
