@@ -36,7 +36,9 @@ const assert=require('node:assert/strict');
   // I18: the same actionable image markup tool must work for real AI-generated
   // images, save a yellow note + normalized stroke, and never send a new AI job.
   const beforeMark=await page.evaluate(()=>testMessages.length);
-  await page.locator('.node[data-id="ri"] .node-header').click();
+  // Click the title text, not the header center (which may hit Rename/Copy buttons).
+  await page.locator('.node[data-id="ri"] .node-title').click();
+  await page.waitForFunction(()=>document.querySelector('.node[data-id="ri"]')?.classList.contains('selected'));
   await page.locator('.node[data-id="ri"] .node-common-task-action').filter({hasText:'Đánh dấu'}).click();
   await page.waitForSelector('.workflow-image-note-editor');
   await page.locator('.image-note-canvas').click({position:{x:22,y:22}});
