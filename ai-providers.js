@@ -6,7 +6,14 @@
     gemini: {name:'Gemini · tab', types:['text','image'], urls:['https://gemini.google.com/*']},
     google: {name:'Google Gemini / Veo · API', types:['text','image','video']},
     openai: {name:'OpenAI · API', types:['text','image']},
-    fal: {name:'fal.ai Kling Motion Control · API', types:['video']}
+    fal: {name:'fal.ai Kling Motion Control · API', types:['video']},
+    anthropic: {name:'Claude · API',types:['text'],endpoint:'https://api.anthropic.com/v1',protocol:'anthropic',images:true},
+    deepseek: {name:'DeepSeek · API',types:['text'],endpoint:'https://api.deepseek.com/v1',protocol:'chat'},
+    qwen: {name:'Qwen · API',types:['text'],endpoint:'https://dashscope-intl.aliyuncs.com/compatible-mode/v1',protocol:'chat'},
+    grok: {name:'Grok · API',types:['text'],endpoint:'https://api.x.ai/v1',protocol:'chat'},
+    mistral: {name:'Mistral · API',types:['text'],endpoint:'https://api.mistral.ai/v1',protocol:'chat'},
+    perplexity: {name:'Perplexity · API',types:['text'],endpoint:'https://api.perplexity.ai',protocol:'chat'},
+    compatible: {name:'API tương thích OpenAI',types:['text'],protocol:'chat'}
   };
   const models = {google:{text:'gemini-2.5-flash',image:'gemini-2.5-flash-image',video:'veo-3.0-generate-001'},openai:{text:'gpt-4.1-mini',image:'gpt-image-1'},fal:{video:'fal-ai/kling-video/v2.6/standard/motion-control'}};
   const abort = signal => {if(signal?.aborted)throw new DOMException('Đã dừng tạo nội dung.','AbortError');};
@@ -25,6 +32,11 @@
   }
   function validate(provider,r) {
     if(!providers[provider]?.types.includes(r.mediaType))throw new Error('AI này không hỗ trợ loại đầu ra đã chọn.');
+    const definition=providers[provider];provider=definition.baseProvider||provider;
+    if(definition.protocol){
+      if(r.referenceVideos?.length||r.referenceAudios?.length)throw new Error('Adapter này chưa hỗ trợ video/âm thanh đầu vào.');
+      if(r.referenceImages?.length&&!definition.images)throw new Error('Adapter này chỉ nhận văn bản; chưa hỗ trợ ảnh tham chiếu.');
+    }
     if(r.referenceVideos?.length&&provider==='openai')throw new Error('OpenAI adapter chưa hỗ trợ video gốc. Chọn Gemini để phân tích video.');
     if(r.mediaType==='video'&&provider==='google'&&![4,6,8].includes(Number(r.duration)))throw new Error('Veo adapter hỗ trợ clip 4, 6 hoặc 8 giây; không thể bảo đảm một clip 15–60 giây.');
     if(provider==='fal'){
@@ -47,7 +59,23 @@
   }
   async function api(provider,r,key,signal) {
     validate(provider,r);if(!key)throw new Error('Chưa nhập API key trong Cài đặt.');abort(signal);
-    const model=r.model||models[provider]?.[r.mediaType];
+    const definition=providers[provider],model=r.model||models[provider]?.[r.mediaType];
+    provider=definition.baseProvider||provider;
+    if(definition.protocol){
+      if(!model)throw new Error('Nhập model ID trong Kết nối AI trước khi chạy.');
+      const base=endpoint(definition.endpoint),headers=apiHeaders(definition,key);
+      let body;
+      if(definition.protocol==='anthropic'){
+        const content=[{type:'text',text:r.prompt}];
+        for(const url of r.referenceImages||[]){const image=await media(url,signal);content.push({type:'image',source:{type:'base64',media_type:image.mimeType,data:image.data}});}
+        body={model,max_tokens:4096,...(r.rules?{system:r.rules}:{}),messages:[{role:'user',content}]};
+      }else body={model,messages:[...(r.rules?[{role:'system',content:r.rules}]:[]),{role:'user',content:r.prompt}],stream:false};
+      const result=await json(base+(definition.protocol==='anthropic'?'/messages':'/chat/completions'),{method:'POST',headers,signal,body:JSON.stringify(body)});
+      if(result.stop_reason==='max_tokens'||result.choices?.[0]?.finish_reason==='length')throw new Error('AI dừng vì giới hạn đầu ra; chưa nhận được văn bản hoàn chỉnh.');
+      const text=definition.protocol==='anthropic'?(result.content||[]).filter(x=>x.type==='text').map(x=>x.text).join('\n'):result.choices?.[0]?.message?.content;
+      if(typeof text!=='string'||!text.trim())throw new Error('AI không trả về văn bản hợp lệ.');
+      return {ok:true,text};
+    }
     if(provider==='google') {
       const base='https://generativelanguage.googleapis.com/v1beta/';
       const headers={'Content-Type':'application/json','x-goog-api-key':key};
@@ -152,5 +180,23 @@
 
     }
   }
-  globalThis.WorkflowAI={providers,models,validate,api};
+  // Explicit public API hosts only. A custom endpoint cannot redirect a stored key
+  // to a private address or an unrelated host, including on the desktop bridge.
+  const apiHosts=['api.anthropic.com','api.deepseek.com','dashscope-intl.aliyuncs.com','api.x.ai','api.mistral.ai','api.perplexity.ai','api.openai.com','openrouter.ai','api.together.xyz'];
+  function endpoint(value){
+    let url;try{url=new URL(value);}catch{throw new Error('Nhập địa chỉ API HTTPS hợp lệ.');}
+    if(url.protocol!=='https:'||url.port||url.username||url.password||url.search||url.hash||!apiHosts.includes(url.hostname))throw new Error('Địa chỉ API chưa được hỗ trợ. Dùng máy chủ HTTPS trong danh sách hướng dẫn.');
+    return url.href.replace(/\/$/,'');
+  }
+  function apiHeaders(definition,key){return definition.protocol==='anthropic'?{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'}:{'Content-Type':'application/json',Authorization:'Bearer '+key};}
+  async function checkAPI(provider,key,signal){
+    const definition=providers[provider];if(!definition||definition.urls)throw new Error('Kết nối không phải API.');
+    if(!key)throw new Error('Chưa nhập API key.');abort(signal);
+    const base=definition.baseProvider||provider;
+    if(base==='fal'||base==='perplexity')throw new Error('Nhà cung cấp này chưa có kiểm tra không tạo nội dung trong ứng dụng. Đã lưu, chưa xác thực; hãy kiểm tra khi chạy tác vụ.');
+    const url=base==='google'?'https://generativelanguage.googleapis.com/v1beta/models':base==='openai'?'https://api.openai.com/v1/models':endpoint(definition.endpoint)+'/models';
+    const headers=base==='google'?{'x-goog-api-key':key}:apiHeaders(definition,key);
+    await json(url,{headers,signal});return {ok:true,detail:'API phản hồi danh sách model; chưa thử tạo nội dung.'};
+  }
+  globalThis.WorkflowAI={providers,models,validate,api,endpoint,apiHosts,checkAPI};
 })();

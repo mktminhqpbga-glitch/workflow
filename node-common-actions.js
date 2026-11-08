@@ -31,6 +31,7 @@ function modelMenu(buttonEl,groups,selected,onPick){
   menu(buttonEl,(panel,close)=>{
     panel.append(create('p','node-common-menu-title','Chọn AI đã kết nối'));
     const options=connectedOnly(groups);
+    const add=button('＋ Thêm kết nối AI','Thêm kết nối AI',()=>{close();document.dispatchEvent(new Event('workflow-add-ai'));});panel.append(add);
     if(!options.length){panel.append(create('p','node-common-empty','Chưa có AI đã kết nối cho tác vụ này. Mở Cài đặt → Kết nối AI.'));return;}
     for(const group of options){
       const head=button(group.name,'Hiển thị model hoặc tab của '+group.name,()=>{

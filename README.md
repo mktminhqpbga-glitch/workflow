@@ -1,5 +1,7 @@
 # Workflow · MuseFlow 0.31.0
 
+**[Trang Kết nối AI — nhiều tài khoản, API và tab trình duyệt](docs/AI-CONNECTIONS.md)**: danh mục 16 nhà cung cấp; hỗ trợ API văn bản mới cho Claude, DeepSeek, Qwen, Grok, Mistral, Perplexity và Chat Completions tương thích. Các adapter chưa triển khai được ghi rõ và không cho chạy.
+
 ## Ứng dụng desktop — bản alpha
 
 Bản 0.31.0 thêm panel **Cập nhật**, tự kiểm tra phiên bản và tải nền/tự cài cho bản Mac đã ký. Bản chưa ký chỉ kiểm tra và mở trang tải. [Cách cập nhật và phát hành](docs/AUTO-UPDATE.md).

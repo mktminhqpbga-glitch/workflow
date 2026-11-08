@@ -34,6 +34,11 @@ test('connector match patterns preserve Chrome subdomain and path semantics', ()
 
 test('network bridge only reaches supported APIs, updates, media and helper routes', () => {
   for (const url of ['https://api.openai.com/v1/responses',
+    'https://api.anthropic.com/v1/messages','https://api.deepseek.com/v1/chat/completions',
+    'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions',
+    'https://api.x.ai/v1/chat/completions','https://api.mistral.ai/v1/chat/completions',
+    'https://api.perplexity.ai/chat/completions','https://openrouter.ai/api/v1/chat/completions',
+    'https://api.together.xyz/v1/chat/completions',
     'https://generativelanguage.googleapis.com/v1beta/models/model:generateContent',
     'https://queue.fal.run/fal-ai/model', 'https://fal.media/result.mp4',
     'https://storage.googleapis.com/falserverless/example_outputs/ltx-2-a2v-output.mp4',
@@ -46,6 +51,7 @@ test('network bridge only reaches supported APIs, updates, media and helper rout
     assert.equal(allowedNetworkURL(url), true, url);
   }
   for (const url of ['https://api.openai.com.evil.test/', 'https://evil.test@api.openai.com/',
+    'https://api.deepseek.com.evil.test/v1','https://key@api.anthropic.com/v1/messages',
     'https://api.openai.com:8443/', 'http://api.openai.com/', 'https://notfal.media/',
     'https://storage.googleapis.com/private-bucket/secret.mp4',
     'https://evil.test@storage.googleapis.com/falserverless/example_outputs/x.mp4',

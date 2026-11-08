@@ -50,6 +50,7 @@ function allowedNetworkURL(value) {
   if(url.hostname==='storage.googleapis.com')
     return /^\/falserverless\/(?:example_outputs\/|[a-zA-Z0-9._~%-]+\/)[a-zA-Z0-9._~%\/-]+$/.test(url.pathname);
   return ['api.openai.com', 'generativelanguage.googleapis.com', 'queue.fal.run',
+    'api.anthropic.com', 'api.deepseek.com', 'dashscope-intl.aliyuncs.com', 'api.x.ai', 'api.mistral.ai', 'api.perplexity.ai', 'openrouter.ai', 'api.together.xyz',
     'raw.githubusercontent.com', 'api.github.com', 'fal.media'].includes(url.hostname)
     || url.hostname.endsWith('.fal.media');
 }

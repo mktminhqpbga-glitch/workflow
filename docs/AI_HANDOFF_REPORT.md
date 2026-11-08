@@ -3,11 +3,23 @@
 ## BUG-008 — Không nhận kết quả từ cuộc trò chuyện AI khác (2026-11-08)
 
 - Người dùng yêu cầu sửa lỗi đã tái hiện trên Chromium: gửi tại chat A, chuyển SPA sang chat B khi đang chờ, `ai-bridge.js` nhận câu trả lời của B và trả `ok: true`. `otherTabMessage()` còn ghi URL B vào `chatTarget`.
-- Bản sửa trên nền commit `5449b33` (chưa commit/push): `ai-bridge.js` kiểm tra origin/path khi xác nhận gửi, mỗi vòng nhận kết quả và trước khi trả kết quả sau tải ảnh; trả kèm URL đã xác minh. `app.js` chỉ nhận kết quả thành công khi URL từ bridge và URL tab hiện tại đều khớp chat ban đầu; phản hồi lỗi không cập nhật chatTarget.
+- Bản sửa trên nền commit `5449b33`, commit cục bộ `b9f664f` (chưa push): `ai-bridge.js` kiểm tra origin/path khi xác nhận gửi, mỗi vòng nhận kết quả và trước khi trả kết quả sau tải ảnh; trả kèm URL đã xác minh. `app.js` chỉ nhận kết quả thành công khi URL từ bridge và URL tab hiện tại đều khớp chat ban đầu; phản hồi lỗi không cập nhật chatTarget.
 - Chính sách thận trọng: thay đổi origin/path, kể cả nhà cung cấp tự đổi đường dẫn từ chat mới sang chat có ID, sẽ dừng tác vụ; không tự gửi lại. Mở chat có URL ổn định trước khi chạy. Chưa bổ sung cơ chế xác thực chuyển URL tự động của nhà cung cấp.
 - Test hồi quy: `node tests/ai-conversation-smoke.cjs` tái hiện rồi xác nhận chặn chat khác trên cả ChatGPT và Gemini; chỉ gửi 1 lần. `tests/desktop-ai-conversation.test.cjs` chạy routing thật với ranh giới Chrome mô phỏng: URL tab đổi, phản hồi lỗi, phản hồi sai URL, và thành công giữ nguyên target. Các test mới đã thất bại trước sửa.
 - `npm test`: 128/128 pass; `npm run test:reliability`, `npm run test:desktop`, `node tests/gpt-response-smoke.cjs`: pass. Dịch vụ AI/DOM được mô phỏng; chưa xác minh tài khoản AI thật.
 - Browser smoke toàn ứng dụng có lỗi nền đã tái hiện trước bản sửa: `tests/browser-smoke.cjs:52` chờ bộ chọn chat cũ đang bị CSS ẩn. Không sửa lỗi test đó trong BUG-008.
+
+## T-013 / C01 — Trang Kết nối AI và API bổ sung (2026-11-08)
+
+- Chủ dự án duyệt bố cục danh mục AI, hai kiểu API/tab và yêu cầu bắt đầu triển khai. Không coi các dịch vụ chưa có adapter là đã kết nối.
+- `ai-connections.js`: danh mục 16 nhà cung cấp; kiểm tra/đăng ký metadata theo ID kết nối; tên, model, loại đầu ra hoặc tab/URL độc lập; bỏ mọi trường khóa khỏi metadata.
+- `ai-connections-ui.js`, `ai-connections.css`, `app.html`: trang tìm kiếm/lọc, thêm/sửa/xóa, hai chế độ, kiểm tra không tạo nội dung, trạng thái chưa xác thực, nhập khóa chỉ trong phiên, giao diện hẹp, điều hướng bàn phím và nút thêm từ model picker.
+- `ai-providers.js`: Claude Messages API; DeepSeek, Qwen quốc tế, Grok, Mistral, Perplexity Chat Completions; API tương thích OpenAI tại các host HTTPS đã giới hạn. Model ID do người dùng cấu hình. Các adapter văn bản không hỗ trợ media sẽ từ chối nguồn media; kết quả bị cắt do token không được báo hoàn tất.
+- `app.js`, `node-common-actions.js`: nhiều kết nối cùng nhà cung cấp, chọn đúng khóa/model hoặc tab tại node, giữ workflow/khóa legacy, dùng base provider cho capability/task và các thao tác gửi ngay/khôi phục. Tách khóa vào session; rollback khi ghi metadata thất bại; chặn sửa/xóa kết nối đang được sử dụng/chạy theo tình huống tương ứng. Không tự fallback sang tài khoản/kiểu khác.
+- `manifest.json`, `desktop/policy.cjs`, `desktop/renderer.js`: quyền mạng và transport cho các host API mới; không mở mạng tùy ý. `tools/package.py` đưa đủ asset mới vào extension. Không xuất ZIP trong tác vụ này.
+- Đã chạy: `npm test` **134/134 pass**; `npm run test:desktop`, `npm run test:reliability`, `npm run test:browser` **pass**. Browser smoke đã cập nhật để mở disclosure cấu hình cũ và dùng model picker hiện hành; giữ các assertion gửi đúng tab, không gửi khi đổi/đóng chat, truyền video và xuất FFmpeg thật.
+- Test mới `node tests/ai-connections-smoke.cjs`: UI app thật/Chromium với API và Chrome mô phỏng; nhiều tài khoản, kiểm tra chỉ đọc, chọn key/model, tab chính xác, không xuất khóa, khôi phục/hết phiên, sửa/xóa, rollback bộ nhớ, mobile, bàn phím và thêm từ node. Ảnh preview trong workspace `/tmp/workflow-ai-connections.png`, `/tmp/workflow-ai-connections-mobile.png`.
+- Giới hạn: chưa gọi nhà cung cấp mới bằng tài khoản thật; model/quyền/CORS/hạn mức cần QA thật. Tab mới ngoài Muse/Gemini/ChatGPT chưa triển khai. Replicate, Kling trực tiếp, Runway, Luma, ElevenLabs mới nằm trong danh mục, nút chạy/lưu bị khóa. Không tuyên bố hoàn tất mọi dịch vụ hay toàn bộ T-013. Xem `docs/AI-CONNECTIONS.md`.
 
 **Cập nhật:** 2026-11-08  
 **Mục đích:** AI lập trình khác đọc trước khi sửa UI, node, Canvas, kết nối, và xử lý các nhiệm vụ/lỗi chưa xong.  

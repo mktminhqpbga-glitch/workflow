@@ -58,7 +58,7 @@
   const originalFetch = window.fetch.bind(window);
   window.fetch = async (input, options = {}) => {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
-    if (!/^https:\/\/(api\.openai\.com|generativelanguage\.googleapis\.com|queue\.fal\.run)\//.test(url) && !/^http:\/\/127\.0\.0\.1:9473\//.test(url)) return originalFetch(input, options);
+    if (!/^https:\/\/(api\.openai\.com|generativelanguage\.googleapis\.com|queue\.fal\.run|api\.anthropic\.com|api\.deepseek\.com|dashscope-intl\.aliyuncs\.com|api\.x\.ai|api\.mistral\.ai|api\.perplexity\.ai|openrouter\.ai|api\.together\.xyz)\//.test(url) && !/^http:\/\/127\.0\.0\.1:9473\//.test(url)) return originalFetch(input, options);
     const requestId = crypto.randomUUID();
     const signal = options.signal;
     if (signal?.aborted) throw new DOMException('Đã dừng.', 'AbortError');

@@ -44,7 +44,15 @@
     "https://fal.media/*",
     "https://www.chatgpt.com/*",
     "https://chat.openai.com/*",
-    "http://127.0.0.1/*"
+    "http://127.0.0.1/*",
+    "https://api.anthropic.com/*",
+    "https://api.deepseek.com/*",
+    "https://dashscope-intl.aliyuncs.com/*",
+    "https://api.x.ai/*",
+    "https://api.mistral.ai/*",
+    "https://api.perplexity.ai/*",
+    "https://openrouter.ai/*",
+    "https://api.together.xyz/*"
   ],
   "content_scripts": [
     {
