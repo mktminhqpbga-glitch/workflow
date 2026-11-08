@@ -24,9 +24,10 @@
  function tempo(speed){let n=finite(speed,.25,4,'Tốc độ'),out=[];while(n>2){out.push('atempo=2');n/=2;}while(n<.5){out.push('atempo=0.5');n/=.5;}out.push('atempo='+n);return out.join(',');}
  function sceneDurations(total,count,lines=[]){finite(total,.05,86400,'Thời lượng lời đọc');if(!count)throw Error('Chưa có cảnh video.');if(lines.length&&lines.length!==count)throw Error('Mỗi dòng kịch bản phải tương ứng một cảnh.');const weights=lines.length?lines.map(line=>Math.max(1,line.trim().split(/\s+/).length)):Array(count).fill(1),sum=weights.reduce((a,b)=>a+b,0);return weights.map(w=>total*w/sum);}
  async function responseOk(response){if(response.ok)return response;let message='';try{message=(await response.json()).error?.message||'';}catch{}throw Error(`OpenAI HTTP ${response.status}${message?': '+message:''}`);}
- async function speak(text,{key,voice='coral',speed=1,signal}={}){
+ async function speak(text,{key,voice='coral',speed=1,format='mp3',signal}={}){
   if(!key)throw Error('Nhập OpenAI API key trong Kết nối AI để tạo tệp giọng đọc.');if(!text?.trim()||text.length>4096)throw Error('Lời đọc cần từ 1 đến 4096 ký tự.');finite(speed,.25,4,'Tốc độ giọng');
-  const r=await responseOk(await fetch('https://api.openai.com/v1/audio/speech',{method:'POST',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify({model:'gpt-4o-mini-tts',input:text,voice,speed:Number(speed),response_format:'mp3'}),signal}));const blob=await r.blob();if(!blob.size)throw Error('API không trả tệp âm thanh.');return blob;
+  if(!['mp3','wav'].includes(format))throw Error('Định dạng lời đọc cần là MP3 hoặc WAV.');
+  const r=await responseOk(await fetch('https://api.openai.com/v1/audio/speech',{method:'POST',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify({model:'gpt-4o-mini-tts',input:text,voice,speed:Number(speed),response_format:format}),signal}));const blob=await r.blob();if(!blob.size)throw Error('API không trả tệp âm thanh.');return blob;
  }
  async function transcribe(asset,{key,signal}={}){
   if(!key)throw Error('Cần OpenAI API key để nhận diện lời nói; vẫn có thể nhập SRT thủ công.');

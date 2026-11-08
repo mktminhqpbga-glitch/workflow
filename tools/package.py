@@ -4,6 +4,7 @@ from zipfile import ZipFile, ZIP_DEFLATED
 
 root = Path(__file__).resolve().parents[1]
 files = [
+    'v3-ui.js', 'v3-nodes.js', 'v3.css', 'asset-library.js',
     'ai-connections.js', 'ai-connections-ui.js', 'ai-connections.css',
     'manifest.json', 'app.html', 'app.js', 'background.js', 'muse-bridge.js', 'muse-jobs.js', 'muse-support.js',
     'ai-bridge.js', 'result-picker.js', 'composer-controls.js', 'ai-providers.js', 'workflow-tools.js', 'ai-action-presets.js', 'ai-output-audit.js', 'video-frame-capture.js', 'visual-prompt-presets.js', 'visual-prompt-presets.css', 'workflow-runtime.js', 'media-studio.js', 'media-library.js', 'story-workflow.js', 'story-references.js', 'story-dashboard.js', 'compact-toolbar.js', 'flow-studio.js', 'batch-manager.js', 'batch-images.js', 'i18n.js', 'styles.css', 'shared-node-controls.js', 'shared-node-controls.css', 'node-common-actions.js', 'node-common-actions.css', 'image-annotation.js', 'image-annotation.css', 'README.md',

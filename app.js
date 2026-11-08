@@ -2,6 +2,7 @@
   'use strict';
 
   const $ = (s) => document.querySelector(s);
+  let v3UI=null,assetLibrary=null;
   const canvas = $('#canvas');
   const edgesSvg = $('#edges');
   const runStatus = $('#runStatus');
@@ -71,10 +72,10 @@
     negativePrompt: { title: 'Negative Prompt', outputs: [{ id: 'text', label: 'negative', type: 'negative' }] },
     textAppend: { title: 'Text Append', inputs: [{ id: 'text', label: 'text', type: 'text' }], outputs: [{ id: 'text', label: 'text', type: 'text' }] },
     textConcat: { title: 'Text Merge', inputs: [{ id: 'text', label: 'text', type: 'text' }], outputs: [{ id: 'text', label: 'text', type: 'text' }] },
-    imageInput: { title: 'Image Input', outputs: [{ id: 'image', label: 'image', type: 'image' }] },
+    imageInput: { title: 'Ảnh tải lên', outputs: [{ id: 'image', label: 'image', type: 'image' }] },
     references: { title: 'References', inputs: Array.from({length:8},(_,i)=>({id:`reference${i+1}`,label:`image ${i+1}`,type:'image'})), outputs: [{id:'image',label:'images',type:'image'}] },
     generateImage: {
-      title: 'Generate Image',
+      title: 'Sinh ảnh AI',
       inputs: [{ id: 'prompt', label: 'prompt', type: 'text' }, { id: 'negative', label: 'negative', type: 'negative' }, { id: 'reference', label: 'reference', type: 'image' }],
       outputs: [{ id: 'image', label: 'image', type: 'image' }]
     },
@@ -483,7 +484,7 @@
       studioSelect(body,node,'audioMode','Âm thanh MP3',[['replace','Thay âm thanh gốc'],['mix','Trộn với âm thanh gốc']],'replace');field('musicVolume','Âm lượng MP3 (0–2)',{type:'number',value:1,min:0,max:2});field('loop','Lặp MP3 đến hết video',{type:'checkbox',value:false});field('autoDownload','Tự tải MP4 sau khi hoàn tất',{type:'checkbox',value:true});help('Nối Âm thanh đầu vào vào cổng Nhạc / lời đọc; hoặc thả MP3 lên node này. Giữ tổng thời lượng video: nhạc dài được cắt, nhạc ngắn được thêm khoảng lặng hoặc lặp nếu bật. Run All sẽ tự chạy Output sau các video nguồn.');
     }
     if(node.type==='voiceover'){
-      field('script','Lời đọc (hoặc nối cổng Văn bản)',{type:'textarea'});studioSelect(body,node,'voice','Giọng đọc',[['coral','Coral'],['alloy','Alloy'],['nova','Nova'],['onyx','Onyx'],['shimmer','Shimmer'],['echo','Echo']],'coral');field('speed','Tốc độ giọng đọc',{type:'number',value:1,min:.25,max:4});help('Tạo tệp MP3 bằng OpenAI API; cần API key có quyền và số dư. Tối đa 4096 ký tự/lượt. Giọng nói do AI tạo.');
+      field('script','Lời đọc (hoặc nối cổng Văn bản)',{type:'textarea'});studioSelect(body,node,'voice','Giọng đọc',[['coral','Coral'],['alloy','Alloy'],['nova','Nova'],['onyx','Onyx'],['shimmer','Shimmer'],['echo','Echo']],'coral');studioSelect(body,node,'audioFormat','Định dạng âm thanh',[['mp3','MP3'],['wav','WAV']],'mp3');field('speed','Tốc độ giọng đọc',{type:'number',value:1,min:.25,max:4});help('Tạo tệp MP3 bằng OpenAI API; cần API key có quyền và số dư. Tối đa 4096 ký tự/lượt. Giọng nói do AI tạo.');
     }
     if(node.type==='audioMix'){field('originalVolume','Âm lượng gốc (0–2)',{type:'number',value:1,min:0,max:2});field('musicVolume','Âm lượng nhạc/lời đọc (0–2)',{type:'number',value:.5,min:0,max:2});field('muteOriginal','Tắt tiếng video gốc',{type:'checkbox',value:false});field('loop','Lặp nhạc đến hết video',{type:'checkbox',value:true});help('Nối video và một node Âm thanh/Lồng tiếng. Thả tệp nhạc lên cổng Âm thanh để nối nhanh.');}
     if(node.type==='subtitles'){
@@ -502,16 +503,16 @@
     if(WorkflowStudio.effects.has(node.type)){
       const busy=!!runForNode(node.id),queued=autoPlan?.ids.has(node.id)&&node.data.status==='queued';studioButton(body,busy?'■ Dừng':node.type==='finalOutput'?'▶ Xuất video cuối':'▶ Thực hiện',()=>busy?stopGeneration(node.id):execute(node.id),{disabled:queued});
     }
-    const asset=node.data.asset;if(asset?.url){const media=document.createElement(asset.kind==='audio'?'audio':'video');media.controls=true;media.preload='metadata';media.src=asset.url;body.append(media);studioButton(body,'Tải kết quả',()=>{const a=document.createElement('a');a.href=asset.url;a.download=node.type==='audioInput'?(node.data.fileName||asset.name||'Am-thanh'):WorkflowTools.safeName(node.data.customName||node.data.componentId||node.type)+(asset.kind==='audio'?'.mp3':'.mp4');a.click();},{disabled:node.type==='finalOutput'&&!!node.data.storyDirty});}
+    const asset=node.data.asset;if(asset?.url){const media=document.createElement(asset.kind==='audio'?'audio':'video');media.controls=true;media.preload='metadata';media.src=asset.url;body.append(media);studioButton(body,'Tải kết quả',()=>commonDownload(node,{...asset,name:asset.name||node.data.fileName}),{disabled:node.type==='finalOutput'&&!!node.data.storyDirty});}
   }
   async function studioRemote(node,call){
-    const id=uid('speech');providerJobs.set(id,{provider:'openai',phase:'busy'});renderHealth();progressNode(node,'Đang gọi OpenAI Audio API…');
-    try{const value=await call();setProviderHealth('openai','ready','Audio API vừa trả kết quả');return value;}catch(error){if(error.name!=='AbortError')setProviderHealth('openai',failureHealth(error.message),error.message,true);throw error;}finally{providerJobs.delete(id);renderHealth();}
+    const id=uid('speech'),provider=baseAIProvider(node.data.provider||'openai')==='openai'?(node.data.provider||'openai'):'openai';providerJobs.set(id,{provider,phase:'busy'});renderHealth();progressNode(node,'Đang gọi OpenAI Audio API…');
+    try{const value=await call();setProviderHealth(provider,'ready','Audio API vừa trả kết quả');return value;}catch(error){if(error.name!=='AbortError')setProviderHealth(provider,failureHealth(error.message),error.message,true);throw error;}finally{providerJobs.delete(id);renderHealth();}
   }
   async function executeStudio(node,signal){
     const all=port=>(node.type==='finalOutput'&&port==='video'?finalOutputEdges(node):getIncoming(node.id,port)).map(edge=>{const source=nodeById(edge.source);if(!source)throw Error('Mất node nguồn.');if(source.type==='audioInput')return source.data.asset||{kind:'audio',url:source.data.localDataUrl};return edge.sourcePort==='endFrame'?source.data.endFrame:source.data.asset||(source.data.localDataUrl?{kind:source.type==='videoInput'?'video':'image',url:source.data.localDataUrl}:null);});
     let blob,details={};
-    if(node.type==='voiceover')blob=await studioRemote(node,()=>WorkflowStudio.speak(toolText(node,'text')||node.data.script||'',{key:aiKeys.openai,voice:node.data.voice||'coral',speed:node.data.speed||1,signal}));
+    if(node.type==='voiceover')blob=await studioRemote(node,()=>WorkflowStudio.speak(toolText(node,'text')||node.data.script||'',{key:baseAIProvider(node.data.provider||'openai')==='openai'?aiKeys[node.data.provider||'openai']:undefined,voice:node.data.voice||'coral',speed:node.data.speed||1,format:node.data.audioFormat||'mp3',signal}));
     else{
       const videos=node.type==='transition'?[...all('first'),...all('second')]:all('video'),audios=all('audio');if(node.type==='videoAssembly'&&node.data.expectedClips&&videos.length!==node.data.expectedClips)throw Error('Thiếu cảnh/đoạn/phần: cần '+node.data.expectedClips+' đầu vào. Chưa ghép để tránh xuất thiếu nội dung.');let captions=node.data.srt||toolText(node,'text');
       if(node.type==='subtitles'&&!captions&&node.data.autoTranscribe){captions=await studioRemote(node,()=>WorkflowStudio.transcribe(videos[0]||{},{key:aiKeys.openai,signal}));node.data.srt=captions;}
@@ -521,7 +522,7 @@
         if(audios.length){if(audios.length!==1)throw Error('Output nhận một bản nhạc/lời đọc.');const temp=URL.createObjectURL(joined.blob);try{details=await WorkflowStudio.process('audioMix',{videos:[{kind:'video',url:temp}],audios,settings:{...node.data,muteOriginal:node.data.audioMode!=='mix',musicVolume:node.data.musicVolume??1,loop:node.data.loop??false}},signal,text=>progressNode(node,text));}finally{URL.revokeObjectURL(temp);}}details.report='Đã xuất '+videos.length+' cảnh theo danh sách thứ tự'+(audios.length?' và chèn âm thanh đã tải lên.':'. Không có âm thanh bổ sung.')+'\n'+details.report;blob=details.blob;
       }else details=await WorkflowStudio.process(node.type,{videos,audios,settings:node.data,captions,lines:String(node.data.sceneLines||toolText(node,'text')||'').split('\n').map(s=>s.trim()).filter(Boolean)},signal,text=>progressNode(node,text));blob=details.blob;
     }
-    if(signal.aborted)throw new DOMException('Đã dừng.','AbortError');const url=await blobAsDataUrl(blob);if(signal.aborted)throw new DOMException('Đã dừng.','AbortError');node.data.asset={id:uid('asset'),kind:node.type==='voiceover'?'audio':'video',url,name:WorkflowTools.safeName(node.data.customName||(node.type==='finalOutput'?'Video-hoan-chinh':node.data.componentId))+(node.type==='voiceover'?'.mp3':'.mp4'),duration:details.duration,width:details.width,height:details.height,sourceNodeId:node.id};node.data.report=details.report||'Đã tạo tệp giọng đọc AI.';node.data.storyDirty=false;storyDirtyAfter(node.id,true);
+    if(signal.aborted)throw new DOMException('Đã dừng.','AbortError');const url=await blobAsDataUrl(blob);if(signal.aborted)throw new DOMException('Đã dừng.','AbortError');node.data.asset={id:uid('asset'),kind:node.type==='voiceover'?'audio':'video',url,name:WorkflowTools.safeName(node.data.customName||(node.type==='finalOutput'?'Video-hoan-chinh':node.data.componentId))+(node.type==='voiceover'?'.'+(node.data.audioFormat==='wav'?'wav':'mp3'):'.mp4'),duration:details.duration,width:details.width,height:details.height,sourceNodeId:node.id};node.data.report=details.report||'Đã tạo tệp giọng đọc AI.';node.data.storyDirty=false;storyDirtyAfter(node.id,true);
     for(const edge of state.edges.filter(e=>e.source===node.id)){const target=nodeById(edge.target);if(target?.type==='preview')target.data.asset=node.data.asset;}
     if(node.type==='finalOutput'&&node.data.autoDownload!==false){if(chrome.downloads?.download)await chrome.downloads.download({url:node.data.asset.url,filename:node.data.asset.name,saveAs:false});else{const link=document.createElement('a');link.href=node.data.asset.url;link.download=node.data.asset.name;link.click();}}
   }
@@ -808,13 +809,13 @@
     setRunStatus(`Undid: ${previous.label}.`,'ok');
   }
 
-  function cloneNodeBundle(originals,edges,{dx=0,dy=0,externalInputs=false}={}){
+  function cloneNodeBundle(originals,edges,{dx=0,dy=0,externalInputs=false,preserveOutputs=false}={}){
     const mapping=new Map(originals.map(n=>[n.id,uid(n.type)])),components=new Map(),copies=[];
     for(const original of originals){const copy=structuredClone(original);copy.id=mapping.get(original.id);copy.x+=dx;copy.y+=dy;copy.data||={};
       if(copy.data.storyReferenceNodes)copy.data.storyReferenceNodes=Object.fromEntries(Object.entries(copy.data.storyReferenceNodes).filter(([,id])=>mapping.has(id)).map(([tag,id])=>[tag,mapping.get(id)]));const previous=copy.data.componentId;delete copy.data.componentId;copy.data.componentId=(['imageInput','generateImage','imageResize'].includes(copy.type)?'IMG':copy.type==='videoInput'||copy.type==='generateVideo'?'VID':'NODE')+'-'+crypto.randomUUID().slice(0,8).toUpperCase();if(previous)components.set(previous,copy.data.componentId);
       for(const key of ['error','progress','endFrame','storyApprovedAssetId','flowCardId','report','createdIds','lastSceneText','lastSceneMode'])delete copy.data[key];
-      copy.data.status='idle';copy.data.storyDirty=true;
-      if(!['imageInput','videoInput','audioInput'].includes(copy.type)){delete copy.data.asset;if(copy.type==='generateText')copy.data.text='';}else if(copy.data.asset)copy.data.asset.id=uid('asset');
+      copy.data.status=preserveOutputs&&copy.data.asset?'success':'idle';copy.data.storyDirty=!preserveOutputs;
+      if(!preserveOutputs&&!['imageInput','videoInput','audioInput'].includes(copy.type)){delete copy.data.asset;if(copy.type==='generateText')copy.data.text='';}else if(copy.data.asset)copy.data.asset.id=uid('asset');
       for(const key of ['storyMasterId','storyActId','storyPartId','storySegmentId','storyReferenceOwner','assemblyId','filmId'])if(copy.data[key]){if(mapping.has(copy.data[key]))copy.data[key]=mapping.get(copy.data[key]);else delete copy.data[key];}
       for(const key of ['actIds','outputOrder','clipOrder'])if(Array.isArray(copy.data[key]))copy.data[key]=copy.data[key].map(id=>mapping.get(id)).filter(Boolean);
       if(copy.data.durations)copy.data.durations=Object.fromEntries(Object.entries(copy.data.durations).filter(([id])=>mapping.has(id)).map(([id,value])=>[mapping.get(id),value]));
@@ -872,7 +873,13 @@
     };
   }
 
-  function addNode(type, x=250 + Math.random()*220, y=160 + Math.random()*180) {
+  function freeCanvasPosition(x=180,y=150){
+    for(let attempt=0;attempt<100;attempt++){const hit=[...state.nodes.filter(n=>!n.data?.dockOnly),...state.notes].find(n=>{const element=document.querySelector('.node[data-id="'+CSS.escape(n.id)+'"]');const width=element?.offsetWidth||n.width||300,height=element?.offsetHeight||n.height||220;return x<n.x+width+55&&x+355>n.x&&y<n.y+height+60&&y+500>n.y;});if(!hit)return {x,y};const element=document.querySelector('.node[data-id="'+CSS.escape(hit.id)+'"]');y=hit.y+(element?.offsetHeight||hit.height||500)+90;}return {x:x+420,y};
+  }
+  function focusCanvasItem(item){const rect=$('#viewport').getBoundingClientRect();state.panX=rect.width/2-(item.x+150)*state.zoom;state.panY=120-item.y*state.zoom;applyCanvasTransform();scheduleDrawEdges();}
+  function addNode(type, x, y) {
+    const autoPosition=!Number.isFinite(x)||!Number.isFinite(y);
+    if(autoPosition)({x,y}=freeCanvasPosition());
     // One implementation per real Node type. Unique V3 menu aliases prevent
     // duplicate CSS targets without duplicating the Node runtime.
     type=({v3Text:'generateText',v3Script:'masterScript',v3Image:'generateImage',
@@ -895,10 +902,10 @@
     if(isDirector){data.customName='Đạo diễn';data.nodeRole='director';data.localPrompt='';data.size='16:9';}
     createUndoSnapshot(`Add ${nodeDefs[type]?.title||'node'}`);const node={ id: uid(type), type, x, y, data };state.nodes.push(node);
     if(type==='references')syncReferenceFanOut(node);else if(['generateImage','generateVideo','generateText'].includes(type)){const references=state.nodes.find(item=>item.type==='references');if(references)connectReferenceNode(references,node);}
-    render();if(type==='timeline'){syncTimelineDock();if($('#timelineDock').classList.contains('collapsed'))toggleTimeline();}
+    render();if(autoPosition)focusCanvasItem(node);if(type==='timeline'){syncTimelineDock();if($('#timelineDock').classList.contains('collapsed'))toggleTimeline();}
   }
 
-  function addTextNote(x=250+Math.random()*220,y=160+Math.random()*180){createUndoSnapshot('Add text note');const note={id:uid('note'),x,y,text:'Write a note…',width:260,height:160};state.notes.push(note);render();saveState();setRunStatus('Text note added to canvas.','ok');}
+  function addTextNote(x,y){const autoPosition=!Number.isFinite(x)||!Number.isFinite(y);if(autoPosition)({x,y}=freeCanvasPosition());createUndoSnapshot('Add text note');const note={id:uid('note'),x,y,text:'Ghi chú…',width:260,height:160};state.notes.push(note);render();if(autoPosition)focusCanvasItem(note);saveState();setRunStatus('Text note added to canvas.','ok');}
 
   function nodeById(id) { return state.nodes.find(n => n.id === id); }
 
@@ -925,17 +932,14 @@
   }
 
   function placeSelectedResultToolbars(){
+    const visible=$('#viewport').getBoundingClientRect();
     for(const tools of document.querySelectorAll('.node.selected .node-common-context-tools')){
-      tools.classList.remove('position-below');
-      tools.style.marginLeft='0px';
-      const visible=$('#viewport').getBoundingClientRect();
-      let rect=tools.getBoundingClientRect();
-      // The Canvas clips content at its own top edge (which is BELOW the
-      // application toolbar), not at the browser window's y=0 coordinate.
-      if(rect.top<visible.top+10){tools.classList.add('position-below');rect=tools.getBoundingClientRect();}
-      const shift=rect.left<visible.left+10?visible.left+10-rect.left:
-        rect.right>visible.right-10?visible.right-10-rect.right:0;
-      tools.style.marginLeft=Math.round(shift)+'px';
+      const node=tools.closest('.node'),origin=node.getBoundingClientRect(),card=(node.querySelector('.v3-node-card')||node).getBoundingClientRect();
+      tools.style.marginLeft='0px';tools.classList.remove('position-below');
+      const rect=tools.getBoundingClientRect(),left=Math.max(visible.left+12,Math.min(card.left+(card.width-rect.width)/2,visible.right-rect.width-12));
+      let top=card.top-rect.height-36;if(top<visible.top+64)top=card.bottom+10;
+      top=Math.max(visible.top+64,Math.min(top,visible.bottom-rect.height-80));
+      tools.style.left=(left-origin.left)/state.zoom+'px';tools.style.top=(top-origin.top)/state.zoom+'px';
     }
   }
   function selectNode(id,{toggle=false,add=false}={}){let ids=[...state.selectedNodeIds];if(toggle){ids=ids.includes(id)?ids.filter(item=>item!==id):[...ids,id];}else if(add){if(!ids.includes(id))ids.push(id);}else ids=[id];state.selectedNodeIds=ids;state.selectedNodeId=ids.at(-1)||null;document.querySelectorAll('.node').forEach(el=>el.classList.toggle('selected',ids.includes(el.dataset.id)));requestAnimationFrame(placeSelectedResultToolbars);}
@@ -1150,6 +1154,7 @@
   }
   function nearestCompatibleOutput(x,y,target){let best=null,distance=44;for(const port of document.querySelectorAll('.port.out')){if(!portCompatible({nodeId:port.dataset.node,portId:port.dataset.port},target.nodeId,target.portId))continue;const rect=port.getBoundingClientRect(),d=Math.hypot(x-(rect.left+rect.width/2),y-(rect.top+rect.height/2));if(d<distance){best=port;distance=d;}}return best;}
   function normalizeSavedGraph(){
+    for(const node of state.nodes)if(node&&typeof node.type==='string'&&!Object.hasOwn(nodeDefs,node.type))Object.defineProperty(nodeDefs,node.type,{value:{title:'Node chưa hỗ trợ · '+node.type,inputs:[],outputs:[],unsupported:true},enumerable:true});
     const knownNodes=new Set(Object.keys(nodeDefs));
     state.notes=Array.isArray(state.notes)?state.notes:[];
     for(const legacy of state.nodes.filter(node=>node?.type==='text'))if(!state.notes.some(note=>note.id===`note-${legacy.id}`))state.notes.push({id:`note-${legacy.id}`,x:Number(legacy.x)||0,y:Number(legacy.y)||0,text:String(legacy.data?.text||''),width:260,height:160});
@@ -1166,6 +1171,7 @@
       if(!raw||typeof raw.source!=='string'||typeof raw.target!=='string')continue;
       const source=nodeById(raw.source),target=nodeById(raw.target);
       if(!source||!target||source.id===target.id)continue;
+      if(nodeDefs[source.type].unsupported||nodeDefs[target.type].unsupported){normalized.push({...raw,id:raw.id||uid('edge')});continue;}
       const outputs=nodeDefs[source.type].outputs||[],inputs=nodeDefs[target.type].inputs||[];
       // Only infer port names for old single-port edges; never guess between semantic ports.
       const sourcePort=raw.sourcePort|| (outputs.length===1?outputs[0].id:null);
@@ -1214,10 +1220,10 @@
   function commonConnectedModels(n){
     const kind=commonAIKind(n);
     return Object.entries(WorkflowAI.providers).filter(([id,p])=>
-      (kind==='audio'?id==='openai':p.types?.includes(kind))).map(([id,p])=>{
+      (kind==='audio'?baseAIProvider(id)==='openai':p.types?.includes(kind))).map(([id,p])=>{
       const online=providerHealth.get(id)?.status==='ready';
       const tabs=p.urls?(aiChatTabs[id]||[]):[];
-      const available=p.urls?online&&tabs.length>0:Boolean(aiKeys[id])&&(!p.connectionId||!!WorkflowAI.models[id]?.[kind]);
+      const available=p.urls?online&&tabs.length>0:Boolean(aiKeys[id])&&(kind==='audio'||!p.connectionId||!!WorkflowAI.models[id]?.[kind]);
       const choices=p.urls?tabs.filter(tab=>Number.isInteger(tab.id)).map(tab=>({
         value:String(tab.id),name:tab.title||('Tab '+tab.id),
         tag:'Tab '+(Number.isInteger(tab.index)?tab.index+1:tab.id)
@@ -1292,7 +1298,7 @@
             if(files.length)void importMediaFiles(files,{node:n,port}).catch(error=>setRunStatus(error.message,'error'));};
           document.body.append(picker);picker.click();
         }},
-        {label:'◇ Kho tài sản cá nhân',title:'Chưa tích hợp bộ chọn tài sản cá nhân trong phiên bản GitHub hiện tại.',disabled:true}
+        {label:'◇ Kho tài sản cá nhân',action:()=>assetLibrary.open(port.type,async(item,url)=>{const source=await useLibraryAsset(item,url);const output=nodeDefs[source.type].outputs.find(p=>p.type===port.type);state.connectingFrom={nodeId:source.id,portId:output.id,portType:output.type};connect(n.id,port.id);})}
       ];
     };
   }
@@ -1321,7 +1327,7 @@
     document.body.append(link);link.click();link.remove();
   }
   function commonDownloadText(n){
-    const value=String(n.data.script||n.data.sharedGeneratedText||'').trim();
+    const value=String(n.data.script||n.data.text||n.data.sharedGeneratedText||'').trim();
     if(!value)throw Error('Chưa có văn bản để tải.');
     const url=URL.createObjectURL(new Blob([value],{type:'text/plain;charset=utf-8'}));
     const a=document.createElement('a');a.href=url;
@@ -1332,12 +1338,12 @@
   function commonDuplicate(n){
     if(state.isRunning||commonTextRuns.has(n.id)){setRunStatus('Đợi các tác vụ hoàn tất rồi nhân bản Node.','warn');return;}
     createUndoSnapshot('Nhân bản '+(nodeDefs[n.type]?.title||'Node'));
-    cloneNodeBundle([n],state.edges,{dx:68,dy:68,externalInputs:true});
+    cloneNodeBundle([n],state.edges,{dx:68,dy:68,externalInputs:true,preserveOutputs:true});
     render();scheduleAutoSave();setRunStatus('Đã nhân bản Node, giữ cài đặt và đầu vào hợp lệ.','ok');
   }
   async function commonSendText(n){
     if(commonTextRuns.has(n.id))return;
-    const prompt=String(n.data.localPrompt||n.data.text||n.data.script||'').trim();
+    const prompt=(n.type==='masterScript'?[n.data.localPrompt,n.data.script||toolText(n,'text')].filter(Boolean).join('\n\n'):String(n.data.localPrompt||n.data.text||n.data.script||'')).trim();
     if(!prompt)throw Error('Nhập Prompt trước khi gửi.');
     const provider=n.data.provider||'gemini',config=WorkflowAI.providers[provider];
     if(!config?.types?.includes('text'))throw Error('Chọn AI văn bản đã kết nối trước khi gửi.');
@@ -1348,11 +1354,11 @@
     try{
       const request={requestId:uid('shared-text'),mediaType:'text',prompt,
         ...(n.data.apiModel?{model:n.data.apiModel}:{})};
-      const caller={type:'generateText',data:{provider,chatTarget:n.data.chatTarget||aiChatTargets[provider]}};
+      const caller={id:n.id,type:'generateText',data:{provider,chatTarget:n.data.chatTarget||aiChatTargets[provider]}};
       const result=await generateWithProvider(caller,request,controller.signal);
       if(!result?.ok||!result.text)throw Error(result?.error||'AI không trả về văn bản.');
       if(nodeById(n.id)!==n)throw Error('Node đã bị xóa hoặc thay thế trong lúc gửi.');
-      n.data.sharedGeneratedText=String(result.text);n.data.status='success';
+      createUndoSnapshot('Nhận văn bản AI');n.data.sharedGeneratedText=String(result.text);if(n.type==='masterScript'){n.data.scriptBeforeAI=n.data.script||'';n.data.script=String(result.text);}n.data.status='success';
       setRunStatus('Đã nhận văn bản AI. Prompt gốc được giữ nguyên.','ok');
     }catch(error){if(nodeById(n.id)===n){n.data.status='error';n.data.error=error.message||'Gửi Prompt thất bại';}setRunStatus(error.message,'error');}
     finally{commonTextRuns.delete(n.id);if(nodeById(n.id)===n){render();scheduleAutoSave();}}
@@ -1538,8 +1544,7 @@
       setRunStatus('Chọn đoạn trên player, nhập yêu cầu vào Prompt, rồi bấm Gửi trên Node mới.','warn');
       return;
     }
-    setRunStatus('Đang gửi '+spec.name+' với prompt AI ẩn và dữ liệu gốc…','warn');
-    await executeGenerationNode(idNew);
+    setRunStatus('Đã mở '+spec.name+'. Chọn thông số rồi bấm Gửi trên Node mới để chạy AI.','warn');
   }
   function renderSpecialTaskSettings(node,body){
     const spec=globalThis.WorkflowAITasks?.task(node.data.aiTask.id);
@@ -1639,6 +1644,7 @@
 
     const body = document.createElement('div');
     body.className = 'node-body';
+    if(nodeDefs[n.type]?.unsupported){const notice=document.createElement('p');notice.className='v3-unsupported';notice.textContent='Phiên bản này chưa có bộ xử lý cho loại node '+n.type+'. Dữ liệu và liên kết gốc được giữ để xuất JSON hoặc mở bằng phiên bản tương thích.';body.append(notice);}
     const identity=document.createElement('button');identity.type='button';identity.className='node-component-id';identity.textContent=`ID: ${n.data.componentId}`;identity.title='Bấm để sao chép ID vào prompt';identity.onclick=()=>void navigator.clipboard.writeText(n.data.componentId).then(()=>setRunStatus('Đã sao chép '+n.data.componentId,'ok')).catch(()=>setRunStatus('ID: '+n.data.componentId,'warn'));head.insertBefore(identity,rename);
     if(['generateImage','generateVideo','generateText'].includes(n.type)){const refs=resolveReferences(n.id);if(refs.length){const list=document.createElement('div');list.className='reference-id-list';list.textContent=refs.map((ref,index)=>`Ảnh ${index+1}: ${ref.componentId}`).join(' · ');body.append(list);}}
 
@@ -1714,7 +1720,7 @@
     if(n.type==='generateVideo'){
       const controls=document.createElement('div');controls.className='gen-controls video-controls';
       const ratio=document.createElement('select');[['16:9','Landscape 16:9'],['9:16','Portrait 9:16'],['1:1','Square']].forEach(([v,label])=>{const o=document.createElement('option');o.value=v;o.textContent=label;ratio.appendChild(o);});ratio.value=['16:9','9:16','1:1'].includes(n.data.size)?n.data.size:'16:9';ratio.onchange=()=>n.data.size=ratio.value;
-      const duration=document.createElement('select');[5,10,15,30,40].forEach(v=>{const o=document.createElement('option');o.value=String(v);o.textContent=`${v} giây`;duration.appendChild(o);});if(n.data.aiTask?.id){const actual=String(n.data.duration||5);duration.add(new Option('Giữ thời lượng nguồn · '+Number(actual).toFixed(1)+' giây',actual));duration.value=actual;duration.disabled=true;}else{n.data.duration=[5,10,15,30,40].reduce((a,b)=>Math.abs(b-(n.data.duration||5))<Math.abs(a-(n.data.duration||5))?b:a,5);duration.value=String(n.data.duration);duration.onchange=()=>n.data.duration=Number(duration.value);}
+      const duration=document.createElement('select'),durations=baseAIProvider(n.data.provider)==='google'?[4,6,8]:[5,10,15,30,40];durations.forEach(v=>{const o=document.createElement('option');o.value=String(v);o.textContent=`${v} giây`;duration.appendChild(o);});if(n.data.aiTask?.id){const actual=String(n.data.duration||5);duration.add(new Option('Giữ thời lượng nguồn · '+Number(actual).toFixed(1)+' giây',actual));duration.value=actual;duration.disabled=true;}else{n.data.duration=durations.reduce((a,b)=>Math.abs(b-(n.data.duration||5))<Math.abs(a-(n.data.duration||5))?b:a,5);duration.value=String(n.data.duration);duration.onchange=()=>n.data.duration=Number(duration.value);}
       controls.append(ratio,duration);body.appendChild(controls);
       const continuityLabel=document.createElement('label');continuityLabel.className='continuity-toggle';continuityLabel.htmlFor=`continuity-${n.id}`;continuityLabel.onpointerdown=event=>event.stopPropagation();const continuity=document.createElement('input');continuity.id=`continuity-${n.id}`;continuity.type='checkbox';continuity.checked=Boolean(n.data.continuity);continuity.onchange=()=>{n.data.continuity=continuity.checked;scheduleAutoSave();};continuityLabel.append(continuity,document.createTextNode('Use previous clip end frame as start reference'));body.appendChild(continuityLabel);
       for(const edge of getIncoming(n.id,'reference').filter(e=>e.sourcePort==='endFrame')){const source=sourceFor(edge),note=document.createElement('p');note.className='hint';note.textContent='Khung mở đầu từ '+(source?.data.componentId||edge.source)+'-END';body.append(note);if(frameMatchesVideo(source)){const inputFrame=new Image();inputFrame.className='end-frame-input';inputFrame.src=source.data.endFrame.url;inputFrame.alt=note.textContent;body.append(inputFrame);}else{note.textContent+=' · chưa có ảnh, cần chạy hoặc trích khung cuối ở video nguồn.';}}
@@ -1760,6 +1766,7 @@
     if(n.data.aiTask?.id)renderSpecialTaskSettings(n,body);
     // A single composer UX for editable prompts on all supported node types.
     // Legacy processing stays in place; unavailable V3 tasks are not simulated.
+    if(n.type==='masterScript'&&globalThis.WorkflowV3Nodes){const draft=document.createElement('textarea');draft.className='node-local-prompt';draft.setAttribute('aria-label','Prompt kịch bản');draft.placeholder='Yêu cầu dành cho kịch bản…';draft.value=n.data.localPrompt||'';draft.oninput=()=>{n.data.localPrompt=draft.value;scheduleAutoSave();};body.prepend(draft);}
     if(globalThis.WorkflowSharedNodeControls){
       const allowTranslate=['prompt','negativePrompt','textAppend','masterScript','storyPrompt','sceneSplit','voiceover','generateText','generateImage','generateVideo'].includes(n.type);
       globalThis.WorkflowSharedNodeControls.attach({
@@ -1772,9 +1779,9 @@
     if(globalThis.WorkflowNodeCommonActions){
       const media=commonAsset(n);
       const usesAI=['prompt','masterScript','storyPrompt','generateText','generateImage','generateVideo','voiceover'].includes(n.type);
-      const contextTypes=['masterScript','imageInput','videoInput','videoFrame','imageSnapshot','audioInput','generateImage','generateVideo',
+      const contextTypes=['generateText','masterScript','imageInput','videoInput','videoFrame','imageSnapshot','audioInput','generateImage','generateVideo',
         'imageResize','preview','voiceover','finalOutput','audioMix','subtitles'].includes(n.type);
-      const scripted=n.type==='masterScript'&&String(n.data.script||'').trim();
+      const scripted=(n.type==='masterScript'?String(n.data.script||''):n.type==='generateText'?String(n.data.text||''):'').trim();
       const hasResult=Boolean(media?.url||scripted||String(n.data.sharedGeneratedText||'').trim());
       globalThis.WorkflowNodeCommonActions.attach({
         node:n,root:el,body,media,hasResult,
@@ -1789,7 +1796,7 @@
         onFrameCapture:media?.kind==='video'&&['videoInput','generateVideo'].includes(n.type)
           ?mode=>void saveVideoFrame(n,mode).catch(error=>setRunStatus(error.message,'error')):null,
         onDownload:media?()=>commonDownload(n,media):scripted?()=>commonDownloadText(n):null,
-        readText:scripted?()=>n.data.script:null
+        readText:scripted?()=>n.type==='masterScript'?n.data.script:n.data.text:null
       });
     }
     if(n.data.imageAnnotations?.note&&commonAsset(n)?.kind==='image'){
@@ -1809,8 +1816,10 @@
       result.textContent=n.data.sharedGeneratedText;result.title='Kết quả AI; nội dung Prompt gốc vẫn được giữ';
       body.append(result);
     }
+    el.addEventListener('focusin',event=>{if(event.target.isContentEditable)selectNode(n.id);});
     el.addEventListener('pointerdown',event=>{if(event.button!==0)return;if(event.target.closest('textarea,input,select'))selectNode(n.id);},true);
     el.onmousedown = event => {if(event.target.closest('button,input,textarea,select,summary,details,.port,.node-header'))return;if(event.shiftKey||event.ctrlKey||event.metaKey)selectNode(n.id,{toggle:true});else if(!state.selectedNodeIds.includes(n.id))selectNode(n.id);};
+    globalThis.WorkflowV3Nodes?.decorate(n,el,{changed:()=>{storyTouch(n.id);scheduleAutoSave();requestAnimationFrame(()=>{WorkflowV3Nodes.geometry(state.zoom);scheduleDrawEdges();});},zoom:()=>state.zoom,undo:createUndoSnapshot,render,assets:kind=>assetLibrary.open(kind),connectText:(source,type)=>{const point=freeCanvasPosition(source.x+420,source.y);addNode(type,point.x,point.y);const target=state.nodes.at(-1);const output=nodeDefs[source.type]?.outputs?.find(p=>p.type==='text');const input=nodeDefs[target.type]?.inputs?.find(p=>p.type==='text');if(output&&input){state.connectingFrom={nodeId:source.id,portId:output.id,portType:output.type};connect(target.id,input.id);}else if(type==='voiceover'){target.data.script=source.data.text||source.data.script||'';render();}},imagePrompt:()=>assetLibrary.open('image',async(item,url)=>{const source=await useLibraryAsset(item,url);await startSpecialAIAction(source,'imageToPrompt');})});
     return el;
   }
 
@@ -2187,14 +2196,14 @@
   function render() {
     globalThis.WorkflowSharedNodeControls?.closeAll?.();
     ensureComponentIds();
-    syncPreviewOutputs();canvas.innerHTML='';state.groups.forEach(group=>canvas.appendChild(renderCanvasGroup(group)));state.notes.forEach(note=>canvas.appendChild(renderCanvasNote(note)));state.nodes.filter(n=>!n.data?.dockOnly).forEach(n => canvas.appendChild(renderNode(n)));applyCanvasTransform();requestAnimationFrame(()=>{drawEdges();placeSelectedResultToolbars();});syncTimelineDock();updateChatUsageLabels();scheduleAutoSave();
+    syncPreviewOutputs();canvas.innerHTML='';state.groups.forEach(group=>canvas.appendChild(renderCanvasGroup(group)));state.notes.forEach(note=>canvas.appendChild(renderCanvasNote(note)));state.nodes.filter(n=>!n.data?.dockOnly).forEach(n => canvas.appendChild(renderNode(n)));applyCanvasTransform();requestAnimationFrame(()=>{drawEdges();placeSelectedResultToolbars();});syncTimelineDock();updateChatUsageLabels();v3UI?.refresh();scheduleAutoSave();
   }
 
   function renderCanvasNote(note){
     const el=document.createElement('article');el.className='canvas-note';el.dataset.noteId=note.id;el.style.left=`${note.x}px`;el.style.top=`${note.y}px`;el.style.width=`${note.width||260}px`;el.style.height=`${note.height||160}px`;
-    const header=document.createElement('header');header.className='canvas-note-header';const title=document.createElement('span');title.textContent='Text note';const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.title='Delete note';remove.onclick=event=>{event.stopPropagation();createUndoSnapshot('Delete text note');state.notes=state.notes.filter(item=>item.id!==note.id);render();saveState();};header.append(title,remove);
+    const header=document.createElement('header');header.className='canvas-note-header';const title=document.createElement('span');title.textContent='Ghi chú';const remove=document.createElement('button');remove.type='button';remove.textContent='×';remove.title='Delete note';remove.onclick=event=>{event.stopPropagation();createUndoSnapshot('Delete text note');state.notes=state.notes.filter(item=>item.id!==note.id);render();saveState();};header.append(title,remove);
     header.onpointerdown=event=>{if(event.button!==0||event.target.closest('button'))return;event.preventDefault();event.stopPropagation();state.noteDrag={id:note.id,startX:event.clientX,startY:event.clientY,x:note.x,y:note.y,moved:false};try{header.setPointerCapture(event.pointerId);}catch{}};
-    const textarea=document.createElement('textarea');textarea.value=note.text||'';textarea.placeholder='Write a note…';textarea.onbeforeinput=event=>trackUndoEdit(event);textarea.oninput=()=>{note.text=textarea.value;scheduleAutoSave();};
+    const textarea=document.createElement('textarea');textarea.value=note.text||'';textarea.placeholder='Viết ghi chú…';textarea.onbeforeinput=event=>trackUndoEdit(event);textarea.oninput=()=>{note.text=textarea.value;scheduleAutoSave();};
     el.append(header,textarea);return el;
   }
   function moveTextNote(event){const drag=state.noteDrag;if(!drag)return;const note=state.notes.find(item=>item.id===drag.id),el=document.querySelector(`.canvas-note[data-note-id="${CSS.escape(drag.id)}"]`);if(!note||!el)return;const dx=(event.clientX-drag.startX)/state.zoom,dy=(event.clientY-drag.startY)/state.zoom;if(Math.abs(dx)+Math.abs(dy)<2)return;if(!drag.moved)createUndoSnapshot('Move text note');drag.moved=true;note.x=drag.x+dx;note.y=drag.y+dy;el.style.left=`${note.x}px`;el.style.top=`${note.y}px`;}
@@ -2210,10 +2219,15 @@
 
   function syncPreviewOutputs(){for(const preview of state.nodes.filter(node=>node.type==='preview')){const edge=getIncoming(preview.id,'media')[0],source=edge&&nodeById(edge.source);let asset=null;if(source){asset=edge.sourcePort==='endFrame'?(frameMatchesVideo(source)?source.data.endFrame:null):source.data?.asset;if(!asset&&source.type==='imageInput'&&source.data?.localDataUrl)asset={id:source.id,kind:'image',url:source.data.localDataUrl,name:'Input image'};}preview.data.asset=asset||null;}}
 
-  function applyCanvasTransform(){const transform=`translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;canvas.style.transform=transform;edgesSvg.style.transform=transform;$('#zoomLevel').textContent=`${Math.round(state.zoom*100)}%`;$('#viewport').classList.toggle('hand-mode',state.handMode||state.spaceDown);}
+  function applyCanvasTransform(){const transform=`translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;canvas.style.transform=transform;edgesSvg.style.transform=transform;$('#zoomLevel').textContent=`${Math.round(state.zoom*100)}%`;$('#viewport').classList.toggle('hand-mode',state.handMode||state.spaceDown);v3UI?.refresh();requestAnimationFrame(placeSelectedResultToolbars);}
   function zoomAt(clientX,clientY,factor){const rect=$('#viewport').getBoundingClientRect(),x=clientX-rect.left,y=clientY-rect.top,old=state.zoom,next=Math.max(.25,Math.min(2.5,old*factor));if(next===old)return;const contentX=(x-state.panX)/old,contentY=(y-state.panY)/old;state.zoom=next;state.panX=x-contentX*next;state.panY=y-contentY*next;applyCanvasTransform();scheduleDrawEdges();}
   function setZoom(value){const rect=$('#viewport').getBoundingClientRect();zoomAt(rect.left+rect.width/2,rect.top+rect.height/2,value/state.zoom);}
-  function fitCanvas(){const nodes=state.nodes.filter(node=>!node.data?.dockOnly);if(!nodes.length){state.zoom=1;state.panX=0;state.panY=0;applyCanvasTransform();return;}const rect=$('#viewport').getBoundingClientRect(),xs=nodes.map(n=>n.x),ys=nodes.map(n=>n.y),maxX=Math.max(...nodes.map(n=>n.x+(document.querySelector(`.node[data-id="${CSS.escape(n.id)}"]`)?.offsetWidth||270))),maxY=Math.max(...nodes.map(n=>n.y+(document.querySelector(`.node[data-id="${CSS.escape(n.id)}"]`)?.offsetHeight||220)));const minX=Math.min(...xs),minY=Math.min(...ys),scale=Math.max(.25,Math.min(1.5,(rect.width-100)/(maxX-minX+80),(rect.height-80)/(maxY-minY+80)));state.zoom=scale;state.panX=(rect.width-(maxX-minX)*scale)/2-minX*scale;state.panY=(rect.height-(maxY-minY)*scale)/2-minY*scale;applyCanvasTransform();scheduleDrawEdges();}
+  function fitCanvas(){
+    const items=[...state.nodes.filter(n=>!n.data?.dockOnly),...state.notes.map(n=>({...n,isNote:true}))];if(!items.length){state.zoom=1;state.panX=0;state.panY=0;applyCanvasTransform();return;}
+    const rect=$('#viewport').getBoundingClientRect(),bounds=()=>{const minX=Math.min(...items.map(n=>n.x)),minY=Math.min(...items.map(n=>n.y))-35;const maxX=Math.max(...items.map(n=>n.x+(n.isNote?n.width||260:document.querySelector('.node[data-id="'+CSS.escape(n.id)+'"]')?.offsetWidth||300))),maxY=Math.max(...items.map(n=>n.y+(n.isNote?n.height||160:document.querySelector('.node[data-id="'+CSS.escape(n.id)+'"]')?.offsetHeight||220)));return {minX,minY,maxX,maxY};};
+    for(let pass=0;pass<3;pass++){const b=bounds();state.zoom=Math.max(.25,Math.min(1.5,(rect.width-160)/(b.maxX-b.minX+100),(rect.height-240)/(b.maxY-b.minY+80)));globalThis.WorkflowV3Nodes?.geometry(state.zoom);}
+    const b=bounds();state.panX=(rect.width-(b.maxX-b.minX)*state.zoom)/2-b.minX*state.zoom;state.panY=100+(rect.height-210-(b.maxY-b.minY)*state.zoom)/2-b.minY*state.zoom;applyCanvasTransform();scheduleDrawEdges();
+  }
   function startPan(event){state.panning={x:event.clientX,y:event.clientY,panX:state.panX,panY:state.panY};$('#viewport').classList.add('panning');try{event.currentTarget.setPointerCapture(event.pointerId);}catch{}event.preventDefault();}
   function movePan(event){if(!state.panning)return;state.panX=state.panning.panX+event.clientX-state.panning.x;state.panY=state.panning.panY+event.clientY-state.panning.y;applyCanvasTransform();scheduleDrawEdges();}
   function endPan(){state.panning=null;$('#viewport').classList.remove('panning');}
@@ -2242,7 +2256,7 @@
 
   function openCanvasMenu(e){
     const nodeEl=e.target.closest('.node');e.preventDefault();e.stopPropagation();
-    if(!nodeEl){const rect=$('#viewport').getBoundingClientRect(),menu=$('#canvasMenu');state.contextPoint={x:(e.clientX-rect.left-state.panX)/state.zoom,y:(e.clientY-rect.top-state.panY)/state.zoom};menu.innerHTML='';delete menu.dataset.nodeId;const title=document.createElement('div');title.className='menu-caption';title.textContent='Canvas';menu.appendChild(title);[...Object.entries({...WorkflowStudio.definitions,...WorkflowStory.definitions}).map(([type,def])=>['＋ '+def.title,'add:'+type]),['＋ Prompt','add:prompt'],['＋ Text note','add:text'],['＋ Negative Prompt','add:negativePrompt'],['＋ Video đầu vào','add:videoInput'],['＋ Tạo văn bản','add:generateText'],['＋ Image Input','add:imageInput'],['＋ References','add:references'],['＋ Generate Image','add:generateImage'],['＋ Generate Video','add:generateVideo'],['＋ Timeline','add:timeline'],['＋ Preview','add:preview'],['Save workflow','save'],['▶ Run workflow','run'],['Arrange nodes','arrange'],['Delete selected node','delete-selected'],['Remove all connections','disconnect-all']].forEach(([label,action])=>{const button=document.createElement('button');button.type='button';button.textContent=label;button.dataset.contextAction=action;menu.appendChild(button);});menu.classList.remove('hidden');menu.style.left=`${Math.min(e.clientX,innerWidth-230)}px`;menu.style.top=Math.max(8,Math.min(e.clientY,innerHeight-menu.getBoundingClientRect().height-8))+'px';return;}
+    if(!nodeEl){const rect=$('#viewport').getBoundingClientRect(),menu=$('#canvasMenu');state.contextPoint={x:(e.clientX-rect.left-state.panX)/state.zoom,y:(e.clientY-rect.top-state.panY)/state.zoom};menu.innerHTML='';delete menu.dataset.nodeId;const title=document.createElement('div');title.className='menu-caption';title.textContent='Canvas';menu.appendChild(title);[['＋ Văn bản','add:v3Text'],['＋ Kịch bản','add:v3Script'],['＋ Sinh ảnh AI','add:v3Image'],['＋ Sinh video AI','add:v3Video'],['＋ Đạo diễn','add:director'],['＋ Âm thanh AI','add:v3Audio'],['＋ Ảnh tải lên','add:v3UploadImage'],['＋ Video tải lên','add:v3UploadVideo'],['＋ Ghi chú','add:text'],['Lưu workflow','save'],['▶ Chạy workflow','run'],['Sắp xếp node','arrange'],['Xóa node đã chọn','delete-selected'],['Gỡ tất cả dây nối','disconnect-all']].forEach(([label,action])=>{const button=document.createElement('button');button.type='button';button.textContent=label;button.dataset.contextAction=action;menu.appendChild(button);});menu.classList.remove('hidden');menu.style.left=`${Math.min(e.clientX,innerWidth-230)}px`;menu.style.top=Math.max(8,Math.min(e.clientY,innerHeight-menu.getBoundingClientRect().height-8))+'px';return;}
     e.stopPropagation();const node=nodeById(nodeEl.dataset.id);if(!node)return;state.selectedNodeId=node.id;
     const menu=$('#canvasMenu');menu.innerHTML='';menu.dataset.nodeId=node.id;
     const title=document.createElement('div');title.className='menu-caption';title.textContent=['generateImage','generateVideo','generateText'].includes(node.type)?generationNodeTitle(node):(node.data.customName||nodeDefs[node.type].title);menu.appendChild(title);
@@ -2491,7 +2505,7 @@
       for(const id of order){
         if(!batchTask&&WorkflowBatchManager.nodeBusy(id))throw Error('Node đang nằm trong Hàng đợi. Chạy từ Hàng đợi hoặc dừng tác vụ trước.');
         if(abortController.signal.aborted)throw new DOMException('Generation stopped by user.','AbortError');
-        const n=nodeById(id); if(!n)continue;
+        const n=nodeById(id); if(!n)continue;if(nodeDefs[n.type]?.unsupported)throw Error('Chưa hỗ trợ loại node '+n.type+'; dữ liệu gốc vẫn được giữ.');
         const work=WorkflowTools.definitions[n.type]||['generateText','generateImage','generateVideo','imageResize'].includes(n.type);
         if(work){
           const owner=nodeClaims.get(id);
@@ -2784,7 +2798,7 @@
     const previous={nodes:state.nodes,edges:state.edges,groups:state.groups,notes:state.notes,settings:state.settings};
     try{
       state.nodes=workflow.nodes;state.edges=workflow.edges;state.groups=Array.isArray(workflow.groups)?workflow.groups:[];state.notes=Array.isArray(workflow.notes)?workflow.notes:[];state.settings=workflow.settings&&typeof workflow.settings==='object'?workflow.settings:{};
-      await hydrateWorkflowMedia();normalizeSavedGraph();state.selectedNodeIds=[];state.selectedNodeId=null;state.selectedEdgeIds=[];syncSettingsUI();render();await queueWorkflowSave({allowRecoveryWrite:true});
+      await hydrateWorkflowMedia();normalizeSavedGraph();state.selectedNodeIds=[];state.selectedNodeId=null;state.selectedEdgeIds=[];syncSettingsUI();render();fitCanvas();await queueWorkflowSave({allowRecoveryWrite:true});
       setRunStatus(`Workflow imported: ${file.name}`,'ok');
     }catch(error){state.nodes=previous.nodes;state.edges=previous.edges;state.groups=previous.groups||[];state.notes=previous.notes||[];state.settings=previous.settings;render();setRunStatus(`Could not import workflow: ${error?.message||String(error)}`,'error');}
   }
@@ -3003,7 +3017,27 @@
     name:n=>n.data.customName||nodeDefs[n.type]?.title||n.id
   });
   WorkflowStoryReferences.bind({layout:scheduleDrawEdges,read:storyReferenceSlots,put:setStoryReference,rename:(id,tag,label)=>{const master=storyReferenceMaster(id);if(state.isRunning)throw Error('Dừng tác vụ trước khi đổi tên.');Object.defineProperty(master.data.storyReferenceLabels||={},tag,{value:String(label).slice(0,100),writable:true,enumerable:true,configurable:true});const source=storyReferenceNode(master,tag);if(source){source.data.storyReferenceLabel=String(label).slice(0,100);dirtyStoryReference(source);}scheduleAutoSave();}});
-  const workflowReady=loadState(); detectMuse();applyCanvasTransform();
+  async function useLibraryAsset(item,url){
+    if(item.kind!=='text'&&url.startsWith('blob:')){const response=await fetch(url);if(!response.ok)throw Error('Không đọc được tệp trong kho.');url=URL.createObjectURL(await response.blob());}
+    if(state.isRunning)throw Error('Dừng tác vụ trước khi thêm tài nguyên.');
+    const type={image:'imageInput',video:'videoInput',audio:'audioInput',text:'prompt'}[item.kind];if(!type)throw Error('Loại tài nguyên không hỗ trợ.');
+    addNode(type);const node=state.nodes.at(-1);node.data.customName=item.name;
+    if(item.kind==='text')node.data.text=url;else{node.data.localDataUrl=url;node.data.fileName=item.name;}
+    render();scheduleAutoSave();return node;
+  }
+  const workflowReady=loadState();
+  if(globalThis.WorkflowV3){
+    v3UI=WorkflowV3.mount({read:()=>state,title:n=>nodeDefs[n.type]?.title||n.type,save:scheduleAutoSave,addNote:()=>addTextNote(),
+      snapshot:async()=>{await workflowReady;await queueWorkflowSave();const graph=structuredClone({nodes:state.nodes,edges:state.edges,groups:state.groups,notes:state.notes,settings:state.settings});const freeze=async url=>{if(!/^(data:|blob:)/.test(url))return url;const response=await fetch(url);const blob=await response.blob();const digest=await crypto.subtle.digest('SHA-256',await blob.arrayBuffer());const key='workflow-v3:'+Array.from(new Uint8Array(digest),x=>x.toString(16).padStart(2,'0')).join('');await putMedia(key,blob);return idbMediaPrefix+encodeURIComponent(key);};for(const node of graph.nodes){const data=node.data||{};if(data.localDataUrl)data.localDataUrl=await freeze(data.localDataUrl);for(const field of ['asset','endFrame','lockedAsset'])if(data[field]?.url)data[field].url=await freeze(data[field].url);}return graph;},
+      load:async graph=>{await workflowReady;if(state.isRunning||commonTextRuns.size)throw Error('Dừng các tác vụ trước khi chuyển workflow.');if(workflowSaveBlocked)throw Error('Khôi phục bản lưu hiện tại trước khi chuyển workflow.');if(!graph||!Array.isArray(graph.nodes)||!Array.isArray(graph.edges))throw Error('Workflow không hợp lệ.');const previous={nodes:state.nodes,edges:state.edges,groups:state.groups,notes:state.notes,settings:state.settings};try{const next=structuredClone(graph);Object.assign(state,{nodes:next.nodes,edges:next.edges,groups:next.groups||[],notes:next.notes||[],settings:next.settings||{}});await hydrateWorkflowMedia();normalizeSavedGraph();await queueWorkflowSave();state.selectedNodeId=null;state.selectedNodeIds=[];state.selectedEdgeIds=[];render();fitCanvas();}catch(error){Object.assign(state,previous);render();throw error;}},
+      panTo:(x,y,r)=>{state.panX=r.width/2-x*state.zoom;state.panY=r.height/2-y*state.zoom;applyCanvasTransform();},movePan:(x,y)=>{state.panX+=x;state.panY+=y;applyCanvasTransform();},
+      audit:()=>state.nodes.flatMap(n=>{if(['generateImage','generateVideo','generateText'].includes(n.type)&&!n.data.aiTask?.id&&!resolvePrompt(n.id).trim())return [{id:n.id,message:'Chưa có Prompt hoặc nguồn văn bản.'}];const missing=(nodeDefs[n.type]?.inputs||[]).filter(p=>p.required&&!getIncoming(n.id,p.id).length);return missing.map(p=>({id:n.id,message:'Thiếu '+p.label}));})
+    });
+    WorkflowV3.controller=v3UI;WorkflowV3.report=v3UI.report;
+    assetLibrary=WorkflowAssets.create({encode:dehydrateMediaUrl,decode:ref=>hydrateMediaUrl(ref,new Map()),title:n=>nodeDefs[n.type]?.title||n.type,report:v3UI.report,use:useLibraryAsset,download:(item,url)=>{if(item.kind==='text'){const blob=URL.createObjectURL(new Blob([url],{type:'text/plain'}));const a=document.createElement('a');a.href=blob;a.download=WorkflowTools.safeName(item.name)+'.txt';a.click();setTimeout(()=>URL.revokeObjectURL(blob),1000);}else commonDownload({type:item.kind,data:{}},{url,kind:item.kind,name:item.name});}});
+    v3UI.setAssets(assetLibrary);workflowReady.then(()=>v3UI.refresh()).catch(v3UI.report);
+  }
+  detectMuse();applyCanvasTransform();
   if(window.workflowDesktop){
     // The desktop host waits for this before closing a canvas; a pending
     // debounce must not discard the last edit. Keep state and credentials private.
