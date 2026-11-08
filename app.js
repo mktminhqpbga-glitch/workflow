@@ -274,7 +274,14 @@
     checkAbort();
     const cancel=()=>{void chrome.tabs.sendMessage(chosen.id,{type:'WORKFLOW_AI_STOP',requestId:message.requestId}).catch(()=>{});};
     if(message.requestId)aiTabs.set(message.requestId,chosen.id);signal?.addEventListener('abort',cancel,{once:true});
-    try{const reply=await sendMuseTabMessage(chosen.id,message,signal);const latest=chrome.tabs.get?await chrome.tabs.get(chosen.id):chosen;return {...reply,chatTarget:{tabId:chosen.id,url:chatKey(latest.url)}};}finally{signal?.removeEventListener('abort',cancel);aiTabs.delete(message.requestId);}
+    try{
+      const reply=await sendMuseTabMessage(chosen.id,message,signal);
+      if(!reply?.ok)return reply;
+      const expected=chatKey(chosen.url),received=chatKey(reply.conversationUrl||chosen.url);
+      const latest=chrome.tabs.get?await chrome.tabs.get(chosen.id):chosen;
+      if(received!==expected||chatKey(latest.url)!==expected)throw new Error('Cuộc trò chuyện đã thay đổi. Không nhận kết quả từ chat khác; hãy quay lại chat đã gửi yêu cầu.');
+      return {...reply,chatTarget:{tabId:chosen.id,url:expected}};
+    }finally{signal?.removeEventListener('abort',cancel);aiTabs.delete(message.requestId);}
   }
   function clearCanvasPrompts(){
     if(state.isRunning)throw Error('Dừng các lượt chạy trước khi xóa prompt.');

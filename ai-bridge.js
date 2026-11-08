@@ -129,6 +129,7 @@
     const echo=()=>users().some(el=>!priorUsers.has(el)&&normalize(el.innerText||el.textContent).includes(normalize(request.prompt)));
     const freshReplies=()=>replies().filter(el=>!before.has(el)||before.get(el)!==replyText(el));
     const submitted=()=>{
+      checkConversation();
       if(!prepared)return false;
       if(markedResult()||echo())return true;
       const input=composer(),draft=input?normalize(input.value??input.innerText):'';
@@ -169,6 +170,7 @@
     report(request,'AI đã nhận yêu cầu. Đang chờ phản hồi…');
     let last='',since=Date.now(),reportedReply=false;
     const result=await wait(()=>{
+      checkConversation();
       const marked=markedResult();if(marked){if(marked!==last){last=marked;since=Date.now();}if(!stopped()&&Date.now()-since>=750)return {ok:true,text:marked};return false;}
       const fresh=freshReplies();const reply=fresh.at(-1);if(!reply)return false;
       const text=replyText(reply);if(!reportedReply&&text){reportedReply=true;report(request,'Đã thấy phản hồi. Đang đợi AI hoàn tất…');}if(text!==last){last=text;since=Date.now();}
@@ -178,7 +180,8 @@
       return image?{ok:true,url:image.currentSrc||image.src}:false;
     },600000,signal,'Hết thời gian chờ kết quả AI. Kiểm tra tab AI; không tự gửi lại prompt.');
     if(result.url){const r=await fetch(result.url,{signal});if(!r.ok)throw new Error('Không tải được ảnh kết quả từ tab AI.');const blob=await r.blob();result.url=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(blob);});}
-    return result;
+    checkConversation();
+    return {...result,conversationUrl:conversation};
   }
   chrome.runtime.onMessage.addListener((request,sender,respond)=>{
     if(sender.id!==chrome.runtime.id)return false;

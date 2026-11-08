@@ -1,5 +1,14 @@
 # BÁO CÁO BÀN GIAO CHO AI — MUSEFLOW / WORKFLOW
 
+## BUG-008 — Không nhận kết quả từ cuộc trò chuyện AI khác (2026-11-08)
+
+- Người dùng yêu cầu sửa lỗi đã tái hiện trên Chromium: gửi tại chat A, chuyển SPA sang chat B khi đang chờ, `ai-bridge.js` nhận câu trả lời của B và trả `ok: true`. `otherTabMessage()` còn ghi URL B vào `chatTarget`.
+- Bản sửa trên nền commit `5449b33` (chưa commit/push): `ai-bridge.js` kiểm tra origin/path khi xác nhận gửi, mỗi vòng nhận kết quả và trước khi trả kết quả sau tải ảnh; trả kèm URL đã xác minh. `app.js` chỉ nhận kết quả thành công khi URL từ bridge và URL tab hiện tại đều khớp chat ban đầu; phản hồi lỗi không cập nhật chatTarget.
+- Chính sách thận trọng: thay đổi origin/path, kể cả nhà cung cấp tự đổi đường dẫn từ chat mới sang chat có ID, sẽ dừng tác vụ; không tự gửi lại. Mở chat có URL ổn định trước khi chạy. Chưa bổ sung cơ chế xác thực chuyển URL tự động của nhà cung cấp.
+- Test hồi quy: `node tests/ai-conversation-smoke.cjs` tái hiện rồi xác nhận chặn chat khác trên cả ChatGPT và Gemini; chỉ gửi 1 lần. `tests/desktop-ai-conversation.test.cjs` chạy routing thật với ranh giới Chrome mô phỏng: URL tab đổi, phản hồi lỗi, phản hồi sai URL, và thành công giữ nguyên target. Các test mới đã thất bại trước sửa.
+- `npm test`: 128/128 pass; `npm run test:reliability`, `npm run test:desktop`, `node tests/gpt-response-smoke.cjs`: pass. Dịch vụ AI/DOM được mô phỏng; chưa xác minh tài khoản AI thật.
+- Browser smoke toàn ứng dụng có lỗi nền đã tái hiện trước bản sửa: `tests/browser-smoke.cjs:52` chờ bộ chọn chat cũ đang bị CSS ẩn. Không sửa lỗi test đó trong BUG-008.
+
 **Cập nhật:** 2026-11-08  
 **Mục đích:** AI lập trình khác đọc trước khi sửa UI, node, Canvas, kết nối, và xử lý các nhiệm vụ/lỗi chưa xong.  
 **Nguồn yêu cầu:** Các quyết định của chủ dự án trong phiên thiết kế MuseFlow V3.  
