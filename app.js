@@ -1654,7 +1654,9 @@
         modelGroups:usesAI?()=>commonConnectedModels(n):null,
         onModelPick:(g,item)=>commonChooseModel(n,g,item),
         onReference:commonReferenceActions(n,el),
-        onSend:commonSendAction(n),
+        // Generation nodes keep their existing tested Run/Stop control; do not
+        // render a second Send button that hides the visible Run control.
+        onSend:['generateText','generateImage','generateVideo'].includes(n.type)?null:commonSendAction(n),
         onDuplicate:contextTypes?()=>commonDuplicate(n):null,
         onTools:media?()=>specialResultActions(n,media):null,
         onFrameCapture:media?.kind==='video'&&['videoInput','generateVideo'].includes(n.type)
