@@ -45,6 +45,10 @@ function allowedNetworkURL(value) {
     return /^(?:\/health|\/jobs|\/jobs\/[a-f0-9]{32}(?:\/cancel)?|\/files\/[a-f0-9]{32})$/.test(url.pathname);
   }
   if (url.protocol !== 'https:' || url.port) return false;
+  // fal.ai can return completed media on Google's public falserverless bucket.
+  // Allow only that explicitly scoped bucket, never arbitrary Google Storage URLs.
+  if(url.hostname==='storage.googleapis.com')
+    return /^\/falserverless\/(?:example_outputs\/|[a-zA-Z0-9._~%-]+\/)[a-zA-Z0-9._~%\/-]+$/.test(url.pathname);
   return ['api.openai.com', 'generativelanguage.googleapis.com', 'queue.fal.run',
     'raw.githubusercontent.com', 'api.github.com', 'fal.media'].includes(url.hostname)
     || url.hostname.endsWith('.fal.media');
