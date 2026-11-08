@@ -1,0 +1,856 @@
+[
+  {
+    "code": "T01",
+    "name": "Ô nhập nội dung",
+    "status": "🟢 Cục bộ",
+    "finding": "Có thẻ contenteditable, lưu text/richText, chỉnh tay và khôi phục sau reload; cổng text dùng nội dung đang lưu. Đã thử trên app thật trong test:v3.",
+    "evidence": "[v3-nodes.js](../v3-nodes.js) · [app.js](../app.js) · [test:v3](../tests/v3-smoke.cjs)"
+  },
+  {
+    "code": "T02",
+    "name": "Tự viết nội dung",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có font, màu, đậm/nghiêng/gạch và editor lớn; Chromium đã thử nhập và chữ đậm. Chưa thử hết từng định dạng và tổ hợp undo/redo trên mọi nền tảng.",
+    "evidence": "[v3-nodes.js](../v3-nodes.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "T03",
+    "name": "Văn bản → Video",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có lối tắt tạo node video và nối cổng text → prompt; test:v3 kiểm tra graph đã lưu. Chưa thử đầu ra video từ AI thật cho lối tắt này.",
+    "evidence": "[v3-nodes.js](../v3-nodes.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "T04",
+    "name": "Ảnh → suy ngược Prompt",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có lối tắt chọn ảnh từ kho chung rồi tạo tác vụ imageToPrompt nối riêng từng ảnh. Chưa kiểm tra ảnh → Prompt qua tài khoản AI thật.",
+    "evidence": "[v3-nodes.js](../v3-nodes.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "T05",
+    "name": "Văn bản → Nhạc",
+    "status": "⚪ Chưa triển khai",
+    "finding": "Chưa có tác vụ text-to-music/backend sinh nhạc. OpenAI speech là TTS, không phải sinh nhạc.",
+    "evidence": "[v3-nodes.js](../v3-nodes.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "T06",
+    "name": "Chọn AI, model và tab",
+    "status": "🟡 Chưa đủ",
+    "finding": "Model picker dùng chung, lọc connected/capability; chọn tab kiểm tra URL hiện tại. Không suy ra mọi provider/model đã thử thật.",
+    "evidence": "[v3-nodes.js](../v3-nodes.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "T07",
+    "name": "Dịch hai chiều",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có attach dịch Việt ↔ Anh, hoàn tác, cập nhật textarea và route AI. Chưa thử dịch trên tài khoản thật.",
+    "evidence": "[v3-nodes.js](../v3-nodes.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "T08",
+    "name": "Gửi Prompt ↑",
+    "status": "🟡 Chưa đủ",
+    "finding": "Nút Run thật được chuyển vào composer thành mũi tên; giữ handler gửi/dừng và trạng thái chạy/lỗi. Browser smoke kiểm tra transport mô phỏng; chưa AI live.",
+    "evidence": "[v3-nodes.js](../v3-nodes.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "T09",
+    "name": "Thu gọn / mở rộng Prompt",
+    "status": "🟢 Cục bộ",
+    "finding": "Composer dưới thẻ giữ độ rộng màn hình khi zoom, thu gọn không mất chữ. Test:v3 mở editor lớn, sửa chữ, thấy model/send thật được di chuyển vào và đóng lại giữ nội dung.",
+    "evidence": "[v3-nodes.js](../v3-nodes.js) · [app.js](../app.js) · [test:v3](../tests/v3-smoke.cjs)"
+  },
+  {
+    "code": "T10",
+    "name": "Cổng nhận/gửi",
+    "status": "🟡 Chưa đủ",
+    "finding": "Cổng hiển thị dấu + và nhãn khi chọn/hover; giữ kiểm tra kiểu và runtime dây thật. Chưa thử tất cả thao tác kéo/chuột phải theo từng loại node V3.",
+    "evidence": "[v3-nodes.js](../v3-nodes.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "S01",
+    "name": "Kịch bản → tạo phân cảnh/tài sản",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có parser hồi/phần/đoạn/cảnh, tạo graph ảnh/video, dashboard và tham chiếu @tag. Chưa menu tạo tài sản V3 và sheet nhân vật ba góc theo mẫu.",
+    "evidence": "[v3-nodes.js](../v3-nodes.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "S02",
+    "name": "Nhân vật/ảnh → tạo kịch bản",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có input ảnh chung và gắn ảnh tham chiếu vào kịch bản/scene. Chưa đầy đủ luồng card nhiều ảnh nhân vật → kịch bản V3. Không dùng riêng việc có cổng để kết luận hoàn tất.",
+    "evidence": "[v3-nodes.js](../v3-nodes.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "S03",
+    "name": "Tự viết kịch bản phân cảnh",
+    "status": "🟢 Cục bộ",
+    "finding": "Có bảng phân cảnh chỉnh tên cảnh, giây, hình, góc máy, sáng, thoại, tiếng, chuyển động; thêm/xóa và lưu thành script. Test:v3 sửa/lưu phân cảnh rồi reload.",
+    "evidence": "[v3-nodes.js](../v3-nodes.js) · [app.js](../app.js) · [test:v3](../tests/v3-smoke.cjs)"
+  },
+  {
+    "code": "S04",
+    "name": "Nhập nội dung kịch bản",
+    "status": "🟡 Chưa đủ",
+    "finding": "Nhập/sửa script, nhận text đầu vào, lưu graph có mã thực.",
+    "evidence": "[v3-nodes.js](../v3-nodes.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "S05",
+    "name": "Thêm ảnh tham chiếu",
+    "status": "🟡 Chưa đủ",
+    "finding": "Thêm nguồn từ Canvas/máy vẫn dùng handler thật; kho chung đã bật, chọn tài nguyên tạo node nguồn và nối đúng cổng. test:v3 xác minh dùng video từ kho; chưa thử từng nút/loại tham chiếu trong nhóm này.",
+    "evidence": "[v3-nodes.js](../v3-nodes.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "S06",
+    "name": "Chọn AI/model/tab",
+    "status": "🟡 Chưa đủ",
+    "finding": "Model picker dùng chung, lọc connected/capability; chọn tab kiểm tra URL hiện tại. Không suy ra mọi provider/model đã thử thật.",
+    "evidence": "[v3-nodes.js](../v3-nodes.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "S07",
+    "name": "Dịch Việt ↔ Anh",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có attach dịch Việt ↔ Anh, hoàn tác, cập nhật textarea và route AI. Chưa thử dịch trên tài khoản thật.",
+    "evidence": "[v3-nodes.js](../v3-nodes.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "S08",
+    "name": "Gửi Prompt ↑",
+    "status": "🟡 Chưa đủ",
+    "finding": "Gửi instruction + script hoặc text từ nguồn; caller giữ node.id để lấy ảnh tham chiếu. Kết quả cập nhật script, giữ scriptBeforeAI và Prompt người dùng. Chưa AI live.",
+    "evidence": "[v3-nodes.js](../v3-nodes.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "S09",
+    "name": "Thu gọn / mở rộng Prompt",
+    "status": "🟡 Chưa đủ",
+    "finding": "Dùng composer V3 dưới node, bù zoom, thu gọn và editor mở rộng dùng controls thật. Test:v3 kiểm tra component trên F01; chưa chạy riêng đầy đủ hành vi của mã này trên mọi node/nền tảng.",
+    "evidence": "[v3-nodes.js](../v3-nodes.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "S10",
+    "name": "Hiển thị và gửi kết quả kịch bản",
+    "status": "🟡 Chưa đủ",
+    "finding": "Script chỉnh được trên thẻ; có bảng phân cảnh, tải text và cổng text. Kết quả AI cập nhật script thực. Chưa thử đầy đủ vòng AI → sửa shot list → downstream với dịch vụ thật.",
+    "evidence": "[v3-nodes.js](../v3-nodes.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "I01",
+    "name": "Nhập Prompt",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có localPrompt, oninput, autosave và resolvePrompt kết hợp nguồn nối; Director dùng cùng node generateImage.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "I02",
+    "name": "Tải ảnh tham chiếu",
+    "status": "🟡 Chưa đủ",
+    "finding": "Thêm nguồn từ Canvas/máy vẫn dùng handler thật; kho chung đã bật, chọn tài nguyên tạo node nguồn và nối đúng cổng. test:v3 xác minh dùng video từ kho; chưa thử từng nút/loại tham chiếu trong nhóm này.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "I03",
+    "name": "Tham chiếu từ Canvas",
+    "status": "🟡 Chưa đủ",
+    "finding": "Thêm nguồn từ Canvas/máy vẫn dùng handler thật; kho chung đã bật, chọn tài nguyên tạo node nguồn và nối đúng cổng. test:v3 xác minh dùng video từ kho; chưa thử từng nút/loại tham chiếu trong nhóm này.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "I04",
+    "name": "Đánh dấu đối tượng",
+    "status": "ẨN",
+    "finding": "Nhãn/điểm tạo thao tác bị cấm không có trên các bề mặt UI đã kiểm tra; test hidden actions đạt. Không tính là thiếu chức năng cần bật lại.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "I05",
+    "name": "Chọn phong cách",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có popup tối, tìm kiếm, tab danh mục, 12 preset dạng thẻ và ghép instruction vào request. Không khẳng định đã khớp toàn bộ ảnh mẫu/style library.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "I06",
+    "name": "Chọn AI/model/tab",
+    "status": "🟡 Chưa đủ",
+    "finding": "Model picker dùng chung, lọc connected/capability; chọn tab kiểm tra URL hiện tại. Không suy ra mọi provider/model đã thử thật.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "I07",
+    "name": "Tỷ lệ khung hình",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có chọn tỷ lệ và truyền vào yêu cầu. Danh sách vẫn cố định; chưa điều chỉnh đầy đủ theo capability từng model.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "I08",
+    "name": "Độ phân giải 1K/2K/4K",
+    "status": "⚪ Chưa triển khai",
+    "finding": "Chưa có lựa chọn 1K/2K/4K cho tác vụ sinh ảnh cơ sở. Scale 2×/4×/6× của node HD là tác vụ khác.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "I09",
+    "name": "Số lượng ảnh",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có số bản sao ở công cụ tạo ảnh hàng loạt; chưa bộ chọn số ảnh và thu nhiều đầu ra trên từng F03.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "I10",
+    "name": "Chỉnh sửa phần tử",
+    "status": "⚪ Chưa triển khai",
+    "finding": "Chưa thấy chế độ chỉnh phần tử có overlay tối, chọn điểm/brush/mask và gửi edit. I18 vẽ ghi chú là chức năng khác, không được tính thay I10.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "I11",
+    "name": "HD / Nâng cấp độ phân giải",
+    "status": "🟡 Chưa đủ",
+    "finding": "Tạo node HD nối nguồn và cho chọn cấu hình trước khi người dùng bấm Gửi; giữ scale/prompt ẩn/audit kích thước. Chưa xác minh AI thật.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "I12",
+    "name": "Nhiều góc độ",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có task góc máy dùng chung, preset và thông số xoay/zoom/reset; đã bỏ tự gửi ngay khi tạo. Chưa có quả cầu quỹ đạo, chưa xác minh ảnh mới đúng chủ thể qua AI thật.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "I13",
+    "name": "Phân đoạn lưới",
+    "status": "ẨN",
+    "finding": "Nhãn/điểm tạo thao tác bị cấm không có trên các bề mặt UI đã kiểm tra; test hidden actions đạt. Không tính là thiếu chức năng cần bật lại.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "I14",
+    "name": "Phân tách lớp",
+    "status": "ẨN",
+    "finding": "Nhãn/điểm tạo thao tác bị cấm không có trên các bề mặt UI đã kiểm tra; test hidden actions đạt. Không tính là thiếu chức năng cần bật lại.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "I15",
+    "name": "Tầm nhìn toàn cảnh 720 độ",
+    "status": "ẨN",
+    "finding": "Nhãn/điểm tạo thao tác bị cấm không có trên các bề mặt UI đã kiểm tra; test hidden actions đạt. Không tính là thiếu chức năng cần bật lại.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "I16",
+    "name": "Hơn",
+    "status": "ẨN",
+    "finding": "Nhãn/điểm tạo thao tác bị cấm không có trên các bề mặt UI đã kiểm tra; test hidden actions đạt. Không tính là thiếu chức năng cần bật lại.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "I17",
+    "name": "Nhân bản",
+    "status": "🟡 Chưa đủ",
+    "finding": "Nhân bản một node qua toolbar giữ asset/text đầu ra, tạo ID mới và remap dây; nhân bản nhóm legacy vẫn có quy tắc reset đầu ra. Chưa thử đầy đủ ca này trên V3/Electron.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "I18",
+    "name": "Vẽ/đánh dấu",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có editor vẽ/vùng/điểm/chữ, màu, độ dày, undo/redo; lưu normalized strokes + note và hiển thị note vàng. Đã có browser test và thao tác local không gọi AI.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "I19",
+    "name": "Tải ảnh",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có action tải media thật qua chrome.downloads/desktop bridge, giữ tên/phần mở rộng. Không suy ra mọi CDN đều có quyền tải.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "I20",
+    "name": "Zoom xem ảnh",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có lightbox ảnh/video/audio thật; video có native controls. Chưa kiểm thử mọi tình huống bàn phím/player trên thiết bị người dùng.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "I21",
+    "name": "Nút gửi ↑",
+    "status": "🟡 Chưa đủ",
+    "finding": "Mũi tên trong composer tái sử dụng nút Run/Stop thật, có trạng thái chạy/lỗi. Đường gửi được kiểm tra với provider mô phỏng; chưa AI live của tác vụ này.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "I22",
+    "name": "Thu gọn/mở rộng Prompt",
+    "status": "🟡 Chưa đủ",
+    "finding": "Dùng composer V3 dưới node, bù zoom, thu gọn và editor mở rộng dùng controls thật. Test:v3 kiểm tra component trên F01; chưa chạy riêng đầy đủ hành vi của mã này trên mọi node/nền tảng.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "V01",
+    "name": "Nhập Prompt",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có localPrompt, oninput, autosave và resolvePrompt kết hợp nguồn nối; Director dùng cùng node generateImage.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "V02",
+    "name": "Tải ảnh/video tham chiếu",
+    "status": "🟡 Chưa đủ",
+    "finding": "Thêm nguồn từ Canvas/máy vẫn dùng handler thật; kho chung đã bật, chọn tài nguyên tạo node nguồn và nối đúng cổng. test:v3 xác minh dùng video từ kho; chưa thử từng nút/loại tham chiếu trong nhóm này.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "V03",
+    "name": "Tham chiếu Canvas",
+    "status": "🟡 Chưa đủ",
+    "finding": "Thêm nguồn từ Canvas/máy vẫn dùng handler thật; kho chung đã bật, chọn tài nguyên tạo node nguồn và nối đúng cổng. test:v3 xác minh dùng video từ kho; chưa thử từng nút/loại tham chiếu trong nhóm này.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "V04",
+    "name": "Thư viện nhân vật",
+    "status": "🟡 Chưa đủ",
+    "finding": "Kho chung có phân loại Nhân vật/Bối cảnh/Sản phẩm và chọn tham chiếu. Chưa hoàn thiện nút thư viện nhân vật riêng và toàn bộ luồng nhân vật theo mẫu.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "V05",
+    "name": "Công cụ góc máy",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có popup cỡ cảnh/góc/chuyển động/tiêu cự/khẩu độ và ghép request. Chưa đủ các switch/thiết bị và bố cục của toàn bộ mẫu.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "V06",
+    "name": "Chọn AI/model/tab",
+    "status": "🟡 Chưa đủ",
+    "finding": "Model picker dùng chung, lọc connected/capability; chọn tab kiểm tra URL hiện tại. Không suy ra mọi provider/model đã thử thật.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "V07",
+    "name": "Tỷ lệ khung hình",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có chọn tỷ lệ và truyền vào yêu cầu. Danh sách vẫn cố định; chưa điều chỉnh đầy đủ theo capability từng model.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "V08",
+    "name": "Thời lượng",
+    "status": "🟡 Chưa đủ",
+    "finding": "Dropdown đổi sang 4/6/8 khi base provider Google, kể cả alias tài khoản; provider khác giữ mức adapter cũ. Chưa QA đầy đủ mọi model/tài khoản live.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "V09",
+    "name": "Chất lượng video",
+    "status": "⚪ Chưa triển khai",
+    "finding": "Chưa có bộ chọn chất lượng cho tác vụ sinh video cơ sở theo model. 480P/720P ở task depth và 1080P/2K/4K ở HD không thay thế V09.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "V10",
+    "name": "Ghi hình chuyển động chiều sâu",
+    "status": "🟡 Chưa đủ",
+    "finding": "Giữ video nguồn + frame đầu, preset 480P/720P, prompt depth và adapter fal Motion Control; tạo node chờ Gửi thay vì tự gửi mặc định. Chưa đầu ra AI thật.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "V11",
+    "name": "HD / Nâng chất lượng video",
+    "status": "🟡 Chưa đủ",
+    "finding": "Node HD nối nguồn, chọn resolution/FPS rồi bấm Gửi; adapter dùng tham số cấu trúc của endpoint. Chưa xác minh chất lượng/âm thanh video thật.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "V12",
+    "name": "Xóa phụ đề",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có task videoSubtitles, gửi video + prompt inpaint tới Kling O1, lưu video mới. Chưa xác minh xóa chữ thật trên tài khoản/dữ liệu thực.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "V13",
+    "name": "Làm lại đoạn video",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có player, mốc start/end, lấy vị trí tua, prompt edit và ghép clipReplace vào nguồn. Chưa timeline thumbnail/chọn vùng đúng mẫu; bảo toàn nội dung thật cần QA.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "V14",
+    "name": "Tách âm thanh / Tách âm thanh và video",
+    "status": "ẨN",
+    "finding": "Nhãn/điểm tạo thao tác bị cấm không có trên các bề mặt UI đã kiểm tra; test hidden actions đạt. Không tính là thiếu chức năng cần bật lại.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "V15",
+    "name": "Hơn",
+    "status": "ẨN",
+    "finding": "Nhãn/điểm tạo thao tác bị cấm không có trên các bề mặt UI đã kiểm tra; test hidden actions đạt. Không tính là thiếu chức năng cần bật lại.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "V16",
+    "name": "Phát/tạm dừng",
+    "status": "🟡 Chưa đủ",
+    "finding": "Dùng video controls thật: phát/tạm dừng/tua/âm lượng; đường preview video có smoke test local.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "V17",
+    "name": "Tải video",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có action tải media thật qua chrome.downloads/desktop bridge, giữ tên/phần mở rộng. Không suy ra mọi CDN đều có quyền tải.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "V18",
+    "name": "Zoom xem video",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có lightbox ảnh/video/audio thật; video có native controls. Chưa kiểm thử mọi tình huống bàn phím/player trên thiết bị người dùng.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "V19",
+    "name": "Nút gửi ↑",
+    "status": "🟡 Chưa đủ",
+    "finding": "Mũi tên trong composer tái sử dụng nút Run/Stop thật, có trạng thái chạy/lỗi. Đường gửi được kiểm tra với provider mô phỏng; chưa AI live của tác vụ này.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "V20",
+    "name": "Tạo lại video",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có nút Again, gọi executeGenerationNode với again:true. Không suy ra toàn bộ adapter live đã thử.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "V21",
+    "name": "Thu gọn Prompt",
+    "status": "🟡 Chưa đủ",
+    "finding": "Dùng composer V3 dưới node, bù zoom, thu gọn và editor mở rộng dùng controls thật. Test:v3 kiểm tra component trên F01; chưa chạy riêng đầy đủ hành vi của mã này trên mọi node/nền tảng.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "D01",
+    "name": "Mở bàn làm việc 3D",
+    "status": "ẨN",
+    "finding": "Nhãn/điểm tạo thao tác bị cấm không có trên các bề mặt UI đã kiểm tra; test hidden actions đạt. Không tính là thiếu chức năng cần bật lại.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "D02",
+    "name": "Nhập mô tả cảnh",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có localPrompt, oninput, autosave và resolvePrompt kết hợp nguồn nối; Director dùng cùng node generateImage.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "D03",
+    "name": "Thêm ảnh tham chiếu",
+    "status": "🟡 Chưa đủ",
+    "finding": "Thêm nguồn từ Canvas/máy vẫn dùng handler thật; kho chung đã bật, chọn tài nguyên tạo node nguồn và nối đúng cổng. test:v3 xác minh dùng video từ kho; chưa thử từng nút/loại tham chiếu trong nhóm này.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "D04",
+    "name": "Gửi tạo cảnh ↑",
+    "status": "🟡 Chưa đủ",
+    "finding": "Mũi tên trong composer tái sử dụng nút Run/Stop thật, có trạng thái chạy/lỗi. Đường gửi được kiểm tra với provider mô phỏng; chưa AI live của tác vụ này.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "D05",
+    "name": "Xem không gian 3D",
+    "status": "ẨN",
+    "finding": "Nhãn/điểm tạo thao tác bị cấm không có trên các bề mặt UI đã kiểm tra; test hidden actions đạt. Không tính là thiếu chức năng cần bật lại.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "D06",
+    "name": "Điều khiển camera",
+    "status": "ẨN",
+    "finding": "Nhãn/điểm tạo thao tác bị cấm không có trên các bề mặt UI đã kiểm tra; test hidden actions đạt. Không tính là thiếu chức năng cần bật lại.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "D07",
+    "name": "Chọn góc máy",
+    "status": "🟡 Chưa đủ",
+    "finding": "Dùng chung imageAngles như I12 và chờ người dùng Gửi; chưa quả cầu quỹ đạo và QA AI thật.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "D08",
+    "name": "Xuất ảnh từ camera",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có saveDirectorSnapshot tạo imageSnapshot mới nối ảnh nguồn. Thực tế sao chép ảnh hiện tại; chưa có renderer/camera 3D để xác nhận xuất đúng góc camera trong không gian.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "D09",
+    "name": "Thu gọn Prompt",
+    "status": "🟡 Chưa đủ",
+    "finding": "Dùng composer V3 dưới node, bù zoom, thu gọn và editor mở rộng dùng controls thật. Test:v3 kiểm tra component trên F01; chưa chạy riêng đầy đủ hành vi của mã này trên mọi node/nền tảng.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "E01",
+    "name": "Nhận video tham chiếu",
+    "status": "ẨN",
+    "finding": "F06 được yêu cầu ẩn toàn bộ, không có điểm tạo Smart Edit trong UI. Chưa chứng minh tương thích một schema Smart Edit cũ chưa xác định.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "E02",
+    "name": "Nhập lệnh chỉnh sửa",
+    "status": "ẨN",
+    "finding": "F06 được yêu cầu ẩn toàn bộ, không có điểm tạo Smart Edit trong UI. Chưa chứng minh tương thích một schema Smart Edit cũ chưa xác định.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "E03",
+    "name": "Video thuyết minh",
+    "status": "ẨN",
+    "finding": "F06 được yêu cầu ẩn toàn bộ, không có điểm tạo Smart Edit trong UI. Chưa chứng minh tương thích một schema Smart Edit cũ chưa xác định.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "E04",
+    "name": "Quảng cáo hàng loạt",
+    "status": "ẨN",
+    "finding": "F06 được yêu cầu ẩn toàn bộ, không có điểm tạo Smart Edit trong UI. Chưa chứng minh tương thích một schema Smart Edit cũ chưa xác định.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "E05",
+    "name": "Video podcast",
+    "status": "ẨN",
+    "finding": "F06 được yêu cầu ẩn toàn bộ, không có điểm tạo Smart Edit trong UI. Chưa chứng minh tương thích một schema Smart Edit cũ chưa xác định.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "E06",
+    "name": "Biên tập tư liệu",
+    "status": "ẨN",
+    "finding": "F06 được yêu cầu ẩn toàn bộ, không có điểm tạo Smart Edit trong UI. Chưa chứng minh tương thích một schema Smart Edit cũ chưa xác định.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "E07",
+    "name": "Chế độ chỉnh sửa",
+    "status": "ẨN",
+    "finding": "F06 được yêu cầu ẩn toàn bộ, không có điểm tạo Smart Edit trong UI. Chưa chứng minh tương thích một schema Smart Edit cũ chưa xác định.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "E08",
+    "name": "Tỷ lệ khung hình",
+    "status": "ẨN",
+    "finding": "F06 được yêu cầu ẩn toàn bộ, không có điểm tạo Smart Edit trong UI. Chưa chứng minh tương thích một schema Smart Edit cũ chưa xác định.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "E09",
+    "name": "Thời lượng đầu ra",
+    "status": "ẨN",
+    "finding": "F06 được yêu cầu ẩn toàn bộ, không có điểm tạo Smart Edit trong UI. Chưa chứng minh tương thích một schema Smart Edit cũ chưa xác định.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "E10",
+    "name": "Nhân bản",
+    "status": "ẨN",
+    "finding": "F06 được yêu cầu ẩn toàn bộ, không có điểm tạo Smart Edit trong UI. Chưa chứng minh tương thích một schema Smart Edit cũ chưa xác định.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "E11",
+    "name": "Cắt khung / Lấy ảnh khung hình",
+    "status": "ẨN",
+    "finding": "F06 được yêu cầu ẩn toàn bộ, không có điểm tạo Smart Edit trong UI. Chưa chứng minh tương thích một schema Smart Edit cũ chưa xác định.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "E12",
+    "name": "Tải video",
+    "status": "ẨN",
+    "finding": "F06 được yêu cầu ẩn toàn bộ, không có điểm tạo Smart Edit trong UI. Chưa chứng minh tương thích một schema Smart Edit cũ chưa xác định.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "E13",
+    "name": "Zoom xem video",
+    "status": "ẨN",
+    "finding": "F06 được yêu cầu ẩn toàn bộ, không có điểm tạo Smart Edit trong UI. Chưa chứng minh tương thích một schema Smart Edit cũ chưa xác định.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "E14",
+    "name": "Timeline chuyên dụng",
+    "status": "ẨN",
+    "finding": "F06 được yêu cầu ẩn toàn bộ, không có điểm tạo Smart Edit trong UI. Chưa chứng minh tương thích một schema Smart Edit cũ chưa xác định.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "E15",
+    "name": "Nút gửi ↑",
+    "status": "ẨN",
+    "finding": "F06 được yêu cầu ẩn toàn bộ, không có điểm tạo Smart Edit trong UI. Chưa chứng minh tương thích một schema Smart Edit cũ chưa xác định.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "E16",
+    "name": "Thu gọn Prompt",
+    "status": "ẨN",
+    "finding": "F06 được yêu cầu ẩn toàn bộ, không có điểm tạo Smart Edit trong UI. Chưa chứng minh tương thích một schema Smart Edit cũ chưa xác định.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [kiểm tra ẩn](../tests/desktop-shared-node-controls.test.cjs)"
+  },
+  {
+    "code": "A01",
+    "name": "Nhập Prompt",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có textarea lời đọc và TTS OpenAI. Chưa có prompt sinh nhạc/âm thanh tổng quát của F07.",
+    "evidence": "[media-studio.js](../media-studio.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "A02",
+    "name": "Tải âm thanh tham chiếu",
+    "status": "⚪ Chưa triển khai",
+    "finding": "F07 đang ánh xạ voiceover chỉ có input text; chưa có audio-reference/voice-cloning input trên F07. Node audioInput riêng không hoàn thành A02.",
+    "evidence": "[media-studio.js](../media-studio.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "A03",
+    "name": "Tham chiếu Canvas",
+    "status": "🟡 Chưa đủ",
+    "finding": "Voiceover nhận text từ Canvas. Chưa nhận đầy đủ audio/video làm tham chiếu của F07; preset audio→video là node video riêng.",
+    "evidence": "[media-studio.js](../media-studio.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "A04",
+    "name": "Âm thanh → Video",
+    "status": "🟡 Chưa đủ",
+    "finding": "Hai nút dùng chung audioToVideo, tạo node video nối audio, player và cấu hình ảnh/tỷ lệ/thời lượng, adapter LTX có payload test. Chưa waveform và toàn bộ bố cục preset theo mẫu; chưa gọi dịch vụ thật.",
+    "evidence": "[media-studio.js](../media-studio.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "A05",
+    "name": "Chọn AI/model/tab",
+    "status": "🟡 Chưa đủ",
+    "finding": "Picker TTS nhận cả tài khoản OpenAI được đặt tên, dùng đúng key được chọn. Model speech vẫn gpt-4o-mini-tts; chưa provider âm nhạc/clone giọng.",
+    "evidence": "[media-studio.js](../media-studio.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "A06",
+    "name": "WAV/MP3",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có bộ chọn MP3/WAV, gửi response_format tương ứng và giữ tên tệp đúng định dạng. Unit test xác minh request/bytes mô phỏng; chưa tải tệp speech từ dịch vụ thật.",
+    "evidence": "[media-studio.js](../media-studio.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "A07",
+    "name": "Thời lượng",
+    "status": "⚪ Chưa triển khai",
+    "finding": "F07 chỉ có speed và voice; chưa có điều khiển thời lượng audio. duration của preset audio→video là thời lượng video.",
+    "evidence": "[media-studio.js](../media-studio.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "A08",
+    "name": "Giọng nói",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có chọn sáu giọng TTS và truyền voice tới OpenAI speech. Chưa thử tài khoản thật.",
+    "evidence": "[media-studio.js](../media-studio.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "A09",
+    "name": "Dịch Việt ↔ Anh",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có attach dịch Việt ↔ Anh, hoàn tác, cập nhật textarea và route AI. Chưa thử dịch trên tài khoản thật.",
+    "evidence": "[media-studio.js](../media-studio.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "A10",
+    "name": "Cài đặt nâng cao",
+    "status": "🟡 Chưa đủ",
+    "finding": "Hai nút dùng chung audioToVideo, tạo node video nối audio, player và cấu hình ảnh/tỷ lệ/thời lượng, adapter LTX có payload test. Chưa waveform và toàn bộ bố cục preset theo mẫu; chưa gọi dịch vụ thật.",
+    "evidence": "[media-studio.js](../media-studio.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "A11",
+    "name": "Nút gửi ↑",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có nút ↑ gọi execute/voiceover và trạng thái common. Vẫn có nút Thực hiện từ studio và backend chỉ TTS; chưa hợp nhất toàn bộ audio AI.",
+    "evidence": "[media-studio.js](../media-studio.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "A12",
+    "name": "Nghe kết quả",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có audio player native với file kết quả; chưa waveform của F07/preset audio.",
+    "evidence": "[media-studio.js](../media-studio.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "A13",
+    "name": "Thu gọn Prompt",
+    "status": "🟡 Chưa đủ",
+    "finding": "Dùng composer V3 dưới node, bù zoom, thu gọn và editor mở rộng dùng controls thật. Test:v3 kiểm tra component trên F01; chưa chạy riêng đầy đủ hành vi của mã này trên mọi node/nền tảng.",
+    "evidence": "[media-studio.js](../media-studio.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "U01",
+    "name": "Chọn ảnh từ máy",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có chọn/thả/dán ảnh thật, kiểm tra file và importMediaFiles; thay ảnh xóa annotation cũ, giữ dây và đánh dấu nguồn đổi.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "U02",
+    "name": "Dán ảnh clipboard",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có chọn/thả/dán ảnh thật, kiểm tra file và importMediaFiles; thay ảnh xóa annotation cũ, giữ dây và đánh dấu nguồn đổi.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "U03",
+    "name": "Hiển thị preview ảnh",
+    "status": "🟡 Chưa đủ",
+    "finding": "Card V3 dùng object-fit:contain, giữ media gốc. Chưa kiểm tra đủ ảnh ngang/dọc/lớn và các nền tảng.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "U04",
+    "name": "Đổi tên",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có rename handler, customName và lưu workflow.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "U05",
+    "name": "Nhân bản",
+    "status": "🟡 Chưa đủ",
+    "finding": "Nhân bản đầu vào giữ media và ID mới; bản sao kết quả cũng giữ media khi dùng toolbar. Chưa kiểm tra hết thao tác clone V3.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "U06",
+    "name": "Tải ảnh",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có action tải media thật qua chrome.downloads/desktop bridge, giữ tên/phần mở rộng. Không suy ra mọi CDN đều có quyền tải.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "U07",
+    "name": "Phóng to",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có lightbox ảnh/video/audio thật; video có native controls. Chưa kiểm thử mọi tình huống bàn phím/player trên thiết bị người dùng.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "U08",
+    "name": "Kết nối sang Node khác",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có cổng image/video, kiểm tra kiểu, nối dây và truyền nguồn vào runtime.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "U09",
+    "name": "Thay ảnh",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có chọn/thả/dán ảnh thật, kiểm tra file và importMediaFiles; thay ảnh xóa annotation cũ, giữ dây và đánh dấu nguồn đổi.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "U10",
+    "name": "Công cụ ảnh AI (ảnh tải lên)",
+    "status": "🟡 Chưa đủ",
+    "finding": "Dùng cùng specialResultActions cho ảnh nhập và ảnh sinh: reverse prompt, HD, angles, annotations, download/zoom/clone. I10 và một số UX F03 chưa đủ nên chưa thể gọi toolbar hoàn tất toàn bộ.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "U11",
+    "name": "Chọn video từ máy",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có nhập/thả video và player sử dụng dữ liệu media thật.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "U12",
+    "name": "Hiển thị video",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có nhập/thả video và player sử dụng dữ liệu media thật.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "U13",
+    "name": "Phát/tạm dừng",
+    "status": "🟡 Chưa đủ",
+    "finding": "Dùng video controls thật: phát/tạm dừng/tua/âm lượng; đường preview video có smoke test local.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "U14",
+    "name": "Thanh tua",
+    "status": "🟡 Chưa đủ",
+    "finding": "Dùng video controls thật: phát/tạm dừng/tua/âm lượng; đường preview video có smoke test local.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "U15",
+    "name": "Âm lượng",
+    "status": "🟡 Chưa đủ",
+    "finding": "Dùng video controls thật: phát/tạm dừng/tua/âm lượng; đường preview video có smoke test local.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "U16",
+    "name": "Đổi tên",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có rename handler, customName và lưu workflow.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "U17",
+    "name": "Nhân bản",
+    "status": "🟡 Chưa đủ",
+    "finding": "Nhân bản đầu vào giữ media và ID mới; bản sao kết quả cũng giữ media khi dùng toolbar. Chưa kiểm tra hết thao tác clone V3.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "U18",
+    "name": "Tải video",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có action tải media thật qua chrome.downloads/desktop bridge, giữ tên/phần mở rộng. Không suy ra mọi CDN đều có quyền tải.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "U19",
+    "name": "Phóng to video",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có lightbox ảnh/video/audio thật; video có native controls. Chưa kiểm thử mọi tình huống bàn phím/player trên thiết bị người dùng.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "U20",
+    "name": "Kết nối sang Node khác",
+    "status": "🟡 Chưa đủ",
+    "finding": "Có cổng image/video, kiểm tra kiểu, nối dây và truyền nguồn vào runtime.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  },
+  {
+    "code": "U21",
+    "name": "Công cụ video AI (video tải lên)",
+    "status": "🟡 Chưa đủ",
+    "finding": "Toolbar upload video dùng chung với generateVideo; ba lựa chọn capture current/first/last có implementation local. Các tác vụ AI vẫn có giới hạn/chưa QA live như V10–V13.",
+    "evidence": "[app.js](../app.js) · [app.js](../app.js) · [giới hạn](#phan-con-thieu)"
+  }
+]

@@ -1,5 +1,18 @@
 # BÁO CÁO BÀN GIAO CHO AI — MUSEFLOW / WORKFLOW
 
+## T-001–T-010 / P0 — UI V3 trong ứng dụng thật (2026-11-08)
+
+**CHƯA HOÀN THÀNH P0/122 mã.** Đã hợp nhất main `4a8c5ba` vào nhánh `feat/museflow-v3-interface` bằng `ebebd44`, giữ BUG-008 và trang Kết nối AI. Không xem nhánh này là đã merge vào main.
+
+- Mã thực: `719ea13` — header/toolbar nổi, menu 8 nhóm, card/edit text/bảng phân cảnh, Prompt dưới node bù zoom, quản lý workflow/theme/share, thư viện chung và dùng video thật, minimap/dây/audit/Fit ghi chú, giữ node cũ chưa hỗ trợ, WAV và sửa thời lượng Google. File chính: `app.js`, `app.html`, `compact-toolbar.js`, `v3-ui.js`, `v3-nodes.js`, `v3.css`, `asset-library.js`, `media-studio.js`, `tools/package.py`.
+- Kiểm thử: `62a9413` — `test:v3`, `test:connections`, cập nhật browser/desktop smoke cho control V3, thêm request WAV. `npm test` **142/142 pass**; browser, V3, connections, reliability và Electron đều pass. Browser kiểm tra MP4 H.264/AAC xuất bằng FFmpeg thật; AI/Chrome transport dùng fixture, **không có bằng chứng AI live**.
+- Build Linux unpacked thành công bằng Electron đã cài: `npm run package:desktop -- --config.electronDist=node_modules/electron/dist`; đối chiếu ASAR chứa byte hiện hành của app và bốn module V3. Build mặc định không ghi được cache ngoài workspace. Chưa build/ký macOS/Windows; không xuất ZIP.
+- Test bổ sung đã phát hiện và sửa URL video từ kho bị revoke sau đóng, toolbar đổi chiều rộng theo offset và dock legacy che header. Video dùng từ thư viện lưu/reload còn phát bằng nguồn IndexedDB; editor/text/note và workflow chuyển qua lại giữ nội dung.
+- [Báo cáo + ảnh app thật + checklist đủ 122 mã](V3_IMPLEMENTATION_STATUS.md); [bảng JSON](V3_122_STATUS.json). Có **3 mã thao tác cục bộ đã kiểm thử**, **87 mã chưa đủ/QA chưa đầy đủ**, **6 mã chưa triển khai**, **26 mã ẩn theo yêu cầu**. Không nâng trạng thái vì có tài liệu hoặc test AI mô phỏng.
+- T-006: đã có bù zoom và test Prompt/editor lớn; chưa QA đủ mọi node/mức zoom. T-008: quản lý workflow có code, thử mới/chuyển/reload; chưa test hết clone/delete/error. T-009 chưa follow/freeze/drag-to-port/phiên bản đầy đủ. T-010 audit hiện kiểm tra Prompt/required ports, chưa toàn bộ luật preflight tác vụ.
+- Còn thiếu chính: sinh nhạc/audio tham chiếu/thời lượng theo model; I08/V09 chất lượng cơ sở; I10 edit vùng AI; sheet tài sản/kịch bản, quả cầu góc máy, thumbnail chọn đoạn, waveform và preset audio; D08 camera thật; tài khoản AI live và test từng nút. Chưa có toàn bộ ảnh gốc để kết luận giống thiết kế 100%.
+
+
 ## BUG-008 — Không nhận kết quả từ cuộc trò chuyện AI khác (2026-11-08)
 
 - Người dùng yêu cầu sửa lỗi đã tái hiện trên Chromium: gửi tại chat A, chuyển SPA sang chat B khi đang chờ, `ai-bridge.js` nhận câu trả lời của B và trả `ok: true`. `otherTabMessage()` còn ghi URL B vào `chatTarget`.
