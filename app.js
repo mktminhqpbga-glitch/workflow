@@ -1879,7 +1879,7 @@
     for(const [index,{file,url}] of loaded.entries()){
       const kind=file.type.split('/')[0];let source=node;
       if(port||timeline){source=makeNode(kind==='video'?'videoInput':kind==='audio'?'audioInput':'imageInput',Math.max(20,(node?.x||350)-330),(node?.y||80)+index*250);state.nodes.push(source);}
-      storyDirtyAfter(source.id,true);if(port)storyTouch(node.id);source.data.fileName=file.name;source.data.localDataUrl=url;source.data.asset={id:uid('asset'),kind,url,name:file.name,sourceNodeId:source.id};
+      storyDirtyAfter(source.id,true);if(port)storyTouch(node.id);delete source.data.imageAnnotations;source.data.fileName=file.name;source.data.localDataUrl=url;source.data.asset={id:uid('asset'),kind,url,name:file.name,sourceNodeId:source.id};
       if(port){if(!isMultiInput(node.type,port.id))state.edges=state.edges.filter(e=>!(e.target===node.id&&e.targetPort===port.id));state.edges.push({id:uid('edge'),source:source.id,sourcePort:kind,target:node.id,targetPort:port.id});}
       if(timeline){const tl=ensureDockTimeline();tl.data.clipOrder.push(source.id);}
     }
@@ -2521,7 +2521,7 @@
               const sourceWidth=intrinsic.width,sourceHeight=intrinsic.height;progressNode(n,`AI trả ${sourceWidth} × ${sourceHeight}; đang đặt vào khung ${n.data.size}, giữ nguyên hình…`);
               const framed=await WorkflowStudio.process('frameFit',{videos:[{url,kind:'video'}],settings:{size:n.data.size}},abortController.signal,text=>progressNode(n,text));url=await blobAsDataUrl(framed.blob);intrinsic=await mediaDimensions(url,'video');sizeMismatch=Math.abs(Math.log((intrinsic.width/intrinsic.height)/expectedRatio))>.09;if(sizeMismatch)throw Error('Chưa chuyển được video về tỷ lệ yêu cầu.');framingNote=`AI trả ${sourceWidth} × ${sourceHeight}; đã thêm viền đệm để xuất ${n.data.size}, giữ toàn bộ hình gốc.`;
             }
-            n.data.asset={id:uid('asset'),kind,url,name:`${isVideo?'Video':'Image'} ${n.id}`,sourceNodeId:n.id,width:intrinsic.width,height:intrinsic.height,requestedSize:n.data.size,sizeMismatch,actualDuration:intrinsic.duration||null}; n.data.status='success';
+            delete n.data.imageAnnotations;n.data.asset={id:uid('asset'),kind,url,name:`${isVideo?'Video':'Image'} ${n.id}`,sourceNodeId:n.id,width:intrinsic.width,height:intrinsic.height,requestedSize:n.data.size,sizeMismatch,actualDuration:intrinsic.duration||null}; n.data.status='success';
             if(framingNote)n.data.error=framingNote;
             if(isVideo&&intrinsic.duration&&Math.abs(intrinsic.duration-Number(n.data.duration))>1)n.data.error=[framingNote,`Yêu cầu ${n.data.duration}s, AI trả về ${intrinsic.duration.toFixed(1)}s. Thời lượng clip phụ thuộc dịch vụ.`].filter(Boolean).join(' ');
             if(isVideo){const frame=await extractVideoEndFrame(url);if(abortController.signal.aborted)throw new DOMException('Đã dừng.','AbortError');if(frame)frame.sourceAssetId=n.data.asset.id;n.data.endFrame=frame;}
