@@ -36,6 +36,7 @@ test('network bridge only reaches supported APIs, updates, media and helper rout
   for (const url of ['https://api.openai.com/v1/responses',
     'https://generativelanguage.googleapis.com/v1beta/models/model:generateContent',
     'https://queue.fal.run/fal-ai/model', 'https://fal.media/result.mp4',
+    'https://storage.googleapis.com/falserverless/example_outputs/ltx-2-a2v-output.mp4',
     'https://storage.fal.media/result.mp4',
     'https://raw.githubusercontent.com/owner/repo/main/data.json', 'https://api.github.com/repos/a/b',
     'http://127.0.0.1:9473/health', 'http://127.0.0.1:9473/jobs',
@@ -46,6 +47,8 @@ test('network bridge only reaches supported APIs, updates, media and helper rout
   }
   for (const url of ['https://api.openai.com.evil.test/', 'https://evil.test@api.openai.com/',
     'https://api.openai.com:8443/', 'http://api.openai.com/', 'https://notfal.media/',
+    'https://storage.googleapis.com/private-bucket/secret.mp4',
+    'https://evil.test@storage.googleapis.com/falserverless/example_outputs/x.mp4',
     'http://127.0.0.1:9473/admin', 'http://127.0.0.1:9474/health',
     'http://localhost:9473/health', 'https://127.0.0.1:9473/health',
     'http://169.254.169.254/latest/meta-data/', 'file:///etc/passwd',
